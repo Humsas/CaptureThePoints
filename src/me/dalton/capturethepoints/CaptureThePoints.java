@@ -50,14 +50,11 @@ public class CaptureThePoints extends JavaPlugin {
     public final HashMap<Player, Location> previousLocation = new HashMap<Player, Location>();
     public List<Lobby> lobbies = new LinkedList<Lobby>(); // List of all lobbies
     public ConfigOptions configOptions = new ConfigOptions();
-    
     public List<String> arena_list = new LinkedList<String>();
     public ArenaData mainArena = new ArenaData();
     public String editingArenaName = ""; // arena
-    
     public HashMap<String, List<Items>> roles = new HashMap<String, List<Items>>();
     public CTPRewards rewards = new CTPRewards();
- 
     public CTPScheduler CTP_Scheduler = new CTPScheduler(); //timer
     public String playerNameForTeleport = ""; // Block destroy - teleport protection
     // Arenos issaugojimui
@@ -102,6 +99,13 @@ public class CaptureThePoints extends JavaPlugin {
         editingArenaName = "";
         teams.clear();
         roles.clear();
+    }
+    
+    public void resetArenaList() {
+        arena_list.clear();
+        //Load existing arenas
+        File file = new File(mainDir + File.separator + "Arenas");
+        loadArenas(file);
     }
 
     private void setupPermissions() {
@@ -234,7 +238,7 @@ public class CaptureThePoints extends JavaPlugin {
         if (mainArena == null) {
             config.removeProperty("Arena");
         }
-        
+
         configOptions.autoStart = config.getBoolean("AutoStart", true); // Kj -- Allows auto-start if there are enough players waiting. Else, game will only start on /ctp start    
         configOptions.allowBlockPlacement = config.getBoolean("AllowBlockPlacement", true); // Kj -- Allows placement of blocks outside of CTP Zones   
         configOptions.allowLateJoin = config.getBoolean("AllowLateJoin", true); // Kj -- Allows players to join after game has started
@@ -263,7 +267,7 @@ public class CaptureThePoints extends JavaPlugin {
         configOptions.scoreToWin = config.getInt("ScoreToWin", 15);
         configOptions.useScoreGeneration = config.getBoolean("UseScoreGeneration", false);
         configOptions.useSelectedArenaOnly = config.getBoolean("UseSelectedArenaOnly", false); // Kj -- if set to false, a random arena will be picked to play on.
-        
+
         config.save();
 
         CTP_Scheduler.money_Score = 0;
@@ -318,7 +322,21 @@ public class CaptureThePoints extends JavaPlugin {
                     } catch (Exception ex) {
                         team.chatcolor = ChatColor.GREEN;
                     }
-                    teams.add(team);
+                    
+                    // Kj -- copied previous team check here to double check if teams are being duped.
+                    // Check if this spawn is already in the list
+                    boolean hasTeam = false;
+
+                    for (Team aTeam : teams) {
+                        if (aTeam.color.equalsIgnoreCase(tmps.name)) {
+                            hasTeam = true;
+                            //ctp.teams.remove(aTeam);
+                        }
+                    }
+
+                    if (!hasTeam) {
+                        teams.add(team);
+                    }
                 }
             }
             // boundarys
@@ -395,7 +413,6 @@ public class CaptureThePoints extends JavaPlugin {
 //  public boolean enabled(Player player) {
 //    return this.basicUsers.containsKey(player);
 //  }
-
     public void checkForGameEndThenPlayerLeft() {
         if (this.playerData.size() < 2 && !isPreGame()) {
             //maybe dc or something. it should be moved to cheking to see players who left the game
@@ -539,8 +556,8 @@ public class CaptureThePoints extends JavaPlugin {
             return;
         }
         if (getServer().getWorld(mainArena.world) == null) {
-            player.sendMessage("Your world in the arena config is incorrect. The world \""+mainArena.world+"\" could not be found.");
-            player.sendMessage("The world you are currently playing in is \""+player.getWorld().getName()+"\".");
+            player.sendMessage("Your world in the arena config is incorrect. The world \"" + mainArena.world + "\" could not be found.");
+            player.sendMessage("The world you are currently playing in is \"" + player.getWorld().getName() + "\".");
             return;
         }
 
@@ -587,7 +604,7 @@ public class CaptureThePoints extends JavaPlugin {
         loc.setYaw((float) mainArena.lobby.dir);
         loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
         player.teleport(loc); // Teleport player to lobby
-        player.sendMessage(ChatColor.GREEN+"Joined CTP lobby " + ChatColor.GOLD + mainArena.name + ChatColor.GREEN + ".");
+        player.sendMessage(ChatColor.GREEN + "Joined CTP lobby " + ChatColor.GOLD + mainArena.name + ChatColor.GREEN + ".");
         saveInv(player);
     }
 

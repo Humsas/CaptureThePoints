@@ -300,7 +300,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     }
                 }
             }
-        }, ctp.configOptions.scoreAnnounceTime * 20, ctp.configOptions.scoreAnnounceTime * 20);
+        }, ctp.configOptions.scoreAnnounceTime * 20, ctp.configOptions.scoreAnnounceTime * 20); //30 sec by default
 
         /*
         ctp.CTP_Scheduler.helmChecker = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable() {
@@ -533,6 +533,9 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 
     // Kj's helmet check
     public boolean checkHelmet(Player p) {
+        if (p.getInventory().getHelmet() == null) {
+            return true;
+        }
         return ((p.getInventory().getHelmet().getType() != Material.WOOL) && (ctp.playerData.get(p).isInArena));
     }
 

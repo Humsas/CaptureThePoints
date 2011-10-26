@@ -5,7 +5,7 @@ import me.dalton.capturethepoints.Lobby;
 import org.bukkit.ChatColor;
 
 public class StartCommand extends CTPCommand {
-
+   
     public StartCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("start");
@@ -28,17 +28,17 @@ public class StartCommand extends CTPCommand {
             player.sendMessage(ChatColor.RED + "Please create arena lobby");
             return;
         }
-
+        
         Lobby lobby = ctp.mainArena.lobby;
         int readypeople = lobby.countReadyPeople();
-
+            
         if (!ctp.isPreGame()) {
             player.sendMessage(ChatColor.RED + "A game has already been started.");
             return;
         }
-
+        
         // The maximum number of players must be greater than the players already playing.
-        if (ctp.mainArena.maximumPlayers > ctp.mainArena.getPlayersPlaying(ctp).size()) {
+        if (ctp.mainArena.maximumPlayers > ctp.mainArena.getPlayersPlaying(ctp).size()) {                
             if (ctp.configOptions.exactTeamMemberCount) {
                 if (readypeople / ctp.teams.size() >= 1 && readypeople >= ctp.mainArena.minimumPlayers) {
                     if (lobby.hasUnreadyPeople()) {

@@ -767,7 +767,7 @@ public class BuildCommand extends CTPCommand {
                 File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArenaName + ".yml");
                 Configuration arenaConf = new Configuration(arenaFile);
                 arenaConf.load();
-                arenaConf.setProperty("MaximumPlayers", String.valueOf(amount));
+                arenaConf.setProperty("MaximumPlayers", amount);
                 arenaConf.save();
                 
                 arena.maximumPlayers = amount;
@@ -801,7 +801,7 @@ public class BuildCommand extends CTPCommand {
                 File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArenaName + ".yml");
                 Configuration arenaConf = new Configuration(arenaFile);
                 arenaConf.load();
-                arenaConf.setProperty("MinimumPlayers", String.valueOf(amount));
+                arenaConf.setProperty("MinimumPlayers", amount);
                 arenaConf.save();
                 
                 arena.minimumPlayers = amount;

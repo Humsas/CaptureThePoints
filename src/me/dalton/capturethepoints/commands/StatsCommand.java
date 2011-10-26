@@ -5,7 +5,7 @@ import me.dalton.capturethepoints.PlayerData;
 import org.bukkit.ChatColor;
 
 public class StatsCommand extends CTPCommand {
-
+   
     public StatsCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("stats");
@@ -27,11 +27,11 @@ public class StatsCommand extends CTPCommand {
         }
         PlayerData pdata = ctp.playerData.get(player);
         ChatColor cc = pdata.team.chatcolor, white = ChatColor.WHITE, green = ChatColor.GREEN;
-
+        
         player.sendMessage(cc + "Your Stats: ");
         player.sendMessage(cc + "  Kills: " + white + pdata.kills + " (Streak: " + pdata.killsInARow + ")");
         player.sendMessage(cc + "  Deaths: " + white + pdata.deaths + " (Streak: " + pdata.deathsInARow + ")");
-
+        
         double kd; // Avoid divding by 0 and rounding
         if (pdata.deaths == 0) {
             kd = pdata.kills;
@@ -41,7 +41,7 @@ public class StatsCommand extends CTPCommand {
             result = Math.round(result);
             kd = result / 100;
         }
-
+        
         ChatColor goodKD = ChatColor.WHITE;
         if (0.0 >= kd && kd < 0.5 ) {
             goodKD = ChatColor.RED;
@@ -52,7 +52,7 @@ public class StatsCommand extends CTPCommand {
         } else {
             goodKD = ChatColor.GREEN;
         }
-
+        
         player.sendMessage(cc + "  K/D: " + goodKD + kd);
         player.sendMessage(cc + "  Money: " + green + pdata.money);
         return;

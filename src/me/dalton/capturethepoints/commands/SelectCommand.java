@@ -5,7 +5,7 @@ import me.dalton.capturethepoints.CaptureThePoints;
 import org.bukkit.ChatColor;
 
 public class SelectCommand extends CTPCommand {
-
+   
     public SelectCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("selectarena");
@@ -22,17 +22,17 @@ public class SelectCommand extends CTPCommand {
     @Override
     public void perform() {
         String newarena = parameters.get(2);
-
+        
         if (!ctp.arena_list.contains(newarena)) {
             player.sendMessage(ChatColor.RED + "Could not load arena " + ChatColor.GOLD + newarena + ChatColor.RED + " because the name cannot be found. Check your config file and existing arenas.");
             return;
         }
-
+        
         ArenaData loadArena = ctp.loadArena(newarena);
-
+        
         if (loadArena == null) {
             player.sendMessage(ChatColor.RED + "Could not load arena " + ChatColor.GOLD + newarena + ChatColor.RED + " because it isn't finished yet. Check your config file and existing arenas.");
-            return;
+            return;            
         }
 
         if (!ctp.mainArena.name.isEmpty()) {
@@ -40,7 +40,7 @@ public class SelectCommand extends CTPCommand {
         } else {
             player.sendMessage(ChatColor.GREEN + "Selected " + newarena + " for playing.");
         }
-
+        
         ctp.mainArena = loadArena;
         return;
     }

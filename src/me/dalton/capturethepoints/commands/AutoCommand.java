@@ -32,7 +32,7 @@ public class AutoCommand extends CTPCommand {
             player.sendMessage(ChatColor.RED + "Please create arena lobby!");
             return;
         }
-
+            
         World world = ctp.getServer().getWorld(parameters.get(2));
         if (world == null) {
             player.sendMessage(ChatColor.RED + parameters.get(2) + " is not a recognised world.");
@@ -40,10 +40,11 @@ public class AutoCommand extends CTPCommand {
             return;
         }
         int numberofplayers = world.getPlayers().size();
-
+        
         if (!ctp.configOptions.useSelectedArenaOnly) {
             int size = ctp.arena_list.size();
-
+            System.out.println("[CTP] AUTO COMMAND: Players found: "+numberofplayers+", Total arenas found: " + size + " "+ctp.arena_list+"");
+            
             if (size > 1) {
                 // If there is more than 1 arena to choose from
                 List<String> arenas = new ArrayList<String>();
@@ -54,21 +55,24 @@ public class AutoCommand extends CTPCommand {
                         ctp.mainArena = loadArena; // Change the mainArena based on this.
                     }
                 }
-
-
+                
+                System.out.println("[CTP] "+arenas.size()+" Suitable arenas found: "+arenas);
+                
+                
                 if (arenas.size() > 1) {
                     Random random = new Random();
                     int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of arenas (exclusive)
                     ctp.mainArena = ctp.loadArena(ctp.arena_list.get(nextInt)) == null ? ctp.mainArena : ctp.loadArena(ctp.arena_list.get(nextInt)); // Change the mainArena based on this. (Ternary null check)
-                }
+                } 
             // else ctp.mainArena = ctp.mainArena;
             }
+            System.out.println("[CTP] The selected arena, "+ctp.mainArena.name+", has a minimum of "+ctp.mainArena.minimumPlayers+", and a maximum of "+ctp.mainArena.maximumPlayers+".");
         }
         if (ctp.isGameRunning()) {
             player.sendMessage("[CTP] A previous Capture The Points game has been terminated.");
             ctp.blockListener.endGame(true);
         }
-
+        
         for (Player p : world.getPlayers()) {
             ctp.moveToLobby(p);
         }
