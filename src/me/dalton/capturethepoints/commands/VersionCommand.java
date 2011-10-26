@@ -4,7 +4,7 @@ import me.dalton.capturethepoints.CaptureThePoints;
 import org.bukkit.ChatColor;
 
 public class VersionCommand extends CTPCommand {
-
+   
     public VersionCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("version");

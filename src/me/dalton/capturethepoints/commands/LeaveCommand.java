@@ -3,11 +3,9 @@ package me.dalton.capturethepoints.commands;
 import me.dalton.capturethepoints.CaptureThePoints;
 import org.bukkit.ChatColor;
 
-public class LeaveCommand extends CTPCommand
-{
-
-    public LeaveCommand(CaptureThePoints instance)
-    {
+public class LeaveCommand extends CTPCommand {
+   
+    public LeaveCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("leave");
         super.aliases.add("exit");
@@ -22,10 +20,8 @@ public class LeaveCommand extends CTPCommand
     }
 
     @Override
-    public void perform()
-    {
-        if (!ctp.blockListener.isAlreadyInGame(player))
-        {
+    public void perform() {
+        if (!ctp.blockListener.isAlreadyInGame(player)) {
             player.sendMessage(ChatColor.RED + "You are not in the game!");
             return;
         }

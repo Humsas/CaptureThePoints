@@ -2,11 +2,9 @@ package me.dalton.capturethepoints.commands;
 
 import me.dalton.capturethepoints.CaptureThePoints;
 
-public class StopCommand extends CTPCommand
-{
-
-    public StopCommand(CaptureThePoints instance)
-    {
+public class StopCommand extends CTPCommand {
+   
+    public StopCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("stop");
         super.notOpCommand = false;
@@ -18,8 +16,7 @@ public class StopCommand extends CTPCommand
     }
 
     @Override
-    public void perform()
-    {
+    public void perform() {
         ctp.getServer().broadcastMessage("[CTP] The Capture The Points game has ended.");
         ctp.blockListener.endGame(true);
     }

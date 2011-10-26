@@ -5,7 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class KickCommand extends CTPCommand {
-
+   
     public KickCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("kick");

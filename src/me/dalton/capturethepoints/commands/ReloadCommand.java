@@ -3,7 +3,7 @@ package me.dalton.capturethepoints.commands;
 import me.dalton.capturethepoints.CaptureThePoints;
 
 public class ReloadCommand extends CTPCommand {
-
+   
     public ReloadCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("reload");

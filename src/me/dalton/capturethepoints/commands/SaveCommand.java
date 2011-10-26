@@ -39,11 +39,11 @@ public class SaveCommand extends CTPCommand {
             for (int y = ylow; y <= yhigh; y++) {
                 for (int z = zlow; z <= zhigh; z++) {
                     /*
-                    Location loc = new Location(ctp.getServer().getWorld(ctp.pasaulis), x, y, z);
+                    Location loc = new Location(ctp.getServer().getWorld(ctp.world), x, y, z);
                     int typeID = loc.getBlock().getTypeId();
                     int data = loc.getBlock().getData();
                     Material blockType = loc.getBlock().getType();
-
+                    
                     switch (typeID) {
                     case BlockID.WALL_SIGN:
                     case BlockID.SIGN_POST: {
@@ -51,37 +51,37 @@ public class SaveCommand extends CTPCommand {
                     world.copyFromWorld(pt, block);
                     return block;
                     }
-
+                    
                     case BlockID.CHEST: {
                     ChestBlock block = new ChestBlock(data);
                     world.copyFromWorld(pt, block);
                     return block;
                     }
-
+                    
                     case BlockID.FURNACE:
                     case BlockID.BURNING_FURNACE: {
                     FurnaceBlock block = new FurnaceBlock(type, data);
                     return block;
                     }
-
+                    
                     case BlockID.DISPENSER: {
                     DispenserBlock block = new DispenserBlock(data);
                     world.copyFromWorld(pt, block);
                     return block;
                     }
-
+                    
                     case BlockID.MOB_SPAWNER: {
                     MobSpawnerBlock block = new MobSpawnerBlock(data);
                     world.copyFromWorld(pt, block);
                     return block;
                     }
-
+                    
                     case BlockID.NOTE_BLOCK: {
                     NoteBlock block = new NoteBlock(data);
                     world.copyFromWorld(pt, block);
                     return block;
                     }
-
+                    
                     default:
                     return new BaseBlock(type, data);
                     }

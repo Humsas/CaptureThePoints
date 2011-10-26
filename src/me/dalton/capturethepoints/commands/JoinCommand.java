@@ -4,7 +4,7 @@ import me.dalton.capturethepoints.CaptureThePoints;
 import org.bukkit.ChatColor;
 
 public class JoinCommand extends CTPCommand {
-
+   
     public JoinCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("join");

@@ -5,7 +5,7 @@ import me.dalton.capturethepoints.Team;
 import org.bukkit.ChatColor;
 
 public class SetpointsCommand extends CTPCommand {
-
+   
     public SetpointsCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("setpoints");

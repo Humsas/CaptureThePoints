@@ -1,16 +1,11 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package me.dalton.capturethepoints;
 
 /**
  *
  * @author Humsas
  */
-public class BlockID
-{
+public class BlockID {
+
     public static final int AIR = 0;
     public static final int STONE = 1;
     public static final int GRASS = 2;

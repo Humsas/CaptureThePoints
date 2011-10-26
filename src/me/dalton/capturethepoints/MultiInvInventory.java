@@ -4,17 +4,14 @@ package me.dalton.capturethepoints;
  *
  * @author pluckerpluck
  */
-
 import java.io.Serializable;
-
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-public class MultiInvInventory implements Serializable
-{
+public final class MultiInvInventory implements Serializable {
 
     private static final long serialVersionUID = -9100540910611570679L;
     /*
@@ -28,13 +25,12 @@ public class MultiInvInventory implements Serializable
     private String worldName = null;
     private String pluginName = null;
 
-    public MultiInvInventory() {}
+    public MultiInvInventory() {
+    }
 
-    public MultiInvInventory(Player player, String pluginName)
-    {
+    public MultiInvInventory(Player player, String pluginName) {
         PlayerInventory inventory = player.getInventory();
-        if (inventory != null)
-        {
+        if (inventory != null) {
             setInventory(inventory);
         }
         this.pluginName = pluginName;
@@ -45,11 +41,9 @@ public class MultiInvInventory implements Serializable
      *
      * @param inventory
      **/
-    public void setInventory(Inventory inventory)
-    {
+    public void setInventory(Inventory inventory) {
         setContents(inventory.getContents());
-        if (inventory instanceof PlayerInventory)
-        {
+        if (inventory instanceof PlayerInventory) {
             setArmourContents(((PlayerInventory) inventory).getArmorContents());
         }
     }
@@ -60,17 +54,14 @@ public class MultiInvInventory implements Serializable
      * @param player in which to store the inventory
      * @throws IllegalArgumentException if incorrect ItemStack length is stored
      **/
-    public void getInventory(Player player)
-    {
+    public void getInventory(Player player) {
         PlayerInventory inventory = player.getInventory();
 
-        if (getContents() != null)
-        {
+        if (getContents() != null) {
             inventory.setContents(getContents());
         }
         ItemStack[] armourS = getArmourContents();
-        if (armourS != null)
-        {
+        if (armourS != null) {
             inventory.setHelmet(armourS[3]);
             inventory.setChestplate(armourS[2]);
             inventory.setLeggings(armourS[1]);
@@ -202,56 +193,55 @@ public class MultiInvInventory implements Serializable
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         String string = "";
         if (storedInventory[0] != null) {
             for (MultiInvItem object : storedInventory[0]) {
                 if (object == null) {
-                    string = string + "!";
+                    string += "!";
                 } else {
-                    string = string + object.toString();
+                    string += object.toString();
                 }
-                string = string + ";";
+                string += ";";
             }
         } else {
-            string = string + "!!!";
+            string += "!!!";
         }
-        string = string + "-;";
+        string += "-;";
         if (storedInventory[1] != null) {
             for (MultiInvItem object : storedInventory[1]) {
                 if (object == null) {
-                    string = string + "!";
+                    string += "!";
                 } else {
-                    string = string + object.toString();
+                    string += object.toString();
                 }
-                string = string + ";";
+                string += ";";
             }
         } else {
-            string = string + "!!!";
+            string += "!!!";
         }
-        string = string + "-;";
+        string += "-;";
 
         if (name == null) {
-            string = string + "!";
+            string += "!";
         } else {
-            string = string + name;
+            string += name;
         }
 
         if (regionName == null) {
-            string = string + ";!";
+            string += ";!";
         } else {
             string = string + ";" + regionName;
         }
 
         if (worldName == null) {
-            string = string + ";!";
+            string += ";!";
         } else {
             string = string + ";" + worldName;
         }
 
         if (pluginName == null) {
-            string = string + ";!";
+            string += ";!";
         } else {
             string = string + ";" + pluginName;
         }

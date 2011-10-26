@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package me.dalton.capturethepoints;
 
 /**
@@ -58,12 +53,12 @@ public class MultiInvItem implements Serializable
     }
 
     public void fromString(String string) {
-        String[] data = string.split(",");
-        if (data.length == 4) {
-            setId(Integer.parseInt(data[0]));
-            setQuanitity(Integer.parseInt(data[1]));
-            setData(Byte.parseByte(data[2]));
-            setDurability(Short.parseShort(data[3]));
+        String[] split = string.split(",");
+        if (split.length == 4) {
+            setId(Integer.parseInt(split[0]));
+            setQuanitity(Integer.parseInt(split[1]));
+            setData(Byte.parseByte(split[2]));
+            setDurability(Short.parseShort(split[3]));
         }
     }
 }

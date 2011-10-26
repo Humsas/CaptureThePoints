@@ -5,7 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class PJoinCommand extends CTPCommand {
-
+   
     public PJoinCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("pjoin");
