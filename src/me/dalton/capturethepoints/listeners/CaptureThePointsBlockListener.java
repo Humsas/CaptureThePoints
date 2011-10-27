@@ -231,6 +231,11 @@ public class CaptureThePointsBlockListener extends BlockListener {
             ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.helmChecker);
             ctp.CTP_Scheduler.helmChecker = 0;
         }
+        if(ctp.CTP_Scheduler.healingItemsCooldowns != 0)
+        {
+            ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.healingItemsCooldowns);
+            ctp.CTP_Scheduler.healingItemsCooldowns = 0;
+        }
         for (CTPPoints s : ctp.mainArena.capturePoints) {
             s.controledByTeam = null;
         }
@@ -252,6 +257,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
         for (int i = 0; i < ctp.teams.size(); i++) {
             ctp.teams.get(i).memberCount = 0;
         }
+        ctp.getServer().broadcastMessage("A Capture The Points game has ended!");
     }
 
     @Override

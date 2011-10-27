@@ -27,6 +27,7 @@ public class ConfigOptions {
     public int ringBlock;
     public int scoreAnnounceTime;
     public int scoreToWin;
+    public int maxPlayersHealth;
     
     public String mysqlAddress;
     public String mysqlDatabase;

@@ -6,5 +6,6 @@ public class CTPScheduler {
   public int pointMessenger;
   public int helmChecker;
   public int lobbyActivity; // Kjhf
+  public int healingItemsCooldowns;
 }
 

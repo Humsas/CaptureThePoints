@@ -271,6 +271,7 @@ public class CaptureThePoints extends JavaPlugin {
         configOptions.useScoreGeneration = config.getBoolean("UseScoreGeneration", false);
         configOptions.useSelectedArenaOnly = config.getBoolean("UseSelectedArenaOnly", true); // Kj -- if set to false, a random arena will be picked to play on.
         configOptions.allowCommands = config.getBoolean("AllowCommands", false);  // if true allows command usage in the game
+        configOptions.maxPlayersHealth = config.getInt("MaxPlayersHealth", 20);   // Max health while playing
 
         config.save();
 
@@ -279,6 +280,7 @@ public class CaptureThePoints extends JavaPlugin {
         CTP_Scheduler.pointMessenger = 0;
         CTP_Scheduler.helmChecker = 0;
         CTP_Scheduler.lobbyActivity = 0;
+        CTP_Scheduler.healingItemsCooldowns = 0;
     }
 
     //Loads mainArena data
@@ -374,28 +376,31 @@ public class CaptureThePoints extends JavaPlugin {
         // Healing items loading
         if (config.getString("HealingItems") == null)
         {
-            config.setProperty("HealingItems.APPLE.Amount", "1");
+            config.setProperty("HealingItems.APPLE.HOTHeal", "1");
             config.setProperty("HealingItems.APPLE.Duration", "5");
             config.setProperty("HealingItems.APPLE.Cooldown", "0");
-            config.setProperty("HealingItems.GOLDEN_APPLE.Amount", "20");
+            config.setProperty("HealingItems.GOLDEN_APPLE.InstantHeal", "20");
             config.setProperty("HealingItems.GOLDEN_APPLE.Duration", "5");
         }
+        int itemNR = 0;
         for (String str : config.getKeys("HealingItems"))
         {
-            HealingItems hItem = null;
+            itemNR++;
+            HealingItems hItem = new HealingItems();
             try
             {
-                hItem.item = Util.getItemListFromString(str).get(0);   // if something wrong it will trow om message in the metod and another here
-                hItem.amount = config.getInt("HealingItems." + str + ".Amount", 1);
+                hItem.item = Util.getItemListFromString(str).get(0);
+                hItem.instantHeal = config.getInt("HealingItems." + str + ".InstantHeal", 0);
+                hItem.hotHeal = config.getInt("HealingItems." + str + ".HOTHeal", 0);
                 hItem.duration = config.getInt("HealingItems." + str + ".Duration", 0);
                 hItem.cooldown = config.getInt("HealingItems." + str + ".Cooldown", 0);
             }
             catch(Exception e)
             {
-                System.out.println("[CTP] Error while loading Healing items!");
+                System.out.println("[CTP] Error while loading Healing items! " + itemNR + " item!");
             }
 
-
+            healingItems.add(hItem);
         }
         config.save();
     }
@@ -540,10 +545,25 @@ public class CaptureThePoints extends JavaPlugin {
         return this.blockListener.capturegame;
     }
 
-    public void leaveGame(Player player) {
-        //I6einant pareina dvigubas signalas, tai jo nepriimam
-        if (playerData.get(player) == null) {
+    public void leaveGame(Player player)
+    {
+        //On exit we get double sygnal
+        if (playerData.get(player) == null)
+        {
             return;
+        }
+
+        // Removing player cooldowns
+        for (HealingItems item : healingItems)
+        {
+            if( item != null && item.cooldowns != null && item.cooldowns.size() > 0)
+                for(PlayersAndCooldowns data : item.cooldowns)
+                {
+                    if(data.playerName.equalsIgnoreCase(player.getName()))
+                    {
+                        item.cooldowns.remove(data);
+                    }
+                }
         }
 
         for (Player play : playerData.keySet()) {
@@ -691,6 +711,7 @@ public class CaptureThePoints extends JavaPlugin {
         return true;
     }
 }
+
 /*
 
 @Override

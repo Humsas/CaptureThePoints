@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import me.dalton.capturethepoints.CaptureThePoints;
+import me.dalton.capturethepoints.HealingItems;
 import me.dalton.capturethepoints.Items;
 import me.dalton.capturethepoints.Lobby;
 import me.dalton.capturethepoints.PlayerData;
+import me.dalton.capturethepoints.PlayersAndCooldowns;
 import me.dalton.capturethepoints.Team;
 import me.dalton.capturethepoints.Util;
 import org.bukkit.ChatColor;
@@ -17,6 +19,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -88,17 +91,21 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             if( !ctp.canAccess(player, false, "ctp.*", "ctp.admin") && ctp.isGameRunning() && ctp.playerData.containsKey(player)
                     && !args[0].equalsIgnoreCase("/ctp"))
             {
+                player.sendMessage(ChatColor.RED + "You can't use commands while playing!");
                 event.setCancelled(true);
             }
         }
     }
 
     @Override
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        if (ctp.playerData.containsKey(event.getPlayer())) {
+    public void onPlayerInteract(PlayerInteractEvent event)
+    {
+        if (ctp.playerData.containsKey(event.getPlayer()))
+        {
             Player p = event.getPlayer();
             // Iron block
-            if (event.hasBlock() && event.getClickedBlock().getTypeId() == 42) {
+            if (event.hasBlock() && event.getClickedBlock().getTypeId() == 42)
+            {
                 //If this role exists
                 if (ctp.roles.containsKey(ctp.playerData.get(p).role)) {
                     if (!ctp.playerData.get(p).isReady) {
@@ -113,7 +120,8 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             }
             
             // Sign
-            if (event.hasBlock() && event.getClickedBlock().getState() instanceof Sign) {
+            if (event.hasBlock() && event.getClickedBlock().getState() instanceof Sign)
+            {
                 // Cast the block to a sign to get the text on it.
                 Sign sign = (Sign) event.getClickedBlock().getState();
                 // Check if the first line of the sign is a class name.
@@ -144,6 +152,42 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 }
 
                 return;
+            }
+            // check for Healing item usage
+            if (ctp.isGameRunning() && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK))
+            {
+                Material mat = p.getItemInHand().getType();
+                for (HealingItems item : ctp.healingItems)
+                {
+                    if(item.item.item == mat)
+                    {
+                        PlayersAndCooldowns data = new PlayersAndCooldowns();
+                        data.cooldown = item.cooldown;
+                        data.playerName = p.getName();
+
+                        //if(p.getHealth() + item.amount )
+                        p.setHealth(p.getHealth() + item.instantHeal);
+                        p.sendMessage("" + p.getHealth());
+
+                        if(item.duration > 0)
+                        {
+                            data.healingTimeLeft = item.duration;
+                        }
+
+                        item.cooldowns.add(data);
+                        if(p.getItemInHand().getAmount() > 1)
+                        {
+                            p.getItemInHand().setAmount(p.getItemInHand().getAmount() - 1);
+                        }
+                        else
+                        {
+                            p.setItemInHand(null);
+                        }
+                        // Cancel event to not heal like with golden apple
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
             }
         }
     }
@@ -239,7 +283,8 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             ctp.configOptions.pointsToWin = ctp.mainArena.capturePoints.size();
         }
         ctp.blockListener.capturegame = true;
-        Util.sendMessageToPlayers(ctp, "A Capture The Points game has started!"); // Kj change to message rather than broadcast
+        ctp.getServer().broadcastMessage("A Capture The Points game has started!");
+        //Util.sendMessageToPlayers(ctp, "A Capture The Points game has started!"); // Kj change to message rather than broadcast
         ctp.blockListener.preGame = false;
         ctp.blockListener.didSomeoneWin();
 
@@ -317,8 +362,44 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     }
                 }
             }
-        }, ctp.configOptions.scoreAnnounceTime * 20, ctp.configOptions.scoreAnnounceTime * 20); //30 sec by default
+        }, ctp.configOptions.scoreAnnounceTime * 20, ctp.configOptions.scoreAnnounceTime * 20);
 
+        // Healing items cooldowns
+        ctp.CTP_Scheduler.healingItemsCooldowns = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if (ctp.isGameRunning())
+                {
+                    for (HealingItems item : ctp.healingItems)
+                    {
+                        if( item != null && item.cooldowns != null && item.cooldowns.size() > 0)
+                        {
+                            for(PlayersAndCooldowns data : item.cooldowns)
+                            {
+                                if(data.cooldown == 0)
+                                {
+                                    ctp.getServer().getPlayer(data.playerName).sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " cooldown has refreshed!");
+                                }
+                                
+                                if(data.healingTimeLeft > 0)
+                                {
+                                    ctp.getServer().getPlayer(data.playerName).setHealth(ctp.getServer().getPlayer(data.playerName).getHealth() + item.hotHeal);
+                                }
+                                data.cooldown--;
+                                data.healingTimeLeft--;
+
+                                if(data.cooldown <= 0 && data.healingTimeLeft <= 0)
+                                {
+                                    item.cooldowns.remove(data);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }, 20L, 20L); // Every one sec
         /*
         ctp.CTP_Scheduler.helmChecker = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable() {
         
