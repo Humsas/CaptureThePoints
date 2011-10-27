@@ -67,23 +67,29 @@ public class CaptureThePointsEntityListener extends EntityListener {
     }
 
     @Override
-    public void onEntityDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player)) {
+    public void onEntityDamage(EntityDamageEvent event)
+    {
+        if (!(event.getEntity() instanceof Player))
+        {
             // Kj -- Didn't involve a player. So we don't care.
             return;
         }
         //Only check if game is running
-        if (ctp.isGameRunning()) {
+        if (ctp.isGameRunning())
+        {
             Player attacker = null;
-            if ((this.ctp.playerData.get((Player) event.getEntity()) != null)) {
+            if ((this.ctp.playerData.get((Player) event.getEntity()) != null))
+            {
                 
                 // for melee
-                if (checkForPlayerEvent(event)) {
+                if (checkForPlayerEvent(event))
+                {
                     attacker = ((Player) ((EntityDamageByEntityEvent) event).getDamager());
                 }
 
                 // for arrows
-                if ((event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE) && (((Projectile) ((EntityDamageByEntityEvent) event).getDamager()).getShooter() instanceof Player)) {
+                if ((event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE) && (((Projectile) ((EntityDamageByEntityEvent) event).getDamager()).getShooter() instanceof Player))
+                {
                     attacker = (Player) ((Projectile) ((EntityDamageByEntityEvent) event).getDamager()).getShooter();
                 }
 
@@ -91,14 +97,16 @@ public class CaptureThePointsEntityListener extends EntityListener {
 
                 // Kj -- helmet checker
                 boolean helmetRemoved = ctp.playerListener.checkHelmet(attacker);
-                if (helmetRemoved) {
+                if (helmetRemoved)
+                {
                     ctp.playerListener.fixHelmet(attacker);
                     event.setCancelled(true);
                     return;
                 }
         
                 // lobby damage check
-                if ((this.ctp.playerData.get(playa) != null) && (this.ctp.playerData.get(attacker) != null) && this.ctp.playerData.get(playa).isInLobby) {
+                if ((this.ctp.playerData.get(playa) != null) && (this.ctp.playerData.get(attacker) != null) && this.ctp.playerData.get(playa).isInLobby)
+                {
                     event.setCancelled(true);
                     return;
                 }
@@ -154,15 +162,19 @@ public class CaptureThePointsEntityListener extends EntityListener {
                 }
             }
         }
+        if (ctp.playerData.get((Player) event.getEntity()) != null && ctp.playerData.get((Player) event.getEntity()).isInLobby)
+        {
+            event.setCancelled(true);
+        }
     }
 
-    public boolean hasLobbyProtection(Player player) {
-        Lobby lobby = ctp.mainArena.lobby;
-        Location protectionPoint = new Location(ctp.getServer().getWorld(ctp.mainArena.world), lobby.x, lobby.y, lobby.z);
-        double distance = player.getLocation().distance(protectionPoint);
-
-        return distance <= ctp.configOptions.protectionDistance;
-    }
+//    public boolean hasLobbyProtection(Player player) {
+//        Lobby lobby = ctp.mainArena.lobby;
+//        Location protectionPoint = new Location(ctp.getServer().getWorld(ctp.mainArena.world), lobby.x, lobby.y, lobby.z);
+//        double distance = player.getLocation().distance(protectionPoint);
+//
+//        return distance <= ctp.configOptions.protectionDistance;
+//    }
 
     public boolean isProtected(Player player) {
         if (ctp.mainArena == null && player == null) // Kj -- null check

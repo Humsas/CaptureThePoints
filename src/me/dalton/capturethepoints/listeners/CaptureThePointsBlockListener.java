@@ -279,7 +279,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                             ctp.playerNameForTeleport = "";
                         }
                     }
-                }, 20L);
+                }, 5L);  //I think one second is too much and can cause some troubles if player break another block
             }
             event.setCancelled(true);
             return;

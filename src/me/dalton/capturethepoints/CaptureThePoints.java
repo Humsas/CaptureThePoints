@@ -54,6 +54,7 @@ public class CaptureThePoints extends JavaPlugin {
     public ArenaData mainArena = new ArenaData();
     public String editingArenaName = ""; // arena
     public HashMap<String, List<Items>> roles = new HashMap<String, List<Items>>();
+    public List<HealingItems> healingItems = new LinkedList<HealingItems>();
     public CTPRewards rewards = new CTPRewards();
     public CTPScheduler CTP_Scheduler = new CTPScheduler(); //timer
     public String playerNameForTeleport = ""; // Block destroy - teleport protection
@@ -133,6 +134,7 @@ public class CaptureThePoints extends JavaPlugin {
         pm.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Highest, this); // Because when game starts you must deal damage to enemy
         pm.registerEvent(Event.Type.PLAYER_MOVE, this.playerListener, Event.Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
         pm.registerEvent(Event.Type.PLAYER_TELEPORT, this.playerListener, Event.Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Event.Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Event.Priority.Normal, this);
@@ -223,6 +225,7 @@ public class CaptureThePoints extends JavaPlugin {
     public void loadConfigFiles() {
         loadRoles();
         loadRewards();
+        loadHealingItems();
 
         //Load existing arenas
         File file = new File(mainDir + File.separator + "Arenas");
@@ -253,11 +256,11 @@ public class CaptureThePoints extends JavaPlugin {
         configOptions.moneyEvery30Sec = config.getInt("MoneyEvery30sec", 100);
         configOptions.moneyForKill = config.getInt("MoneyForKill", 100);
         configOptions.moneyForPointCapture = config.getInt("MoneyForPointCapture", 100);
-        configOptions.mysqlAddress = config.getString("Mysql.Address", "localhost");
-        configOptions.mysqlDatabase = config.getString("Mysql.Database", "");
-        configOptions.mysqlPass = config.getString("Mysql.Pass", "");
-        configOptions.mysqlPort = config.getInt("Mysql.Port", 3306);
-        configOptions.mysqlUser = config.getString("Mysql.User", "root");
+//        configOptions.mysqlAddress = config.getString("Mysql.Address", "localhost");
+//        configOptions.mysqlDatabase = config.getString("Mysql.Database", "");
+//        configOptions.mysqlPass = config.getString("Mysql.Pass", "");
+//        configOptions.mysqlPort = config.getInt("Mysql.Port", 3306);
+//        configOptions.mysqlUser = config.getString("Mysql.User", "root");
         configOptions.onePointGeneratedScoreEvery30sec = config.getInt("OnePointGeneratedScoreEvery30sec", 1);
         configOptions.playTime = config.getInt("PlayTime", 10);
         configOptions.pointsToWin = config.getInt("PointsToWin", 1);
@@ -266,7 +269,8 @@ public class CaptureThePoints extends JavaPlugin {
         configOptions.scoreAnnounceTime = config.getInt("ScoreAnnounceTime", 30);
         configOptions.scoreToWin = config.getInt("ScoreToWin", 15);
         configOptions.useScoreGeneration = config.getBoolean("UseScoreGeneration", false);
-        configOptions.useSelectedArenaOnly = config.getBoolean("UseSelectedArenaOnly", false); // Kj -- if set to false, a random arena will be picked to play on.
+        configOptions.useSelectedArenaOnly = config.getBoolean("UseSelectedArenaOnly", true); // Kj -- if set to false, a random arena will be picked to play on.
+        configOptions.allowCommands = config.getBoolean("AllowCommands", false);  // if true allows command usage in the game
 
         config.save();
 
@@ -352,14 +356,48 @@ public class CaptureThePoints extends JavaPlugin {
                     arenaConf.getDouble("Lobby.Z", 0.0D),
                     arenaConf.getDouble("Lobby.Dir", 0.0D));
             arena.lobby = lobby;
-            if ((lobby.x == 0.0D) && (lobby.y == 0.0D) && (lobby.z == 0.0D) && (lobby.dir == 0.0D)) {
+            if ((lobby.x == 0.0D) && (lobby.y == 0.0D) && (lobby.z == 0.0D) && (lobby.dir == 0.0D))
+            {
                 arena.lobby = null;
             }
+
             return arena;
         } else {
             System.out.println("[" + info.getName() + "] Could not load arena! Check your config file and existing arenas");
             return null;
         }
+    }
+
+    public void loadHealingItems()
+    {
+        Configuration config = load();
+        // Healing items loading
+        if (config.getString("HealingItems") == null)
+        {
+            config.setProperty("HealingItems.APPLE.Amount", "1");
+            config.setProperty("HealingItems.APPLE.Duration", "5");
+            config.setProperty("HealingItems.APPLE.Cooldown", "0");
+            config.setProperty("HealingItems.GOLDEN_APPLE.Amount", "20");
+            config.setProperty("HealingItems.GOLDEN_APPLE.Duration", "5");
+        }
+        for (String str : config.getKeys("HealingItems"))
+        {
+            HealingItems hItem = null;
+            try
+            {
+                hItem.item = Util.getItemListFromString(str).get(0);   // if something wrong it will trow om message in the metod and another here
+                hItem.amount = config.getInt("HealingItems." + str + ".Amount", 1);
+                hItem.duration = config.getInt("HealingItems." + str + ".Duration", 0);
+                hItem.cooldown = config.getInt("HealingItems." + str + ".Cooldown", 0);
+            }
+            catch(Exception e)
+            {
+                System.out.println("[CTP] Error while loading Healing items!");
+            }
+
+
+        }
+        config.save();
     }
 
     public void loadRoles() {
@@ -606,6 +644,26 @@ public class CaptureThePoints extends JavaPlugin {
         player.teleport(loc); // Teleport player to lobby
         player.sendMessage(ChatColor.GREEN + "Joined CTP lobby " + ChatColor.GOLD + mainArena.name + ChatColor.GREEN + ".");
         saveInv(player);
+    }
+
+    public boolean canAccess(Player player, boolean notOpCommand, String...permissions)
+    {
+        if(UsePermissions)
+        {
+            for (String perm : permissions )
+            {
+                if(Permissions.has(player, perm))
+                    return true;
+            }
+        }
+        else
+        {
+            if(notOpCommand)
+                return true;
+            else
+               return player.isOp();
+        }
+        return false;
     }
 
     @Override

@@ -3,6 +3,7 @@ package me.dalton.capturethepoints;
 public class ConfigOptions {
     public boolean autoStart; // Kjhf
     public boolean allowBlockPlacement; // Kjhf
+    public boolean allowCommands;
     public boolean allowLateJoin; // Kjhf
     public boolean breakingBlocksDropsItems; // Kjhf
     public boolean dropWoolOnDeath; // Kjhf

@@ -17,6 +17,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerListener;
@@ -77,8 +78,24 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     }
 
     @Override
+    public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event)
+    {
+        if(!ctp.configOptions.allowCommands)
+        {
+            Player player = event.getPlayer();
+            String[] args = event.getMessage().split(" ");
+
+            if( !ctp.canAccess(player, false, "ctp.*", "ctp.admin") && ctp.isGameRunning() && ctp.playerData.containsKey(player)
+                    && !args[0].equalsIgnoreCase("/ctp"))
+            {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @Override
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (/*(plugin.isPreGame() || plugin.isGameRunning()) &&*/ctp.playerData.containsKey(event.getPlayer())) {
+        if (ctp.playerData.containsKey(event.getPlayer())) {
             Player p = event.getPlayer();
             // Iron block
             if (event.hasBlock() && event.getClickedBlock().getTypeId() == 42) {
@@ -110,7 +127,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 // Kj's
                     if (role.equalsIgnoreCase("random")) {
                         int size = ctp.roles.size();
-                        if (size > 1) { // If there is more than 1 arena to choose from
+                        if (size > 1) { // If there is more than 1 role to choose from
                             Random random = new Random();
                             int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of roles (exclusive)
                             Set<String> keySet = ctp.roles.keySet(); // Get a list of available roles... 
@@ -399,16 +416,22 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     @Override
     public void onPlayerTeleport(PlayerTeleportEvent event) {
         if (!(ctp.isGameRunning())) {
-            if (this.ctp.playerData.get(event.getPlayer()) != null && ctp.playerData.get(event.getPlayer()).isInLobby) {
-                if (isInside(event.getTo().getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(event.getTo().getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && event.getTo().getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
+            if (this.ctp.playerData.get(event.getPlayer()) != null && ctp.playerData.get(event.getPlayer()).isInLobby)
+            {
+                if (isInside(event.getTo().getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(event.getTo().getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && event.getTo().getWorld().getName().equalsIgnoreCase(ctp.mainArena.world))
+                {
                     ctp.playerData.get(event.getPlayer()).justJoined = false;
                     return;
-                } else {
-                    if (this.ctp.playerData.get(event.getPlayer()).justJoined) // pirmam prisijungimui
+                } 
+                else
+                {
+                    if (this.ctp.playerData.get(event.getPlayer()).justJoined) // allowed to teleport
                     {
                         this.ctp.playerData.get(event.getPlayer()).justJoined = false;
                         return;
-                    } else {
+                    } 
+                    else
+                    {
                         event.setCancelled(true);
                         ctp.playerData.get(event.getPlayer()).isInArena = false;
                         ctp.playerData.get(event.getPlayer()).isInLobby = false;
@@ -422,14 +445,17 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }
 
         Player play = event.getPlayer();
+        if(ctp.playerData.get(play) == null)
+            return;
+
         //If ctp leave command
-        if(ctp.playerData.get(play) != null && ctp.playerData.get(event.getPlayer()).justJoined) {
+        if(ctp.playerData.get(event.getPlayer()).justJoined) {
             ctp.playerData.get(event.getPlayer()).justJoined = false;
             return;
         }
 
         // Find if player is in arena
-        if (this.ctp.playerData.get(play) != null && ctp.playerData.get(play).isInArena) {
+        if (ctp.playerData.get(play).isInArena) {
             if (isInside(event.getTo().getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(event.getTo().getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && event.getTo().getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
                 return;
             } else {
@@ -480,7 +506,6 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             
             Lobby lobby = ctp.mainArena.lobby;
             int readypeople = lobby.countReadyPeople();
-            int movedPeople = 0;
             
             // The maximum number of players must be greater than the players already playing.
             if (ctp.mainArena.maximumPlayers > ctp.mainArena.getPlayersPlaying(ctp).size()) {
@@ -489,10 +514,10 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 if (ctp.isPreGame()) {
                     if (ctp.configOptions.exactTeamMemberCount) {
 
-                        if (readypeople / ctp.teams.size() >= 1 && !lobby.hasUnreadyPeople() && readypeople >= ctp.mainArena.minimumPlayers) {
+                        if (readypeople / ctp.teams.size() >= 1 /*&& !lobby.hasUnreadyPeople() */&& readypeople >= ctp.mainArena.minimumPlayers) {
                             moveToSpawns();
                         }
-                    } else if ((readypeople == ctp.playerData.size()) && !lobby.hasUnreadyPeople() && readypeople >= ctp.mainArena.minimumPlayers) {
+                    } else if (/*(readypeople == ctp.playerData.size()) && */!lobby.hasUnreadyPeople() && readypeople >= ctp.mainArena.minimumPlayers) {
                         moveToSpawns();
                     }
 
@@ -504,11 +529,15 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     }
 
                     // If move players then exact number for team creating is up
-                    if (ctp.configOptions.exactTeamMemberCount) {
-                        if (readypeople / ctp.teams.size() >= 1) {
-                            for (Player play : ctp.playerData.keySet()) {
+                    if (ctp.configOptions.exactTeamMemberCount)
+                    {
+                        if (readypeople / ctp.teams.size() >= 1) 
+                        {
+                            int movedPeople = 0;
+                            for (Player play : ctp.playerData.keySet())
+                            {
                                 PlayerData data = ctp.playerData.get(play);
-                                if ((data.isInLobby) && (data.isReady) && (movedPeople <= readypeople / ctp.teams.size() * ctp.teams.size())) {
+                                if ((data.isInLobby) && (data.isReady) && (movedPeople <= (readypeople / ctp.teams.size() * ctp.teams.size()))) {
                                     moveToSpawns(play);
                                     movedPeople++;
                                 }
