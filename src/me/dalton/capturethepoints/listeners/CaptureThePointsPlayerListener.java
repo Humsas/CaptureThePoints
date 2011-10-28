@@ -532,7 +532,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         Location loc = event.getTo();
         // Find if player is in arena
         if (this.ctp.playerData.get(event.getPlayer()) != null && !ctp.playerData.get(event.getPlayer()).isInLobby) {
-            if (isInside(loc.getBlockY(), 0, 132) && isInside(loc.getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(loc.getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && loc.getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
+            if (isInside(loc.getBlockY(), 0, 999) && isInside(loc.getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(loc.getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && loc.getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
                 return;
             } else {
                 String color = ctp.playerData.get(event.getPlayer()).color;
