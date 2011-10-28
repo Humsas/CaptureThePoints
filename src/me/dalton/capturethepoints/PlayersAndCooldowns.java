@@ -11,7 +11,7 @@ package me.dalton.capturethepoints;
  */
 public class PlayersAndCooldowns
 {
-    public String playerName = null;
     public int cooldown = 0;
-    public int healingTimeLeft = 0;
+    public int healingTimesLeft = 0;
+    public int intervalTimeLeft = 0;
 }

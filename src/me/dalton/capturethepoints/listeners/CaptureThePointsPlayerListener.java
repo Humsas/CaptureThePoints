@@ -29,6 +29,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.material.Wool;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.config.Configuration;
 
@@ -161,20 +162,59 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 {
                     if(item.item.item == mat)
                     {
-                        PlayersAndCooldowns data = new PlayersAndCooldowns();
-                        data.cooldown = item.cooldown;
-                        data.playerName = p.getName();
+                        PlayersAndCooldowns cooldownData = null;
+                        boolean alreadyExists = false;
+                        if(item.cooldowns != null && item.cooldowns.size() > 0)
+                        {
+                            for(String playName : item.cooldowns.keySet())
+                            {
+                                if(p.getHealth() >= ctp.configOptions.maxPlayerHealth)
+                                {
+                                    p.sendMessage(ChatColor.RED + "You are healty!");
+                                    return;
+                                }
+                                if(playName.equalsIgnoreCase(p.getName()) && item.cooldowns.get(playName).cooldown > 0)
+                                {
+                                    p.sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " is on cooldown!");
+                                    return;
+                                }
+                                else if(playName.equalsIgnoreCase(p.getName()))
+                                {
+                                    cooldownData = item.cooldowns.get(playName);
+                                    break;
+                                }
+                            }
+                        }
+                        if(cooldownData == null)
+                            cooldownData = new PlayersAndCooldowns();
+                        else
+                            alreadyExists = true;
 
-                        //if(p.getHealth() + item.amount )
-                        p.setHealth(p.getHealth() + item.instantHeal);
-                        p.sendMessage("" + p.getHealth());
+                        // If we are here item has no cooldown, but it can have HOT ticking, but we do not check that.
+                        if(item.cooldown == 0)
+                            cooldownData.cooldown = -1;
+                        else
+                            cooldownData.cooldown = item.cooldown;
+
+                        if(p.getHealth() + item.instantHeal > ctp.configOptions.maxPlayerHealth)
+                        {
+                            p.setHealth(ctp.configOptions.maxPlayerHealth);
+                        }
+                        else
+                        {
+                            p.setHealth(p.getHealth() + item.instantHeal);
+                            //p.sendMessage("" + p.getHealth());
+                        }
 
                         if(item.duration > 0)
                         {
-                            data.healingTimeLeft = item.duration;
+                            cooldownData.healingTimesLeft = item.duration;
+                            cooldownData.intervalTimeLeft = item.hotInterval;
                         }
 
-                        item.cooldowns.add(data);
+                        if(!alreadyExists)
+                            item.cooldowns.put(p.getName(), cooldownData);
+                        
                         if(p.getItemInHand().getAmount() > 1)
                         {
                             p.getItemInHand().setAmount(p.getItemInHand().getAmount() - 1);
@@ -376,23 +416,34 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     {
                         if( item != null && item.cooldowns != null && item.cooldowns.size() > 0)
                         {
-                            for(PlayersAndCooldowns data : item.cooldowns)
+                            for(String playName : item.cooldowns.keySet())
                             {
-                                if(data.cooldown == 0)
+                                PlayersAndCooldowns data = item.cooldowns.get(playName);
+                                if(data.cooldown == 1)  // This is cause we begin from top
                                 {
-                                    ctp.getServer().getPlayer(data.playerName).sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " cooldown has refreshed!");
+                                    ctp.getServer().getPlayer(playName).sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " cooldown has refreshed!");
                                 }
                                 
-                                if(data.healingTimeLeft > 0)
+                                if(data.healingTimesLeft > 0 && data.intervalTimeLeft <= 0)
                                 {
-                                    ctp.getServer().getPlayer(data.playerName).setHealth(ctp.getServer().getPlayer(data.playerName).getHealth() + item.hotHeal);
+                                    if(ctp.getServer().getPlayer(playName).getHealth() + item.hotHeal > ctp.configOptions.maxPlayerHealth)
+                                    {
+                                        ctp.getServer().getPlayer(playName).setHealth(ctp.configOptions.maxPlayerHealth);
+                                    }
+                                    else
+                                    {
+                                        ctp.getServer().getPlayer(playName).setHealth(ctp.getServer().getPlayer(playName).getHealth() + item.hotHeal);
+                                    }
+                                    data.intervalTimeLeft = item.hotInterval;
+                                    data.healingTimesLeft--;
                                 }
+                                //ctp.getServer().getPlayer(playName).sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " cooldown: " + data.cooldown);
+                                data.intervalTimeLeft--;
                                 data.cooldown--;
-                                data.healingTimeLeft--;
 
-                                if(data.cooldown <= 0 && data.healingTimeLeft <= 0)
+                                if(data.cooldown <= 0 && data.healingTimesLeft <= 0)
                                 {
-                                    item.cooldowns.remove(data);
+                                    item.cooldowns.remove(playName);
                                 }
                             }
                         }
@@ -400,30 +451,29 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 }
             }
         }, 20L, 20L); // Every one sec
-        /*
-        ctp.CTP_Scheduler.helmChecker = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable() {
-        
-        @Override
-        public void run() {
-        if (ctp.isGameRunning()) {
-        for (Player player : ctp.playerData.keySet()) {
-        PlayerInventory inv = player.getInventory();
-        //if ((!(inv.getHelmet().getData() instanceof Wool)) && (ctp.playerData.get(player).isInArena)) {
-        if ((inv.getHelmet().getType() != Material.WOOL) && (ctp.playerData.get(player).isInArena)) { // Kj -- fix for helmet checker
-        player.sendMessage(ChatColor.RED+ "Do not remove your helmet.");
-        DyeColor color1 = DyeColor.valueOf(ctp.playerData.get(player).color.toUpperCase());
-        ItemStack helmet = new ItemStack(Material.WOOL, 1, (short) color1.getData());
-        
-        //Kj 
-        inv.remove(Material.WOOL);
-        player.getInventory().setHelmet(helmet);
-        player.updateInventory();
-        }
-        }
-        }
-        }
+
+
+        ctp.CTP_Scheduler.helmChecker = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if(ctp.isGameRunning())
+                {
+                    for(Player player: ctp.playerData.keySet())
+                    {
+                        PlayerInventory inv = player.getInventory();
+                        if(!(inv.getHelmet().getData() instanceof Wool) && ctp.playerData.get(player).isInArena)
+                        {
+                            DyeColor color1 = DyeColor.valueOf(ctp.playerData.get(player).color.toUpperCase());
+                            ItemStack helmet = new ItemStack(Material.WOOL, 1, color1.getData());
+                            player.getInventory().setHelmet(helmet);
+                            player.updateInventory();
+                        }
+                    }
+                }
+            }
         }, 100L, 100L);
-         */
     }
 
     public void moveToSpawns(Player player) {
@@ -554,13 +604,14 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You cannot drop items in the lobby!"); // Kj item -> items
                 return;
-            } else { // Must be playing a game
+            }
+            /*else { // Must be playing a game
                 boolean helmetRemoved = checkHelmet(player);
                 if (helmetRemoved) {
                     fixHelmet(player);
                     event.getItemDrop().remove();
                 }
-            }
+            }*/
         }
     }
 
@@ -642,12 +693,12 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     }
 
     // Kj's helmet check
-    public boolean checkHelmet(Player p) {
+    /*public boolean checkHelmet(Player p) {
         if (p.getInventory().getHelmet() == null) {
             return true;
         }
         return ((p.getInventory().getHelmet().getType() != Material.WOOL) && (ctp.playerData.get(p).isInArena));
-    }
+    }*/
 
     public void fixHelmet(Player p) {
         PlayerInventory inv = p.getInventory();

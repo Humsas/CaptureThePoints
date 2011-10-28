@@ -1,7 +1,7 @@
 package me.dalton.capturethepoints;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -10,11 +10,13 @@ import java.util.List;
 public class HealingItems
 {
     public int hotHeal = 0;
-    public int duration = 0;
     public int cooldown = 0;
+    public int duration = 0;
     public int instantHeal = 0;
+    public int hotInterval = 0;
 
     public Items item = null;
 
-    public List<PlayersAndCooldowns> cooldowns = new LinkedList<PlayersAndCooldowns>();
+    public Map<String, PlayersAndCooldowns> cooldowns = new ConcurrentHashMap<String, PlayersAndCooldowns>();  // String - player name
+    //public List<PlayersAndCooldowns> cooldowns = new LinkedList<PlayersAndCooldowns>();
 }

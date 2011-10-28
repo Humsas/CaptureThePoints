@@ -227,7 +227,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
             ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.pointMessenger);
             ctp.CTP_Scheduler.pointMessenger = 0;
         }
-        if (ctp.CTP_Scheduler.helmChecker != 0) {
+        if (ctp.CTP_Scheduler.helmChecker != 0)
+        {
             ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.helmChecker);
             ctp.CTP_Scheduler.helmChecker = 0;
         }
@@ -301,12 +302,12 @@ public class CaptureThePointsBlockListener extends BlockListener {
         if (isAlreadyInGame(player)) {
             
             // Kj -- helmet checker
-            boolean helmetRemoved = ctp.playerListener.checkHelmet(player);
+            /*boolean helmetRemoved = ctp.playerListener.checkHelmet(player);
             if (helmetRemoved) {
                 ctp.playerListener.fixHelmet(player);
                 event.setCancelled(true);
                 return;
-            }
+            }*/
                 
             // check for sign destroy
             if (state instanceof Sign) {
@@ -465,13 +466,13 @@ public class CaptureThePointsBlockListener extends BlockListener {
         if (isAlreadyInGame(player)) {
             
             // Kj -- helmet checker
-            boolean helmetRemoved = ctp.playerListener.checkHelmet(player);
+           /* boolean helmetRemoved = ctp.playerListener.checkHelmet(player);
             if (helmetRemoved) {
                 ctp.playerListener.fixHelmet(player);
                 block.setType(Material.AIR);
                 return;
             }
-            
+            */
             boolean inPoint = false; // Kj -- for block placement checker 
             if ((data instanceof Wool)) {
                 Location loc = block.getLocation();

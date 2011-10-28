@@ -96,13 +96,13 @@ public class CaptureThePointsEntityListener extends EntityListener {
                 Player playa = (Player) event.getEntity();
 
                 // Kj -- helmet checker
-                boolean helmetRemoved = ctp.playerListener.checkHelmet(attacker);
+                /*boolean helmetRemoved = ctp.playerListener.checkHelmet(attacker);
                 if (helmetRemoved)
                 {
                     ctp.playerListener.fixHelmet(attacker);
                     event.setCancelled(true);
                     return;
-                }
+                }*/
         
                 // lobby damage check
                 if ((this.ctp.playerData.get(playa) != null) && (this.ctp.playerData.get(attacker) != null) && this.ctp.playerData.get(playa).isInLobby)
@@ -149,7 +149,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
                         ctp.checkForKillMSG(playa, true);
                     }
 
-                    playa.setHealth(20);
+                    playa.setHealth(ctp.configOptions.maxPlayerHealth);
                     playa.setFoodLevel(20);
                     CTPPoints point = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
                     if (ctp.configOptions.giveNewRoleItemsOnRespawn) {

@@ -271,7 +271,7 @@ public class CaptureThePoints extends JavaPlugin {
         configOptions.useScoreGeneration = config.getBoolean("UseScoreGeneration", false);
         configOptions.useSelectedArenaOnly = config.getBoolean("UseSelectedArenaOnly", true); // Kj -- if set to false, a random arena will be picked to play on.
         configOptions.allowCommands = config.getBoolean("AllowCommands", false);  // if true allows command usage in the game
-        configOptions.maxPlayersHealth = config.getInt("MaxPlayersHealth", 20);   // Max health while playing
+        configOptions.maxPlayerHealth = config.getInt("MaxPlayerHealth", 20);   // Max health while playing
 
         config.save();
 
@@ -376,11 +376,17 @@ public class CaptureThePoints extends JavaPlugin {
         // Healing items loading
         if (config.getString("HealingItems") == null)
         {
-            config.setProperty("HealingItems.APPLE.HOTHeal", "1");
-            config.setProperty("HealingItems.APPLE.Duration", "5");
-            config.setProperty("HealingItems.APPLE.Cooldown", "0");
+            config.setProperty("HealingItems.BREAD.HOTHeal", "1");
+            config.setProperty("HealingItems.BREAD.HOTInterval", "1");
+            config.setProperty("HealingItems.BREAD.Duration", "5");
+            config.setProperty("HealingItems.BREAD.Cooldown", "0");
             config.setProperty("HealingItems.GOLDEN_APPLE.InstantHeal", "20");
             config.setProperty("HealingItems.GOLDEN_APPLE.Duration", "5");
+            config.setProperty("HealingItems.GRILLED_PORK.HOTHeal", "1");
+            config.setProperty("HealingItems.GRILLED_PORK.HOTInterval", "3");
+            config.setProperty("HealingItems.GRILLED_PORK.Duration", "5");
+            config.setProperty("HealingItems.GRILLED_PORK.Cooldown", "10");
+            config.setProperty("HealingItems.GRILLED_PORK.InstantHeal", "5");
         }
         int itemNR = 0;
         for (String str : config.getKeys("HealingItems"))
@@ -392,6 +398,7 @@ public class CaptureThePoints extends JavaPlugin {
                 hItem.item = Util.getItemListFromString(str).get(0);
                 hItem.instantHeal = config.getInt("HealingItems." + str + ".InstantHeal", 0);
                 hItem.hotHeal = config.getInt("HealingItems." + str + ".HOTHeal", 0);
+                hItem.hotInterval = config.getInt("HealingItems." + str + ".HOTInterval", 0);
                 hItem.duration = config.getInt("HealingItems." + str + ".Duration", 0);
                 hItem.cooldown = config.getInt("HealingItems." + str + ".Cooldown", 0);
             }
@@ -557,11 +564,11 @@ public class CaptureThePoints extends JavaPlugin {
         for (HealingItems item : healingItems)
         {
             if( item != null && item.cooldowns != null && item.cooldowns.size() > 0)
-                for(PlayersAndCooldowns data : item.cooldowns)
+                for(String playName : item.cooldowns.keySet())
                 {
-                    if(data.playerName.equalsIgnoreCase(player.getName()))
+                    if(playName.equalsIgnoreCase(player.getName()))
                     {
-                        item.cooldowns.remove(data);
+                        item.cooldowns.remove(playName);
                     }
                 }
         }
@@ -648,7 +655,7 @@ public class CaptureThePoints extends JavaPlugin {
 
         playerData.put(player, data);
         health.put(player, Integer.valueOf(player.getHealth()));
-        player.setHealth(20);
+        player.setHealth(configOptions.maxPlayerHealth);
 
         mainArena.lobby.playersinlobby.put(player, false); // Kj
 
