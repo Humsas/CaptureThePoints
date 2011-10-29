@@ -20,7 +20,8 @@ public class JoinAllCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        for (Player p : ctp.getServer().getOnlinePlayers()) {
+        for (Player p : ctp.getServer().getOnlinePlayers())
+        {
             if (ctp.blockListener.isAlreadyInGame(player)) {
                 continue;
             }

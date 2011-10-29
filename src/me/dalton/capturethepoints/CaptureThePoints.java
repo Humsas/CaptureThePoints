@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import me.dalton.capturethepoints.commands.*;
 import org.bukkit.ChatColor;
@@ -45,7 +47,8 @@ public class CaptureThePoints extends JavaPlugin {
     public final HashMap<Player, ItemStack[]> Inventories = new HashMap<Player, ItemStack[]>();
     private HashMap<Player, ItemStack[]> armor = new HashMap<Player, ItemStack[]>();
     public final HashMap<Player, Integer> health = new HashMap<Player, Integer>();
-    public HashMap<Player, PlayerData> playerData = new HashMap<Player, PlayerData>();
+    //public HashMap<Player, PlayerData> playerData = new HashMap<Player, PlayerData>();
+    public Map<Player, PlayerData> playerData = new ConcurrentHashMap<Player, PlayerData>();  // To avoid concurent modification exceptions
     public List<Team> teams = new LinkedList<Team>();
     public final HashMap<Player, Location> previousLocation = new HashMap<Player, Location>();
     public List<Lobby> lobbies = new LinkedList<Lobby>(); // List of all lobbies

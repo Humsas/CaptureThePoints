@@ -155,78 +155,84 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 return;
             }
             // check for Healing item usage
-            if (ctp.isGameRunning() && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK))
+            useHealingItem(event, p);
+        }
+    }
+
+
+    public void useHealingItem(PlayerInteractEvent event, Player p)
+    {
+        if (ctp.isGameRunning() && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK))
+        {
+            Material mat = p.getItemInHand().getType();
+            for (HealingItems item : ctp.healingItems)
             {
-                Material mat = p.getItemInHand().getType();
-                for (HealingItems item : ctp.healingItems)
+                if(item.item.item == mat)
                 {
-                    if(item.item.item == mat)
+                    PlayersAndCooldowns cooldownData = null;
+                    boolean alreadyExists = false;
+                    if(item.cooldowns != null && item.cooldowns.size() > 0)
                     {
-                        PlayersAndCooldowns cooldownData = null;
-                        boolean alreadyExists = false;
-                        if(item.cooldowns != null && item.cooldowns.size() > 0)
+                        for(String playName : item.cooldowns.keySet())
                         {
-                            for(String playName : item.cooldowns.keySet())
+                            if(p.getHealth() >= ctp.configOptions.maxPlayerHealth)
                             {
-                                if(p.getHealth() >= ctp.configOptions.maxPlayerHealth)
-                                {
-                                    p.sendMessage(ChatColor.RED + "You are healty!");
-                                    return;
-                                }
-                                if(playName.equalsIgnoreCase(p.getName()) && item.cooldowns.get(playName).cooldown > 0)
-                                {
-                                    p.sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " is on cooldown!");
-                                    return;
-                                }
-                                else if(playName.equalsIgnoreCase(p.getName()))
-                                {
-                                    cooldownData = item.cooldowns.get(playName);
-                                    break;
-                                }
+                                p.sendMessage(ChatColor.RED + "You are healty!");
+                                return;
+                            }
+                            if(playName.equalsIgnoreCase(p.getName()) && item.cooldowns.get(playName).cooldown > 0)
+                            {
+                                p.sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " is on cooldown!");
+                                return;
+                            }
+                            else if(playName.equalsIgnoreCase(p.getName()))
+                            {
+                                cooldownData = item.cooldowns.get(playName);
+                                break;
                             }
                         }
-                        if(cooldownData == null)
-                            cooldownData = new PlayersAndCooldowns();
-                        else
-                            alreadyExists = true;
-
-                        // If we are here item has no cooldown, but it can have HOT ticking, but we do not check that.
-                        if(item.cooldown == 0)
-                            cooldownData.cooldown = -1;
-                        else
-                            cooldownData.cooldown = item.cooldown;
-
-                        if(p.getHealth() + item.instantHeal > ctp.configOptions.maxPlayerHealth)
-                        {
-                            p.setHealth(ctp.configOptions.maxPlayerHealth);
-                        }
-                        else
-                        {
-                            p.setHealth(p.getHealth() + item.instantHeal);
-                            //p.sendMessage("" + p.getHealth());
-                        }
-
-                        if(item.duration > 0)
-                        {
-                            cooldownData.healingTimesLeft = item.duration;
-                            cooldownData.intervalTimeLeft = item.hotInterval;
-                        }
-
-                        if(!alreadyExists)
-                            item.cooldowns.put(p.getName(), cooldownData);
-                        
-                        if(p.getItemInHand().getAmount() > 1)
-                        {
-                            p.getItemInHand().setAmount(p.getItemInHand().getAmount() - 1);
-                        }
-                        else
-                        {
-                            p.setItemInHand(null);
-                        }
-                        // Cancel event to not heal like with golden apple
-                        event.setCancelled(true);
-                        return;
                     }
+                    if(cooldownData == null)
+                        cooldownData = new PlayersAndCooldowns();
+                    else
+                        alreadyExists = true;
+
+                    // If we are here item has no cooldown, but it can have HOT ticking, but we do not check that.
+                    if(item.cooldown == 0)
+                        cooldownData.cooldown = -1;
+                    else
+                        cooldownData.cooldown = item.cooldown;
+
+                    if(p.getHealth() + item.instantHeal > ctp.configOptions.maxPlayerHealth)
+                    {
+                        p.setHealth(ctp.configOptions.maxPlayerHealth);
+                    }
+                    else
+                    {
+                        p.setHealth(p.getHealth() + item.instantHeal);
+                        //p.sendMessage("" + p.getHealth());
+                    }
+
+                    if(item.duration > 0)
+                    {
+                        cooldownData.healingTimesLeft = item.duration;
+                        cooldownData.intervalTimeLeft = item.hotInterval;
+                    }
+
+                    if(!alreadyExists)
+                        item.cooldowns.put(p.getName(), cooldownData);
+
+                    if(p.getItemInHand().getAmount() > 1)
+                    {
+                        p.getItemInHand().setAmount(p.getItemInHand().getAmount() - 1);
+                    }
+                    else
+                    {
+                        p.setItemInHand(null);
+                    }
+                    // Cancel event to not heal like with golden apple
+                    event.setCancelled(true);
+                    return;
                 }
             }
         }
