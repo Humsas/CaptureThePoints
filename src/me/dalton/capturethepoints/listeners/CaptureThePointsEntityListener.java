@@ -105,7 +105,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
                 }*/
         
                 // lobby damage check
-                if ((this.ctp.playerData.get(playa) != null) && (this.ctp.playerData.get(attacker) != null) && this.ctp.playerData.get(playa).isInLobby)
+                if (attacker != null && this.ctp.playerData.get(attacker) != null && this.ctp.playerData.get(playa).isInLobby)
                 {
                     event.setCancelled(true);
                     return;

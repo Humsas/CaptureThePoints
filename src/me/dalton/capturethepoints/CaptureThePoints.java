@@ -627,6 +627,9 @@ public class CaptureThePoints extends JavaPlugin {
             player.kickPlayer("Banned for life... Nah, just don't join from a bed ;)");
             return;
         }
+
+        if(playerData.isEmpty())
+            mainArena.lobby.playersinlobby.clear();   //Reset if something has left
         
         // Assign player's PlayerData
         PlayerData data = new PlayerData();

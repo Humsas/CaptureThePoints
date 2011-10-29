@@ -29,8 +29,8 @@ import org.bukkit.entity.Player;
             return null;
         }
         List<String> players = new ArrayList<String>();
-        Set<Player> playerset = ctp.playerData.keySet();
-        for (Player p : playerset) {
+        for (Player p : ctp.playerData.keySet())
+        {
             if (ctp.playerData.get(p).team == null || ctp.playerData.get(p).color == null) { 
                 continue; // Player is not yet in game.
             } else {

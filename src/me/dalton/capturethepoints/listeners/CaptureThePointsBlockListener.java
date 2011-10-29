@@ -252,6 +252,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
         }
         ctp.arenaRestore.restoreAllBlocks();
 
+        this.ctp.mainArena.lobby.playersinlobby.clear();   //Reset if something has left
         this.ctp.health.clear();
         this.ctp.previousLocation.clear();
         this.ctp.playerData.clear();
