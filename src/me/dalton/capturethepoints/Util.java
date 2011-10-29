@@ -122,10 +122,13 @@ public class Util {
         }
     }
 
-    public static void sendMessageToPlayers(CaptureThePoints plugin, String s) {
-        for (Player play : plugin.playerData.keySet()) {
-            play.sendMessage("[CTP] "+ s); // Kj
-        }
+    public static void sendMessageToPlayers(CaptureThePoints plugin, String s) 
+    {
+        if(!plugin.playerData.isEmpty())
+            for (Player play : plugin.playerData.keySet())
+            {
+                play.sendMessage("[CTP] "+ s); // Kj
+            }
     }
 
 //    public static int roleNumber(CaptureThePoints plugin, String role)

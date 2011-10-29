@@ -100,10 +100,13 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         if (ctp.playerData.containsKey(event.getPlayer())) {
             Player p = event.getPlayer();
             // Iron block
-            if (event.hasBlock() && event.getClickedBlock().getTypeId() == 42) {
+            if (event.hasBlock() && event.getClickedBlock().getTypeId() == 42)
+            {
                 //If this role exists
-                if (ctp.roles.containsKey(ctp.playerData.get(p).role)) {
-                    if (!ctp.playerData.get(p).isReady) {
+                if (ctp.roles.containsKey(ctp.playerData.get(p).role))
+                {
+                    if (!ctp.playerData.get(p).isReady)
+                    {
                         Util.sendMessageToPlayers(ctp, ChatColor.GREEN + p.getName() + ChatColor.WHITE + " is ready.");
                     }
                     ctp.playerData.get(p).isReady = true;
@@ -619,7 +622,9 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     }
 
                     // Game already started
-                } else {
+                } 
+                else
+                {
                     if (!ctp.configOptions.allowLateJoin) {
                         p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] A game has already started. You may not join."); // Kj
                         return;
