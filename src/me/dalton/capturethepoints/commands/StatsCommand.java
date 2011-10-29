@@ -12,7 +12,7 @@ public class StatsCommand extends CTPCommand {
         super.aliases.add("stat");
         super.aliases.add("info");
         super.notOpCommand = true;
-        super.requiredPermissions = new String[]{"ctp.*", "ctp.play", "ctp.admin"};
+        super.requiredPermissions = new String[]{"ctp.*", "ctp.play", "ctp.admin", "ctp.stats"};
         super.senderMustBePlayer = true;
         super.minParameters = 2;
         super.maxParameters = 2;

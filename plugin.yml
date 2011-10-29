@@ -1,9 +1,10 @@
 name: CaptureThePoints
 main: me.dalton.capturethepoints.CaptureThePoints
-version: 1.2.8
+version: 1.2.9
 authors: [dalton, Humsas, kjhf]
 commands:
     ctp:
+        aliases: [capture, capturethepoints]
         description: Capture the Point game main control command.
         usage: /ctp help
 permissions:
@@ -13,74 +14,92 @@ permissions:
         children:
           ctp.admin: true
           ctp.play: true
+    ctp.colors:
+        description: Allows players to use colors command.
+        default: true
+    ctp.join:
+        description: Allows players to use join command.
+        default: true 
     ctp.play:
-        description: Allows players to play game.
+        description: Allows players to play the game (with all the bells and whistles).
+        default: true
+    ctp.rejoin:
+        description: Allows players to use rejoin command.
+        default: true 
+    ctp.stats:
+        description: Allows players to use stats command.
+        default: true
+    ctp.team:
+        description: Allows players to use team command.
         default: true
     ctp.admin:
         description: Admin commands.
-    ctp.admin.stop:
-        description: Allows to stop the game.
-        default: op
-    ctp.admin.setspawn:
-        description: Sets the place people are teleported to when they die or when they join the game.
-        default: op
-    ctp.admin.setpoints:
-        description: Sets the chosen teams points to this number.
-        default: op
-    ctp.admin.pjoin:
-        description: makes this player join the game.
-        default: op
-    ctp.admin.removespawn:
-        description: Removes an existing spawn point.
-        default: op
-    ctp.admin.joinall:
-        description: Makes all people join game.
-        default: op
-    ctp.admin.setarena:
-        description: Sets main arena for playing.
-        default: op
-    ctp.admin.selectarena:
-        description: Selects arena for editing.
-        default: op
-    ctp.admin.delete:
-        description: Deletes an existing arena.
-        default: op
-    ctp.admin.create:
-        description: Creates an arena.
-        default: op
-    ctp.admin.removepoint:
-        description: Removes an existing capture point.
-        default: op
-    ctp.admin.setpoint:
-        description: Creates new capture point.
-        default: op
-    ctp.admin.setlobby:
-        description: Creates a lobby for selected arena.
-        default: op
     ctp.admin.arenalist:
         description: Shows existing arenas list.
-        default: op
-    ctp.admin.pointlist:
-        description: Shows selected arena capture points list.
-        default: op
-    ctp.admin.setboundary:
-        description: Sets boundary (1 or 2) of the arena.
-        default: op
-    ctp.admin.reload:
-        description: reloads ctp configs.
-        default: op
-    ctp.admin.kick:
-        description: kicks player from the game.
-        default: op
-    ctp.admin.start:
-        description: start an arena.
-        default: op
-    ctp.admin.minimumplayers:
-        description: Set minimum players of an arena.
-        default: op
-    ctp.admin.maximumplayers:
-        description: Set maximum players of an arena.
         default: op
     ctp.admin.auto:
         description: Allows auto command access
         default: op   
+    ctp.admin.create:
+        description: Creates an arena.
+        default: op
+    ctp.admin.delete:
+        description: Deletes an existing arena.
+        default: op
+    ctp.admin.joinall:
+        description: Makes all people join game.
+        default: op
+    ctp.admin.kick:
+        description: kicks player from the game.
+        default: op
+    ctp.admin.maximumplayers:
+        description: Set maximum players of an arena.
+        default: op
+    ctp.admin.minimumplayers:
+        description: Set minimum players of an arena.
+        default: op
+    ctp.admin.pjoin:
+        description: makes this player join the game.
+        default: op
+    ctp.admin.pointlist:
+        description: Shows selected arena capture points list.
+        default: op
+    ctp.admin.reload:
+        description: Reloads ctp configs.
+        default: op
+    ctp.admin.removepoint:
+        description: Removes an existing capture point.
+        default: op
+    ctp.admin.removespawn:
+        description: Removes an existing spawn point.
+        default: op
+    ctp.admin.save:
+        description: Save command.
+        default: op
+    ctp.admin.selectarena:
+        description: Selects arena for editing.
+        default: op
+    ctp.admin.setarena:
+        description: Sets main arena for playing.
+        default: op
+    ctp.admin.setboundary:
+        description: Sets boundary (1 or 2) of the arena.
+        default: op
+    ctp.admin.setlobby:
+        description: Creates a lobby for selected arena.
+        default: op
+    ctp.admin.setpoint:
+        description: Creates new capture point.
+        default: op
+    ctp.admin.setpoints:
+        description: Sets the chosen teams points to this number.
+        default: op
+    ctp.admin.setspawn:
+        description: Sets the place people are teleported to when they die or when they join the game.
+        default: op
+    ctp.admin.start:
+        description: Start an arena.
+        default: op
+    ctp.admin.stop:
+        description: Allows to stop the game.
+        default: op

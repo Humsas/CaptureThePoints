@@ -14,7 +14,7 @@ public class TeamCommand extends CTPCommand {
         super.aliases.add("team");
         super.aliases.add("myteam");
         super.notOpCommand = true;
-        super.requiredPermissions = new String[]{"ctp.*", "ctp.play", "ctp.admin"};
+        super.requiredPermissions = new String[]{"ctp.*", "ctp.play", "ctp.admin", "ctp.team"};
         super.senderMustBePlayer = true;
         super.minParameters = 2;
         super.maxParameters = 2;

@@ -82,16 +82,13 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     }
 
     @Override
-    public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event)
-    {
-        if(!ctp.configOptions.allowCommands)
-        {
+    public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
+        if (!ctp.configOptions.allowCommands) {
             Player player = event.getPlayer();
             String[] args = event.getMessage().split(" ");
 
-            if( !ctp.canAccess(player, false, "ctp.*", "ctp.admin") && ctp.isGameRunning() && ctp.playerData.containsKey(player)
-                    && !args[0].equalsIgnoreCase("/ctp"))
-            {
+            if (!ctp.canAccess(player, false, "ctp.*", "ctp.admin") && ctp.isGameRunning() && ctp.playerData.containsKey(player)
+                    && !args[0].equalsIgnoreCase("/ctp")) {
                 player.sendMessage(ChatColor.RED + "You can't use commands while playing!");
                 event.setCancelled(true);
             }
@@ -99,14 +96,11 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     }
 
     @Override
-    public void onPlayerInteract(PlayerInteractEvent event)
-    {
-        if (ctp.playerData.containsKey(event.getPlayer()))
-        {
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (ctp.playerData.containsKey(event.getPlayer())) {
             Player p = event.getPlayer();
             // Iron block
-            if (event.hasBlock() && event.getClickedBlock().getTypeId() == 42)
-            {
+            if (event.hasBlock() && event.getClickedBlock().getTypeId() == 42) {
                 //If this role exists
                 if (ctp.roles.containsKey(ctp.playerData.get(p).role)) {
                     if (!ctp.playerData.get(p).isReady) {
@@ -119,10 +113,9 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     p.sendMessage(ChatColor.RED + "Please select a role.");
                 }
             }
-            
+
             // Sign
-            if (event.hasBlock() && event.getClickedBlock().getState() instanceof Sign)
-            {
+            if (event.hasBlock() && event.getClickedBlock().getState() instanceof Sign) {
                 // Cast the block to a sign to get the text on it.
                 Sign sign = (Sign) event.getClickedBlock().getState();
                 // Check if the first line of the sign is a class name.
@@ -132,8 +125,8 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 } else if (!ctp.roles.containsKey(role.toLowerCase()) && !role.equalsIgnoreCase("random")) {
                     return;
                 } else {
-                    
-                // Kj's
+
+                    // Kj's
                     if (role.equalsIgnoreCase("random")) {
                         int size = ctp.roles.size();
                         if (size > 1) { // If there is more than 1 role to choose from
@@ -144,7 +137,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                             role = roles.get(nextInt) == null ? roles.get(0) : roles.get(nextInt); // Change the role based on the random number. (Ternary null check)
                         }
                     }
-                    
+
                     ctp.blockListener.assignRole(p, role.toLowerCase());
                     ctp.playerData.get(p).isReady = false;
                     ctp.mainArena.lobby.playersinlobby.put(p, false);
@@ -159,75 +152,60 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }
     }
 
-
-    public void useHealingItem(PlayerInteractEvent event, Player p)
-    {
-        if (ctp.isGameRunning() && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK))
-        {
+    public void useHealingItem(PlayerInteractEvent event, Player p) {
+        if (ctp.isGameRunning() && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
             Material mat = p.getItemInHand().getType();
-            for (HealingItems item : ctp.healingItems)
-            {
-                if(item.item.item == mat)
-                {
+            for (HealingItems item : ctp.healingItems) {
+                if (item.item.item == mat) {
                     PlayersAndCooldowns cooldownData = null;
                     boolean alreadyExists = false;
-                    if(item.cooldowns != null && item.cooldowns.size() > 0)
-                    {
-                        for(String playName : item.cooldowns.keySet())
-                        {
-                            if(p.getHealth() >= ctp.configOptions.maxPlayerHealth)
-                            {
+                    if (item.cooldowns != null && item.cooldowns.size() > 0) {
+                        for (String playName : item.cooldowns.keySet()) {
+                            if (p.getHealth() >= ctp.configOptions.maxPlayerHealth) {
                                 p.sendMessage(ChatColor.RED + "You are healty!");
                                 return;
                             }
-                            if(playName.equalsIgnoreCase(p.getName()) && item.cooldowns.get(playName).cooldown > 0)
-                            {
+                            if (playName.equalsIgnoreCase(p.getName()) && item.cooldowns.get(playName).cooldown > 0) {
                                 p.sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " is on cooldown!");
                                 return;
-                            }
-                            else if(playName.equalsIgnoreCase(p.getName()))
-                            {
+                            } else if (playName.equalsIgnoreCase(p.getName())) {
                                 cooldownData = item.cooldowns.get(playName);
                                 break;
                             }
                         }
                     }
-                    if(cooldownData == null)
+                    if (cooldownData == null) {
                         cooldownData = new PlayersAndCooldowns();
-                    else
+                    } else {
                         alreadyExists = true;
+                    }
 
                     // If we are here item has no cooldown, but it can have HOT ticking, but we do not check that.
-                    if(item.cooldown == 0)
+                    if (item.cooldown == 0) {
                         cooldownData.cooldown = -1;
-                    else
+                    } else {
                         cooldownData.cooldown = item.cooldown;
-
-                    if(p.getHealth() + item.instantHeal > ctp.configOptions.maxPlayerHealth)
-                    {
-                        p.setHealth(ctp.configOptions.maxPlayerHealth);
                     }
-                    else
-                    {
+
+                    if (p.getHealth() + item.instantHeal > ctp.configOptions.maxPlayerHealth) {
+                        p.setHealth(ctp.configOptions.maxPlayerHealth);
+                    } else {
                         p.setHealth(p.getHealth() + item.instantHeal);
                         //p.sendMessage("" + p.getHealth());
                     }
 
-                    if(item.duration > 0)
-                    {
+                    if (item.duration > 0) {
                         cooldownData.healingTimesLeft = item.duration;
                         cooldownData.intervalTimeLeft = item.hotInterval;
                     }
 
-                    if(!alreadyExists)
+                    if (!alreadyExists) {
                         item.cooldowns.put(p.getName(), cooldownData);
-
-                    if(p.getItemInHand().getAmount() > 1)
-                    {
-                        p.getItemInHand().setAmount(p.getItemInHand().getAmount() - 1);
                     }
-                    else
-                    {
+
+                    if (p.getItemInHand().getAmount() > 1) {
+                        p.getItemInHand().setAmount(p.getItemInHand().getAmount() - 1);
+                    } else {
                         p.setItemInHand(null);
                     }
                     // Cancel event to not heal like with golden apple
@@ -411,33 +389,24 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }, ctp.configOptions.scoreAnnounceTime * 20, ctp.configOptions.scoreAnnounceTime * 20);
 
         // Healing items cooldowns
-        ctp.CTP_Scheduler.healingItemsCooldowns = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable()
-        {
+        ctp.CTP_Scheduler.healingItemsCooldowns = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable() {
+
             @Override
-            public void run()
-            {
-                if (ctp.isGameRunning())
-                {
-                    for (HealingItems item : ctp.healingItems)
-                    {
-                        if( item != null && item.cooldowns != null && item.cooldowns.size() > 0)
-                        {
-                            for(String playName : item.cooldowns.keySet())
-                            {
+            public void run() {
+                if (ctp.isGameRunning()) {
+                    for (HealingItems item : ctp.healingItems) {
+                        if (item != null && item.cooldowns != null && item.cooldowns.size() > 0) {
+                            for (String playName : item.cooldowns.keySet()) {
                                 PlayersAndCooldowns data = item.cooldowns.get(playName);
-                                if(data.cooldown == 1)  // This is cause we begin from top
+                                if (data.cooldown == 1) // This is cause we begin from top
                                 {
                                     ctp.getServer().getPlayer(playName).sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " cooldown has refreshed!");
                                 }
-                                
-                                if(data.healingTimesLeft > 0 && data.intervalTimeLeft <= 0)
-                                {
-                                    if(ctp.getServer().getPlayer(playName).getHealth() + item.hotHeal > ctp.configOptions.maxPlayerHealth)
-                                    {
+
+                                if (data.healingTimesLeft > 0 && data.intervalTimeLeft <= 0) {
+                                    if (ctp.getServer().getPlayer(playName).getHealth() + item.hotHeal > ctp.configOptions.maxPlayerHealth) {
                                         ctp.getServer().getPlayer(playName).setHealth(ctp.configOptions.maxPlayerHealth);
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         ctp.getServer().getPlayer(playName).setHealth(ctp.getServer().getPlayer(playName).getHealth() + item.hotHeal);
                                     }
                                     data.intervalTimeLeft = item.hotInterval;
@@ -447,8 +416,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                                 data.intervalTimeLeft--;
                                 data.cooldown--;
 
-                                if(data.cooldown <= 0 && data.healingTimesLeft <= 0)
-                                {
+                                if (data.cooldown <= 0 && data.healingTimesLeft <= 0) {
                                     item.cooldowns.remove(playName);
                                 }
                             }
@@ -459,18 +427,14 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }, 20L, 20L); // Every one sec
 
 
-        ctp.CTP_Scheduler.helmChecker = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable()
-        {
+        ctp.CTP_Scheduler.helmChecker = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable() {
+
             @Override
-            public void run()
-            {
-                if(ctp.isGameRunning())
-                {
-                    for(Player player: ctp.playerData.keySet())
-                    {
+            public void run() {
+                if (ctp.isGameRunning()) {
+                    for (Player player : ctp.playerData.keySet()) {
                         PlayerInventory inv = player.getInventory();
-                        if(!(inv.getHelmet().getData() instanceof Wool) && ctp.playerData.get(player).isInArena)
-                        {
+                        if (!(inv.getHelmet().getData() instanceof Wool) && ctp.playerData.get(player).isInArena) {
                             DyeColor color1 = DyeColor.valueOf(ctp.playerData.get(player).color.toUpperCase());
                             ItemStack helmet = new ItemStack(Material.WOOL, 1, color1.getData());
                             player.getInventory().setHelmet(helmet);
@@ -553,22 +517,16 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     @Override
     public void onPlayerTeleport(PlayerTeleportEvent event) {
         if (!(ctp.isGameRunning())) {
-            if (this.ctp.playerData.get(event.getPlayer()) != null && ctp.playerData.get(event.getPlayer()).isInLobby)
-            {
-                if (isInside(event.getTo().getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(event.getTo().getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && event.getTo().getWorld().getName().equalsIgnoreCase(ctp.mainArena.world))
-                {
+            if (this.ctp.playerData.get(event.getPlayer()) != null && ctp.playerData.get(event.getPlayer()).isInLobby) {
+                if (isInside(event.getTo().getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(event.getTo().getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && event.getTo().getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
                     ctp.playerData.get(event.getPlayer()).justJoined = false;
                     return;
-                } 
-                else
-                {
+                } else {
                     if (this.ctp.playerData.get(event.getPlayer()).justJoined) // allowed to teleport
                     {
                         this.ctp.playerData.get(event.getPlayer()).justJoined = false;
                         return;
-                    } 
-                    else
-                    {
+                    } else {
                         event.setCancelled(true);
                         ctp.playerData.get(event.getPlayer()).isInArena = false;
                         ctp.playerData.get(event.getPlayer()).isInLobby = false;
@@ -582,11 +540,12 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }
 
         Player play = event.getPlayer();
-        if(ctp.playerData.get(play) == null)
+        if (ctp.playerData.get(play) == null) {
             return;
+        }
 
         //If ctp leave command
-        if(ctp.playerData.get(event.getPlayer()).justJoined) {
+        if (ctp.playerData.get(event.getPlayer()).justJoined) {
             ctp.playerData.get(event.getPlayer()).justJoined = false;
             return;
         }
@@ -612,11 +571,11 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 return;
             }
             /*else { // Must be playing a game
-                boolean helmetRemoved = checkHelmet(player);
-                if (helmetRemoved) {
-                    fixHelmet(player);
-                    event.getItemDrop().remove();
-                }
+            boolean helmetRemoved = checkHelmet(player);
+            if (helmetRemoved) {
+            fixHelmet(player);
+            event.getItemDrop().remove();
+            }
             }*/
         }
     }
@@ -638,28 +597,28 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     // Ideally we want to take out the Player parameter (without losing its purpose, of course).
     /** Check the lobby to see if player[s] can be transferred. If not, it returns false. */
     private void checkLobby(Player p) {
-        
+
         // Kj -- If autostart is turned off, might as well ignore this. However, if a game has started and someone wants to join, that's different.
         if (ctp.configOptions.autoStart || !ctp.isPreGame()) {
-            
+
             Lobby lobby = ctp.mainArena.lobby;
             int readypeople = lobby.countReadyPeople();
-            
+
             // The maximum number of players must be greater than the players already playing.
             if (ctp.mainArena.maximumPlayers > ctp.mainArena.getPlayersPlaying(ctp).size()) {
-                
+
                 // Game not yet started
                 if (ctp.isPreGame()) {
                     if (ctp.configOptions.exactTeamMemberCount) {
 
-                        if (readypeople / ctp.teams.size() >= 1 /*&& !lobby.hasUnreadyPeople() */&& readypeople >= ctp.mainArena.minimumPlayers) {
+                        if (readypeople / ctp.teams.size() >= 1 /*&& !lobby.hasUnreadyPeople() */ && readypeople >= ctp.mainArena.minimumPlayers) {
                             moveToSpawns();
                         }
                     } else if (/*(readypeople == ctp.playerData.size()) && */!lobby.hasUnreadyPeople() && readypeople >= ctp.mainArena.minimumPlayers) {
                         moveToSpawns();
                     }
 
-                // Game already started
+                    // Game already started
                 } else {
                     if (!ctp.configOptions.allowLateJoin) {
                         p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] A game has already started. You may not join."); // Kj
@@ -667,13 +626,10 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     }
 
                     // If move players then exact number for team creating is up
-                    if (ctp.configOptions.exactTeamMemberCount)
-                    {
-                        if (readypeople / ctp.teams.size() >= 1) 
-                        {
+                    if (ctp.configOptions.exactTeamMemberCount) {
+                        if (readypeople / ctp.teams.size() >= 1) {
                             int movedPeople = 0;
-                            for (Player play : ctp.playerData.keySet())
-                            {
+                            for (Player play : ctp.playerData.keySet()) {
                                 PlayerData data = ctp.playerData.get(play);
                                 if ((data.isInLobby) && (data.isReady) && (movedPeople <= (readypeople / ctp.teams.size() * ctp.teams.size()))) {
                                     moveToSpawns(play);
@@ -685,12 +641,12 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                             // Player is ready.
                             p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] There are already an even number of players. Please wait for a new player to ready up."); // Kj
                         }
-                    } else { 
+                    } else {
                         // Exact player count off. Player can be moved.
                         moveToSpawns(p);
                     }
                 }
-                
+
             } else {
                 p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] This arena is full."); // Kj
                 return;
@@ -700,12 +656,11 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 
     // Kj's helmet check
     /*public boolean checkHelmet(Player p) {
-        if (p.getInventory().getHelmet() == null) {
-            return true;
-        }
-        return ((p.getInventory().getHelmet().getType() != Material.WOOL) && (ctp.playerData.get(p).isInArena));
+    if (p.getInventory().getHelmet() == null) {
+    return true;
+    }
+    return ((p.getInventory().getHelmet().getType() != Material.WOOL) && (ctp.playerData.get(p).isInArena));
     }*/
-
     public void fixHelmet(Player p) {
         PlayerInventory inv = p.getInventory();
         p.sendMessage(ChatColor.RED + "Do not remove your helmet.");

@@ -13,7 +13,7 @@ public class ColorsCommand extends CTPCommand {
         super.aliases.add("players");
         super.aliases.add("teams");
         super.notOpCommand = true;
-        super.requiredPermissions = new String[]{"ctp.*", "ctp.play", "ctp.admin"};
+        super.requiredPermissions = new String[]{"ctp.*", "ctp.play", "ctp.admin", "ctp.colors"};
         super.senderMustBePlayer = true;
         super.minParameters = 2;
         super.maxParameters = 2;

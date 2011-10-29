@@ -55,8 +55,11 @@ public class HelpCommand extends CTPCommand {
             if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.pjoin"})) {
                 player.sendMessage(ChatColor.GREEN + "/ctp pjoin <player> " + ChatColor.WHITE + "- makes this player join the game");
             }
-            if (canAccess(player, true, new String[]{"ctp.*", "ctp.admin", "ctp.admin.reload"})) {
+            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.reload"})) {
                 player.sendMessage(ChatColor.GREEN + "/ctp reload " + ChatColor.WHITE + "- reload CTP config files");
+            }
+            if (canAccess(player, true, new String[]{"ctp.*", "ctp.play", "ctp.admin", "ctp.rejoin"})) {
+                player.sendMessage(ChatColor.GREEN + "/ctp rejoin " + ChatColor.WHITE + "- join a game if one has started.");
             }
             /*
             if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.save"})) {

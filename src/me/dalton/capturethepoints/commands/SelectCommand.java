@@ -8,11 +8,12 @@ public class SelectCommand extends CTPCommand {
    
     public SelectCommand(CaptureThePoints instance) {
         super.ctp = instance;
+        super.aliases.add("setarena");
         super.aliases.add("selectarena");
         super.aliases.add("select");
         super.aliases.add("arena");
         super.notOpCommand = false;
-        super.requiredPermissions = new String[]{"ctp.*", "ctp.admin", "ctp.admin.select"};
+        super.requiredPermissions = new String[]{"ctp.*", "ctp.admin", "ctp.admin.setarena", "ctp.admin.select", "ctp.admin.selectarena"};
         super.senderMustBePlayer = false;
         super.minParameters = 3;
         super.maxParameters = 3;

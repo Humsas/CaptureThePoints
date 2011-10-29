@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Map;	
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import me.dalton.capturethepoints.commands.*;
@@ -48,7 +48,7 @@ public class CaptureThePoints extends JavaPlugin {
     private HashMap<Player, ItemStack[]> armor = new HashMap<Player, ItemStack[]>();
     public final HashMap<Player, Integer> health = new HashMap<Player, Integer>();
     //public HashMap<Player, PlayerData> playerData = new HashMap<Player, PlayerData>();
-    public Map<Player, PlayerData> playerData = new ConcurrentHashMap<Player, PlayerData>();  // To avoid concurent modification exceptions
+    public Map<Player, PlayerData> playerData = new ConcurrentHashMap<Player, PlayerData>();  // To avoid concurent modification exceptions     
     public List<Team> teams = new LinkedList<Team>();
     public final HashMap<Player, Location> previousLocation = new HashMap<Player, Location>();
     public List<Lobby> lobbies = new LinkedList<Lobby>(); // List of all lobbies
@@ -104,7 +104,7 @@ public class CaptureThePoints extends JavaPlugin {
         teams.clear();
         roles.clear();
     }
-    
+
     public void resetArenaList() {
         arena_list.clear();
         //Load existing arenas
@@ -161,6 +161,7 @@ public class CaptureThePoints extends JavaPlugin {
         commands.add(new KickCommand(this));
         commands.add(new LeaveCommand(this));
         commands.add(new PJoinCommand(this));
+        commands.add(new RejoinCommand(this));
         commands.add(new ReloadCommand(this));
         //commands.add(new SaveCommand(this));
         commands.add(new SelectCommand(this));
@@ -331,7 +332,7 @@ public class CaptureThePoints extends JavaPlugin {
                     } catch (Exception ex) {
                         team.chatcolor = ChatColor.GREEN;
                     }
-                    
+
                     // Kj -- copied previous team check here to double check if teams are being duped.
                     // Check if this spawn is already in the list
                     boolean hasTeam = false;
@@ -361,8 +362,7 @@ public class CaptureThePoints extends JavaPlugin {
                     arenaConf.getDouble("Lobby.Z", 0.0D),
                     arenaConf.getDouble("Lobby.Dir", 0.0D));
             arena.lobby = lobby;
-            if ((lobby.x == 0.0D) && (lobby.y == 0.0D) && (lobby.z == 0.0D) && (lobby.dir == 0.0D))
-            {
+            if ((lobby.x == 0.0D) && (lobby.y == 0.0D) && (lobby.z == 0.0D) && (lobby.dir == 0.0D)) {
                 arena.lobby = null;
             }
 
@@ -373,12 +373,10 @@ public class CaptureThePoints extends JavaPlugin {
         }
     }
 
-    public void loadHealingItems()
-    {
+    public void loadHealingItems() {
         Configuration config = load();
         // Healing items loading
-        if (config.getString("HealingItems") == null)
-        {
+        if (config.getString("HealingItems") == null) {
             config.setProperty("HealingItems.BREAD.HOTHeal", "1");
             config.setProperty("HealingItems.BREAD.HOTInterval", "1");
             config.setProperty("HealingItems.BREAD.Duration", "5");
@@ -392,21 +390,17 @@ public class CaptureThePoints extends JavaPlugin {
             config.setProperty("HealingItems.GRILLED_PORK.InstantHeal", "5");
         }
         int itemNR = 0;
-        for (String str : config.getKeys("HealingItems"))
-        {
+        for (String str : config.getKeys("HealingItems")) {
             itemNR++;
             HealingItems hItem = new HealingItems();
-            try
-            {
+            try {
                 hItem.item = Util.getItemListFromString(str).get(0);
                 hItem.instantHeal = config.getInt("HealingItems." + str + ".InstantHeal", 0);
                 hItem.hotHeal = config.getInt("HealingItems." + str + ".HOTHeal", 0);
                 hItem.hotInterval = config.getInt("HealingItems." + str + ".HOTInterval", 0);
                 hItem.duration = config.getInt("HealingItems." + str + ".Duration", 0);
                 hItem.cooldown = config.getInt("HealingItems." + str + ".Cooldown", 0);
-            }
-            catch(Exception e)
-            {
+            } catch (Exception e) {
                 System.out.println("[CTP] Error while loading Healing items! " + itemNR + " item!");
             }
 
@@ -555,25 +549,21 @@ public class CaptureThePoints extends JavaPlugin {
         return this.blockListener.capturegame;
     }
 
-    public void leaveGame(Player player)
-    {
+    public void leaveGame(Player player) {
         //On exit we get double sygnal
-        if (playerData.get(player) == null)
-        {
+        if (playerData.get(player) == null) {
             return;
         }
 
         // Removing player cooldowns
-        for (HealingItems item : healingItems)
-        {
-            if( item != null && item.cooldowns != null && item.cooldowns.size() > 0)
-                for(String playName : item.cooldowns.keySet())
-                {
-                    if(playName.equalsIgnoreCase(player.getName()))
-                    {
+        for (HealingItems item : healingItems) {
+            if (item != null && item.cooldowns != null && item.cooldowns.size() > 0) {
+                for (String playName : item.cooldowns.keySet()) {
+                    if (playName.equalsIgnoreCase(player.getName())) {
                         item.cooldowns.remove(playName);
                     }
                 }
+            }
         }
 
         for (Player play : playerData.keySet()) {
@@ -676,22 +666,19 @@ public class CaptureThePoints extends JavaPlugin {
         saveInv(player);
     }
 
-    public boolean canAccess(Player player, boolean notOpCommand, String...permissions)
-    {
-        if(UsePermissions)
-        {
-            for (String perm : permissions )
-            {
-                if(Permissions.has(player, perm))
+    public boolean canAccess(Player player, boolean notOpCommand, String... permissions) {
+        if (UsePermissions) {
+            for (String perm : permissions) {
+                if (Permissions.has(player, perm)) {
                     return true;
+                }
             }
-        }
-        else
-        {
-            if(notOpCommand)
+        } else {
+            if (notOpCommand) {
                 return true;
-            else
-               return player.isOp();
+            } else {
+                return player.isOp();
+            }
         }
         return false;
     }

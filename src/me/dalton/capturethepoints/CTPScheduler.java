@@ -8,4 +8,3 @@ public class CTPScheduler {
   public int lobbyActivity; // Kjhf
   public int healingItemsCooldowns;
 }
-
