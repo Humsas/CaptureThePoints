@@ -19,25 +19,25 @@ public class AliasesCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        player.sendMessage(ChatColor.RED + "Aliases for some commands:");
-            player.sendMessage(ChatColor.GREEN + "alias: " + ChatColor.WHITE + "aliases");
-        if (canAccess(player, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
-            player.sendMessage(ChatColor.GREEN + "join: " + ChatColor.WHITE + "j");
+        sender.sendMessage(ChatColor.RED + "Aliases for some commands:");
+            sender.sendMessage(ChatColor.GREEN + "alias: " + ChatColor.WHITE + "aliases");
+        if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
+            sender.sendMessage(ChatColor.GREEN + "join: " + ChatColor.WHITE + "j");
         }
-        if (canAccess(player, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
-            player.sendMessage(ChatColor.GREEN + "leave: " + ChatColor.WHITE + "exit, part, quit");
+        if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
+            sender.sendMessage(ChatColor.GREEN + "leave: " + ChatColor.WHITE + "exit, part, quit");
         }
-        if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.pjoin"})) {
-            player.sendMessage(ChatColor.GREEN + "pjoin: " + ChatColor.WHITE + "pj");
+        if (canAccess(sender, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.pjoin"})) {
+            sender.sendMessage(ChatColor.GREEN + "pjoin: " + ChatColor.WHITE + "pj");
         }
-        if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.joinall"})) {
-            player.sendMessage(ChatColor.GREEN + "joinall: " + ChatColor.WHITE + "jall");
+        if (canAccess(sender, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.joinall"})) {
+            sender.sendMessage(ChatColor.GREEN + "joinall: " + ChatColor.WHITE + "jall");
         }
-        if (canAccess(player, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
-            player.sendMessage(ChatColor.GREEN + "colors: " + ChatColor.WHITE + "colours, teams, players");
+        if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
+            sender.sendMessage(ChatColor.GREEN + "colors: " + ChatColor.WHITE + "colours, teams, senders");
         }
-        if (canAccess(player, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
-            player.sendMessage(ChatColor.GREEN + "build: " + ChatColor.WHITE + "create, make");
+        if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
+            sender.sendMessage(ChatColor.GREEN + "build: " + ChatColor.WHITE + "create, make");
         }
     }
 }

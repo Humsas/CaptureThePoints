@@ -18,6 +18,6 @@ public class VersionCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        player.sendMessage("CTP version: " + ChatColor.GREEN + ctp.getDescription().getVersion());
+        sender.sendMessage("CTP version: " + ChatColor.GREEN + ctp.getDescription().getVersion());
     }
 }

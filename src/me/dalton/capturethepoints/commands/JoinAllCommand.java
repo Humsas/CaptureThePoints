@@ -25,11 +25,11 @@ public class JoinAllCommand extends CTPCommand {
                 continue;
             }
             if (ctp.mainArena == null) {
-                player.sendMessage(ChatColor.RED + "Please create an arena first");
+                sender.sendMessage(ChatColor.RED + "Please create an arena first");
                 return;
             }
             if (ctp.mainArena.lobby == null) {
-                player.sendMessage(ChatColor.RED + "Please create arena lobby");
+                sender.sendMessage(ChatColor.RED + "Please create arena lobby");
                 return;
             }
 

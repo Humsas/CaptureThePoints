@@ -9,7 +9,7 @@ public class ReloadCommand extends CTPCommand {
         super.aliases.add("reload");
         super.notOpCommand = false;
         super.requiredPermissions = new String[]{"ctp.*", "ctp.admin", "ctp.admin.reload"};
-        super.senderMustBePlayer = true;
+        super.senderMustBePlayer = false;
         super.minParameters = 2;
         super.maxParameters = 2;
         super.usageTemplate = "/ctp reload";
@@ -19,7 +19,7 @@ public class ReloadCommand extends CTPCommand {
     public void perform() {
         ctp.clearConfig();
         ctp.loadConfigFiles();
-        player.sendMessage("[CTP] successfully reloaded!");
+        sender.sendMessage("[CTP] successfully reloaded!");
         return;
     }
 }
