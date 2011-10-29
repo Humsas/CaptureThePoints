@@ -83,7 +83,7 @@ public abstract class CTPCommand {
         if (senderMustBePlayer && !(sender instanceof Player)) {
             sendMessage(ChatColor.RED + "This command can only be used by players.");
             return;
-        } else {
+        } else if (sender instanceof Player) {
             this.player = (Player) sender;
         }
 

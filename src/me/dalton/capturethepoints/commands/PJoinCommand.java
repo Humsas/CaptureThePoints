@@ -12,7 +12,7 @@ public class PJoinCommand extends CTPCommand {
         super.aliases.add("pj");
         super.notOpCommand = false;
         super.requiredPermissions = new String[]{"ctp.*", "ctp.admin.pjoin", "ctp.admin"};
-        super.senderMustBePlayer = true;
+        super.senderMustBePlayer = false;
         super.minParameters = 3;
         super.maxParameters = 3;
         super.usageTemplate = "/ctp pjoin <player>";
@@ -21,23 +21,23 @@ public class PJoinCommand extends CTPCommand {
     @Override
     public void perform() {
         if (ctp.mainArena == null) {
-            player.sendMessage(ChatColor.RED + "Please create an arena first");
+            sender.sendMessage(ChatColor.RED + "Please create an arena first");
             return;
         }
         if (ctp.mainArena.lobby == null) {
-            player.sendMessage(ChatColor.RED + "Please create arena lobby");
+            sender.sendMessage(ChatColor.RED + "Please create arena lobby");
             return;
         }
         Player bob = ctp.getServer().getPlayer(parameters.get(2));
         if (bob == null) {
-            player.sendMessage("Player " + ChatColor.RED + parameters.get(2) + ChatColor.WHITE + " is currently offline!");
+            sender.sendMessage(ChatColor.RED+"Could not find the online player " + ChatColor.GOLD + parameters.get(2) + ChatColor.RED +".");
             return;
         }
         if (!ctp.blockListener.isAlreadyInGame(bob)) {
-            bob.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " forced you to join CTP!");
+            bob.sendMessage(ChatColor.GREEN + sender.getName() + ChatColor.WHITE + " forced you to join CTP!");
             ctp.moveToLobby(bob);
         } else {
-            player.sendMessage(ChatColor.RED + "This player is already playing CTP!");
+            sender.sendMessage(ChatColor.GOLD + parameters.get(2) + ChatColor.RED +" is already playing CTP!");
         }
         return;
     }

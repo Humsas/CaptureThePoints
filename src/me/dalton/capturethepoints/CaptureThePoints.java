@@ -627,7 +627,8 @@ public class CaptureThePoints extends JavaPlugin {
             player.kickPlayer("Banned for life... Nah, just don't join from a bed ;)");
             return;
         }
-        Util.sendMessageToPlayers(this, ChatColor.GREEN + player.getName() + ChatColor.WHITE + " joined a CTP game."); // Kj change to message rather than broadcast
+        
+        // Assign player's PlayerData
         PlayerData data = new PlayerData();
         data.deaths = 0;
         data.deathsInARow = 0;
@@ -640,16 +641,17 @@ public class CaptureThePoints extends JavaPlugin {
         data.isInArena = false;
         data.foodLevel = player.getFoodLevel();
         data.lobbyJoinTime = System.currentTimeMillis();
+        playerData.put(player, data);
+        
+        // Save player's previous state 
         player.setFoodLevel(20);
         if (player.getGameMode() == GameMode.CREATIVE) {
             data.isInCreativeMode = true;
             player.setGameMode(GameMode.SURVIVAL);
         }
-
-        playerData.put(player, data);
+        
         health.put(player, Integer.valueOf(player.getHealth()));
         player.setHealth(configOptions.maxPlayerHealth);
-
         mainArena.lobby.playersinlobby.put(player, false); // Kj
 
         Double X = Double.valueOf(player.getLocation().getX());
@@ -658,6 +660,10 @@ public class CaptureThePoints extends JavaPlugin {
 
         Location previous = new Location(player.getWorld(), X.doubleValue(), y.doubleValue(), z.doubleValue());
         previousLocation.put(player, previous);
+        
+        Util.sendMessageToPlayers(this, ChatColor.GREEN + player.getName() + ChatColor.WHITE + " joined a CTP game.");
+        
+        // Get lobby location and move player to it.        
         Location loc = new Location(getServer().getWorld(mainArena.world), mainArena.lobby.x, mainArena.lobby.y + 1, mainArena.lobby.z);
         loc.setYaw((float) mainArena.lobby.dir);
         loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());

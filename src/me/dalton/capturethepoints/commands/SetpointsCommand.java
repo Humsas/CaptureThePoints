@@ -23,7 +23,7 @@ public class SetpointsCommand extends CTPCommand {
         try {
             points = Integer.parseInt(parameters.get(3));
         } catch (Exception NumberFormatException) {
-            player.sendMessage(ChatColor.RED + "Incorect number format. Usage: " + ChatColor.GREEN + "/ctp setpoints <Teamcolor> <number>");
+            sender.sendMessage(ChatColor.RED + "Incorect number format. Usage: " + ChatColor.GREEN + "/ctp setpoints <Teamcolor> <number>");
             return;
         }
 
@@ -42,7 +42,7 @@ public class SetpointsCommand extends CTPCommand {
             }
             ctp.blockListener.didSomeoneWin();
         }
-        player.sendMessage(ChatColor.RED + "There is no such color!");
+        sender.sendMessage(ChatColor.RED + "There is no such color!");
         return;
     }
 }
