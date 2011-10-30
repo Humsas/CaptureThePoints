@@ -66,29 +66,23 @@ public class CaptureThePointsEntityListener extends EntityListener {
     }
 
     @Override
-    public void onEntityDamage(EntityDamageEvent event)
-    {
-        if (!(event.getEntity() instanceof Player))
-        {
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player)) {
             // Kj -- Didn't involve a player. So we don't care.
             return;
         }
         //Only check if game is running
-        if (ctp.isGameRunning())
-        {
+        if (ctp.isGameRunning()) {
             Player attacker = null;
-            if ((this.ctp.playerData.get((Player) event.getEntity()) != null))
-            {
-                
+            if ((this.ctp.playerData.get((Player) event.getEntity()) != null)) {
+
                 // for melee
-                if (checkForPlayerEvent(event))
-                {
+                if (checkForPlayerEvent(event)) {
                     attacker = ((Player) ((EntityDamageByEntityEvent) event).getDamager());
                 }
 
                 // for arrows
-                if ((event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE) && (((Projectile) ((EntityDamageByEntityEvent) event).getDamager()).getShooter() instanceof Player))
-                {
+                if ((event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE) && (((Projectile) ((EntityDamageByEntityEvent) event).getDamager()).getShooter() instanceof Player)) {
                     attacker = (Player) ((Projectile) ((EntityDamageByEntityEvent) event).getDamager()).getShooter();
                 }
 
@@ -98,14 +92,13 @@ public class CaptureThePointsEntityListener extends EntityListener {
                 /*boolean helmetRemoved = ctp.playerListener.checkHelmet(attacker);
                 if (helmetRemoved)
                 {
-                    ctp.playerListener.fixHelmet(attacker);
-                    event.setCancelled(true);
-                    return;
+                ctp.playerListener.fixHelmet(attacker);
+                event.setCancelled(true);
+                return;
                 }*/
-        
+
                 // lobby damage check
-                if (attacker != null && this.ctp.playerData.get(attacker) != null && this.ctp.playerData.get(playa).isInLobby)
-                {
+                if (attacker != null && this.ctp.playerData.get(attacker) != null && this.ctp.playerData.get(playa).isInLobby) {
                     event.setCancelled(true);
                     return;
                 }
@@ -135,12 +128,10 @@ public class CaptureThePointsEntityListener extends EntityListener {
                 }
 
                 //Player has "died"
-                if ((this.ctp.playerData.get(playa) != null) && (playa.getHealth() - event.getDamage() <= 0))
-                {
+                if ((this.ctp.playerData.get(playa) != null) && (playa.getHealth() - event.getDamage() <= 0)) {
                     event.setCancelled(true);
                     //Send message to all players
-                    if (attacker != null)
-                    {
+                    if (attacker != null) {
                         Util.sendMessageToPlayers(ctp, ctp.playerData.get(playa).team.chatcolor + playa.getName() + ChatColor.WHITE
                                 + " was killed by " + ctp.playerData.get(attacker).team.chatcolor + attacker.getName());
                         dropWool(playa);
@@ -158,14 +149,10 @@ public class CaptureThePointsEntityListener extends EntityListener {
                     }
 
                     // Reseting player cooldowns
-                    for (HealingItems item : ctp.healingItems)
-                    {
-                        if (item != null && item.cooldowns != null && item.cooldowns.size() > 0 && item.resetCooldownOnDeath)
-                        {
-                            for (String playName : item.cooldowns.keySet())
-                            {
-                                if (playName.equalsIgnoreCase(playa.getName()))
-                                {
+                    for (HealingItems item : ctp.healingItems) {
+                        if (item != null && item.cooldowns != null && item.cooldowns.size() > 0 && item.resetCooldownOnDeath) {
+                            for (String playName : item.cooldowns.keySet()) {
+                                if (playName.equalsIgnoreCase(playa.getName())) {
                                     item.cooldowns.remove(playName);
                                 }
                             }
@@ -179,8 +166,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
                 }
             }
         }
-        if (ctp.playerData.get((Player) event.getEntity()) != null && ctp.playerData.get((Player) event.getEntity()).isInLobby)
-        {
+        if (ctp.playerData.get((Player) event.getEntity()) != null && ctp.playerData.get((Player) event.getEntity()).isInLobby) {
             event.setCancelled(true);
         }
     }
@@ -192,18 +178,23 @@ public class CaptureThePointsEntityListener extends EntityListener {
 //
 //        return distance <= ctp.configOptions.protectionDistance;
 //    }
-
     public boolean isProtected(Player player) {
-        // Kj -- null check
-        if (ctp.mainArena == null && player == null) {
+        // Kj -- null checks
+        if (ctp.mainArena == null || player == null) {
             return false;
         }
-        
+        if (ctp.playerData.get(player) == null) {
+            return false;
+        }
+
         Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color);
         Location protectionPoint = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);
-        double distance = player.getLocation().distance(protectionPoint);
-
-        return distance <= ctp.configOptions.protectionDistance;
+        double distance = Util.getDistance(player.getLocation(), protectionPoint); // Kj -- this method is world-friendly.
+        if (distance == Double.NaN) {
+            return false; // Kj -- it will return Double.NaN if cross-world or couldn't work out distance for whatever reason.
+        } else {
+            return distance <= ctp.configOptions.protectionDistance;
+        }
     }
 
     public void giveRoleItemsAfterDeath(Player player) {

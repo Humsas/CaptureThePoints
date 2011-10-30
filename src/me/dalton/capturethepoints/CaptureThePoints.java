@@ -19,6 +19,7 @@ import me.dalton.capturethepoints.commands.*;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -156,9 +157,9 @@ public class CaptureThePoints extends JavaPlugin {
             if (test != null) {
                 UsePermissions = true;
                 Permissions = ((Permissions) test).getHandler();
-                System.out.println("[" + info.getName() + "] Permissions was found and enabled.");
+                logger.info("[CTP] Permissions was found and enabled.");
             } else {
-                System.out.println("[" + info.getName() + "] Permission system not detected, defaulting to OP");
+                logger.info("[CTP] Permission system not detected, defaulting to OP");
                 UsePermissions = false;
             }
         }
@@ -246,7 +247,7 @@ public class CaptureThePoints extends JavaPlugin {
             }
         }, 200L, 200L); // 10 sec
 
-        System.out.println("[" + info.getName() + "]  " + pdfFile.getVersion() + " version is enabled.");
+        logger.info("[CTP] " + pdfFile.getVersion() + " version is enabled.");
     }
 
     private void loadArenas(File file) {
@@ -333,7 +334,26 @@ public class CaptureThePoints extends JavaPlugin {
             File arenaFile = new File(mainDir + File.separator + "Arenas" + File.separator + name + ".yml");
             Configuration arenaConf = new Configuration(arenaFile);
             arenaConf.load();
-            arena.world = arenaConf.getString("World");
+            String world = arenaConf.getString("World");
+            
+            // Kj -- check the world to see if it exists. 
+            if (getServer().getWorld(world) == null) {
+                logger.warning("[CTP] ### WARNING: "+name+" has an incorrect World. The World in the config, \""+world+"\", could not be found. ###");
+                
+                List<String> worlds = new LinkedList<String>();
+                for (World aWorld : getServer().getWorlds()) {
+                    worlds.add(aWorld.getName());
+                }
+                if (worlds.size() == 1) {
+                    arena.world = worlds.get(0);
+                    logger.info("[CTP] Successfully resolved. \""+arena.world+"\" will be used.");
+                } else {
+                    logger.info("[CTP] Could not resolve. Please fix this manually. Hint: Your installed worlds are: "+worlds);
+                }
+            } else {
+                arena.world = world;
+            }
+
             arena.name = name;
             arena.maximumPlayers = arenaConf.getInt("MaximumPlayers", 9999); // Kj
             arena.minimumPlayers = arenaConf.getInt("MinimumPlayers", 2); // Kj
@@ -407,7 +427,7 @@ public class CaptureThePoints extends JavaPlugin {
 
             return arena;
         } else {
-            System.out.println("[" + info.getName() + "] Could not load arena! Check your config file and existing arenas");
+            logger.warning("[CTP] Could not load arena! Check your config file and existing arenas");
             return null;
         }
     }
@@ -444,7 +464,7 @@ public class CaptureThePoints extends JavaPlugin {
                 hItem.cooldown = config.getInt("HealingItems." + str + ".Cooldown", 0);
                 hItem.resetCooldownOnDeath = config.getBoolean("HealingItems." + str + ".ResetCooldownOnDeath", true);
             } catch (Exception e) {
-                System.out.println("[CTP] Error while loading Healing items! " + itemNR + " item!");
+                logger.warning("[CTP] Error while loading Healing items! " + itemNR + " item!");
             }
 
             healingItems.add(hItem);
@@ -719,11 +739,11 @@ public class CaptureThePoints extends JavaPlugin {
                     int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of arenas (exclusive)
                     mainArena = loadArena(arena_list.get(nextInt)) == null ? mainArena : loadArena(arena_list.get(nextInt)); // Change the mainArena based on this. (Ternary null check)
                 }
-                System.out.println("[CTP] ChooseSuitableArena: Players found: " + numberofplayers + ", total arenas found: " + size + " " + arena_list + ", of which " + arenas.size() + " were suitable: " + arenas);
+                logger.info("[CTP] ChooseSuitableArena: Players found: " + numberofplayers + ", total arenas found: " + size + " " + arena_list + ", of which " + arenas.size() + " were suitable: " + arenas);
 
                 // else ctp.mainArena = ctp.mainArena;
             }
-            System.out.println("[CTP] The selected arena, " + mainArena.name + ", has a minimum of " + mainArena.minimumPlayers + ", and a maximum of " + mainArena.maximumPlayers + ".");
+            logger.info("[CTP] The selected arena, " + mainArena.name + ", has a minimum of " + mainArena.minimumPlayers + ", and a maximum of " + mainArena.maximumPlayers + ".");
         }
     }
 
@@ -741,9 +761,14 @@ public class CaptureThePoints extends JavaPlugin {
             return;
         }
         if (getServer().getWorld(mainArena.world) == null) {
-            player.sendMessage("Your world in the arena config is incorrect. The world \"" + mainArena.world + "\" could not be found.");
-            player.sendMessage("The world you are currently playing in is \"" + player.getWorld().getName() + "\".");
-            return;
+            if (canAccess(player, true, new String[]{"ctp.*", "ctp.admin"})) {
+                player.sendMessage("The arena config is incorrect. The world \"" + mainArena.world + "\" could not be found.");
+                player.sendMessage("The world you are currently playing in is \"" + player.getWorld().getName() + "\".");
+                return;
+            } else {
+                player.sendMessage("Sorry, this arena has not been set up properly. Please tell an admin.");
+                return;
+            }
         }
 
         //some more checks

@@ -282,7 +282,7 @@ public class Util {
             if (i.item != null) {
                 list.add(i);
             } else {
-                System.out.println("[CTP] Error while loading config file. Check: " + item);
+                CaptureThePoints.logger.warning("[CTP] Error while loading config file. Check: " + item);
             }
         }
         return list;
@@ -437,5 +437,18 @@ public class Util {
         }
 
         return direction;
+    }
+    
+    /** 
+     * Gets distance between two locations. World friendly.
+     * @param loc1 The first Location
+     * @param loc2 The second Location
+     * @return Returns a double of the distance between them. Returns NaN if the Locations are not on the same World or distance is too great.
+     */
+     public static double getDistance(Location loc1, Location loc2) { // Kjhf's
+        if (loc1 != null && loc2 != null && loc1.getWorld() == loc2.getWorld()) {
+            return loc1.distance(loc2);
+        }
+        return Double.NaN;
     }
 }
