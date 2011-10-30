@@ -1,9 +1,5 @@
 package me.dalton.capturethepoints.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import me.dalton.capturethepoints.ArenaData;
 import me.dalton.capturethepoints.CaptureThePoints;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -40,32 +36,9 @@ public class AutoCommand extends CTPCommand {
             sender.sendMessage(ChatColor.RED + "Hint: your first world's name is \"" + ctp.getServer().getWorlds().get(0).getName() + "\".");
             return;
         }
-        int numberofplayers = world.getPlayers().size();
 
-        if (!ctp.configOptions.useSelectedArenaOnly) {
-            int size = ctp.arena_list.size();
-
-            if (size > 1) {
-                // If there is more than 1 arena to choose from
-                List<String> arenas = new ArrayList<String>();
-                for (String arena : ctp.arena_list) {
-                    ArenaData loadArena = ctp.loadArena(arena);
-                    if (loadArena.maximumPlayers >= numberofplayers && loadArena.minimumPlayers <= numberofplayers) {
-                        arenas.add(arena);
-                        ctp.mainArena = loadArena; // Change the mainArena based on this.
-                    }
-                }
-                if (arenas.size() > 1) {
-                    Random random = new Random();
-                    int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of arenas (exclusive)
-                    ctp.mainArena = ctp.loadArena(ctp.arena_list.get(nextInt)) == null ? ctp.mainArena : ctp.loadArena(ctp.arena_list.get(nextInt)); // Change the mainArena based on this. (Ternary null check)
-                }
-                System.out.println("[CTP] Auto Command: Players found: " + numberofplayers + ", total arenas found: " + size + " " + ctp.arena_list + ", of which " + arenas.size() + " were suitable: " + arenas);
-
-                // else ctp.mainArena = ctp.mainArena;
-            }
-            System.out.println("[CTP] The selected arena, " + ctp.mainArena.name + ", has a minimum of " + ctp.mainArena.minimumPlayers + ", and a maximum of " + ctp.mainArena.maximumPlayers + ".");
-        }
+        ctp.chooseSuitableArena(world.getPlayers().size()); // Choose a suitable arena based on the number of players in the world.
+        
         if (ctp.isGameRunning()) {
             sender.sendMessage("[CTP] A previous Capture The Points game has been terminated.");
             ctp.blockListener.endGame(true);

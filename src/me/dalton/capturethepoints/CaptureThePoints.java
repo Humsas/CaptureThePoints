@@ -11,7 +11,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;	
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import me.dalton.capturethepoints.commands.*;
@@ -246,16 +247,19 @@ public class CaptureThePoints extends JavaPlugin {
             config.removeProperty("Arena");
         }
 
-        configOptions.autoStart = config.getBoolean("AutoStart", true); // Kj -- Allows auto-start if there are enough players waiting. Else, game will only start on /ctp start    
-        configOptions.allowBlockPlacement = config.getBoolean("AllowBlockPlacement", true); // Kj -- Allows placement of blocks outside of CTP Zones   
-        configOptions.allowLateJoin = config.getBoolean("AllowLateJoin", true); // Kj -- Allows players to join after game has started
+        // Kj -- documentation for the different options can be found under the configOptions class.
+        configOptions.allowBlockPlacement = config.getBoolean("AllowBlockPlacement", true); // Kj
+        configOptions.allowCommands = config.getBoolean("AllowCommands", false);
+        configOptions.allowLateJoin = config.getBoolean("AllowLateJoin", true); // Kj
+        configOptions.autoStart = config.getBoolean("AutoStart", true); // Kj
         configOptions.breakingBlocksDropsItems = config.getBoolean("BreakingBlocksDropsItems", false); // Kj
         configOptions.dropWoolOnDeath = config.getBoolean("DropWoolOnDeath", true); // Kj
-        configOptions.enableHardArenaRestore = config.getBoolean("EnableHardArenaRestore", false);
+//        configOptions.enableHardArenaRestore = config.getBoolean("EnableHardArenaRestore", false);
         configOptions.exactTeamMemberCount = config.getBoolean("ExactTeamMemberCount", false);
         configOptions.giveNewRoleItemsOnRespawn = config.getBoolean("GiveNewRoleItemsOnRespawn", true);
         configOptions.givenWoolNumber = config.getInt("GivenWoolNumber", 64) <= 0 ? -1 : config.getInt("GivenWoolNumber", 64); // Kj
         configOptions.lobbyKickTime = config.getInt("LobbyKickTime", 60); // Kj
+        configOptions.maxPlayerHealth = config.getInt("MaxPlayerHealth", 20);
         configOptions.moneyAtTheLobby = config.getInt("MoneyAtTheLobby", 0);
         configOptions.moneyEvery30Sec = config.getInt("MoneyEvery30sec", 100);
         configOptions.moneyForKill = config.getInt("MoneyForKill", 100);
@@ -273,9 +277,7 @@ public class CaptureThePoints extends JavaPlugin {
         configOptions.scoreAnnounceTime = config.getInt("ScoreAnnounceTime", 30);
         configOptions.scoreToWin = config.getInt("ScoreToWin", 15);
         configOptions.useScoreGeneration = config.getBoolean("UseScoreGeneration", false);
-        configOptions.useSelectedArenaOnly = config.getBoolean("UseSelectedArenaOnly", true); // Kj -- if set to false, a random arena will be picked to play on.
-        configOptions.allowCommands = config.getBoolean("AllowCommands", false);  // if true allows command usage in the game
-        configOptions.maxPlayerHealth = config.getInt("MaxPlayerHealth", 20);   // Max health while playing
+        configOptions.useSelectedArenaOnly = config.getBoolean("UseSelectedArenaOnly", true); // Kj
 
         config.save();
 
@@ -578,12 +580,9 @@ public class CaptureThePoints extends JavaPlugin {
         }
 
         int originalMemberCount = 0;
-        if (playerData.get(player).color != null)
-        {
-            for (int i = 0; i < teams.size(); i++)
-            {
-                if (teams.get(i).color.equalsIgnoreCase(playerData.get(player).color)) 
-                {
+        if (playerData.get(player).color != null) {
+            for (int i = 0; i < teams.size(); i++) {
+                if (teams.get(i).color.equalsIgnoreCase(playerData.get(player).color)) {
                     originalMemberCount = teams.get(i).memberCount;
                     teams.get(i).memberCount--;
                     break;
@@ -608,32 +607,25 @@ public class CaptureThePoints extends JavaPlugin {
         }
 
         //check for player count, only then were no replacement
-        if(!wasReplaced)
+        if (!wasReplaced) {
             checkForGameEndThenPlayerLeft();
+        }
 
         // If there was no replacement we should move one member to lobby
-        if(!wasReplaced && configOptions.exactTeamMemberCount && this.isGameRunning())
-        {
+        if (!wasReplaced && configOptions.exactTeamMemberCount && this.isGameRunning()) {
             balanceTeams(originalMemberCount);
         }
     }
 
-    public void balanceTeams(int originalMemberCount)
-    {
-        for(Player play : playerData.keySet())
-        {
-            if(playerData.get(play).isInArena && playerData.get(play).team.memberCount == originalMemberCount)
-            {
+    public void balanceTeams(int originalMemberCount) {
+        for (Player play : playerData.keySet()) {
+            if (playerData.get(play).isInArena && playerData.get(play).team.memberCount == originalMemberCount) {
                 playerData.get(play).team.memberCount--;
                 //Reseting cooldowns
-                for (HealingItems item : healingItems)
-                {
-                    if (item != null && item.cooldowns != null && item.cooldowns.size() > 0)
-                    {
-                        for (String playName : item.cooldowns.keySet())
-                        {
-                            if (playName.equalsIgnoreCase(play.getName()))
-                            {
+                for (HealingItems item : healingItems) {
+                    if (item != null && item.cooldowns != null && item.cooldowns.size() > 0) {
+                        for (String playName : item.cooldowns.keySet()) {
+                            if (playName.equalsIgnoreCase(play.getName())) {
                                 item.cooldowns.remove(playName);
                             }
                         }
@@ -661,6 +653,40 @@ public class CaptureThePoints extends JavaPlugin {
 
                 Util.sendMessageToPlayers(this, "[CTP] " + ChatColor.GREEN + play.getName() + ChatColor.WHITE + " was moved to lobby!");
             }
+        }
+    }
+    
+    /** 
+     * This method changes the mainArena to a suitable arena using the number of players you have.
+     * Note, it will not change the mainArena if useSelectedArenaOnly is set to true.
+     * @param numberofplayers The number of players that want to play.
+     */
+    public void chooseSuitableArena(int numberofplayers) {
+        // Is the config set to allow the random choosing of arenas?
+        if (!configOptions.useSelectedArenaOnly) {
+            
+            int size = arena_list.size();
+
+            if (size > 1) {
+                // If there is more than 1 arena to choose from
+                List<String> arenas = new ArrayList<String>();
+                for (String arena : arena_list) {
+                    ArenaData loadArena = loadArena(arena);
+                    if (loadArena.maximumPlayers >= numberofplayers && loadArena.minimumPlayers <= numberofplayers) {
+                        arenas.add(arena);
+                        mainArena = loadArena; // Change the mainArena based on this.
+                    }
+                }
+                if (arenas.size() > 1) {
+                    Random random = new Random();
+                    int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of arenas (exclusive)
+                    mainArena = loadArena(arena_list.get(nextInt)) == null ? mainArena : loadArena(arena_list.get(nextInt)); // Change the mainArena based on this. (Ternary null check)
+                }
+                System.out.println("[CTP] ChooseSuitableArena: Players found: " + numberofplayers + ", total arenas found: " + size + " " + arena_list + ", of which " + arenas.size() + " were suitable: " + arenas);
+
+                // else ctp.mainArena = ctp.mainArena;
+            }
+            System.out.println("[CTP] The selected arena, " + mainArena.name + ", has a minimum of " + mainArena.minimumPlayers + ", and a maximum of " + mainArena.maximumPlayers + ".");
         }
     }
 
@@ -692,9 +718,9 @@ public class CaptureThePoints extends JavaPlugin {
             return;
         }
 
-        if(playerData.isEmpty())
-            mainArena.lobby.playersinlobby.clear();   //Reset if something has left
-        
+        if (playerData.isEmpty()) {
+            mainArena.lobby.playersinlobby.clear();   //Reset if someone has left
+        }
         // Assign player's PlayerData
         PlayerData data = new PlayerData();
         data.deaths = 0;
@@ -709,14 +735,14 @@ public class CaptureThePoints extends JavaPlugin {
         data.foodLevel = player.getFoodLevel();
         data.lobbyJoinTime = System.currentTimeMillis();
         playerData.put(player, data);
-        
+
         // Save player's previous state 
         player.setFoodLevel(20);
         if (player.getGameMode() == GameMode.CREATIVE) {
             data.isInCreativeMode = true;
             player.setGameMode(GameMode.SURVIVAL);
         }
-        
+
         health.put(player, Integer.valueOf(player.getHealth()));
         player.setHealth(configOptions.maxPlayerHealth);
         mainArena.lobby.playersinlobby.put(player, false); // Kj
@@ -727,9 +753,9 @@ public class CaptureThePoints extends JavaPlugin {
 
         Location previous = new Location(player.getWorld(), X.doubleValue(), y.doubleValue(), z.doubleValue());
         previousLocation.put(player, previous);
-        
+
         Util.sendMessageToPlayers(this, ChatColor.GREEN + player.getName() + ChatColor.WHITE + " joined a CTP game.");
-        
+
         // Get lobby location and move player to it.        
         Location loc = new Location(getServer().getWorld(mainArena.world), mainArena.lobby.x, mainArena.lobby.y + 1, mainArena.lobby.z);
         loc.setYaw((float) mainArena.lobby.dir);

@@ -27,25 +27,25 @@ public class HelpCommand extends CTPCommand {
                 sender.sendMessage(ChatColor.GREEN + "/ctp help [pagenumber] " + ChatColor.WHITE + "- view this menu.");
             }
             if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
-                sender.sendMessage(ChatColor.GREEN + "/ctp aliases " + ChatColor.WHITE + "- list of helpful command aliases"); // Kj
+                sender.sendMessage(ChatColor.GREEN + "/ctp aliases " + ChatColor.WHITE + "- list of helpful command aliases");
             }
             if (canAccess(sender, false, new String[]{"ctp.*", "ctp.auto", "ctp.admin"})) {
-                sender.sendMessage(ChatColor.GREEN + "/ctp auto <worldname>" + ChatColor.WHITE + "- bring every sender in the world to a random suitable arena."); // Kj
+                sender.sendMessage(ChatColor.GREEN + "/ctp auto <worldname>" + ChatColor.WHITE + "- bring every player in the world to a random suitable arena.");
             }
             if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
                 sender.sendMessage(ChatColor.GREEN + "/ctp build help " + ChatColor.WHITE + "- arena editing commands list");
             }
             if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
-                sender.sendMessage(ChatColor.GREEN + "/ctp colors " + ChatColor.WHITE + "- available colors and senders in-game"); // Kj -- fixed typo
+                sender.sendMessage(ChatColor.GREEN + "/ctp colors " + ChatColor.WHITE + "- available colors and senders in-game");
             }
             if (canAccess(sender, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.joinall"})) {
-                sender.sendMessage(ChatColor.GREEN + "/ctp joinall " + ChatColor.WHITE + "- make all senders join the game");
+                sender.sendMessage(ChatColor.GREEN + "/ctp joinall " + ChatColor.WHITE + "- make all players join the game");
             }
             if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
                 sender.sendMessage(ChatColor.GREEN + "/ctp join " + ChatColor.WHITE + "- join the game");
             }
             if (canAccess(sender, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.kick"})) {
-                sender.sendMessage(ChatColor.GREEN + "/ctp kick <sender> " + ChatColor.WHITE + "- kicks sender from the game");
+                sender.sendMessage(ChatColor.GREEN + "/ctp kick <sender> " + ChatColor.WHITE + "- kicks player from the game");
             }
             if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
                 sender.sendMessage(ChatColor.GREEN + "/ctp leave " + ChatColor.WHITE + "- leave the game");
@@ -53,7 +53,7 @@ public class HelpCommand extends CTPCommand {
         } else if (pagenumber.equals("2")) {
             sender.sendMessage(ChatColor.RED + "CTP Commands: " + ChatColor.GOLD + " Page 2/2");
             if (canAccess(sender, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.pjoin"})) {
-                sender.sendMessage(ChatColor.GREEN + "/ctp pjoin <sender> " + ChatColor.WHITE + "- makes this sender join the game");
+                sender.sendMessage(ChatColor.GREEN + "/ctp pjoin <sender> " + ChatColor.WHITE + "- makes this player join the game");
             }
             if (canAccess(sender, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.reload"})) {
                 sender.sendMessage(ChatColor.GREEN + "/ctp reload " + ChatColor.WHITE + "- reload CTP config files");
@@ -70,10 +70,10 @@ public class HelpCommand extends CTPCommand {
                 sender.sendMessage(ChatColor.GREEN + "/ctp setpoints <TeamColor> <number> " + ChatColor.WHITE + "- Set the chosen team's points/score");
             }
             if (canAccess(sender, true, new String[]{"ctp.*", "ctp.admin", "ctp.play"})) {
-                sender.sendMessage(ChatColor.GREEN + "/ctp stats " + ChatColor.WHITE + "- get your in-game stats"); // Kj
+                sender.sendMessage(ChatColor.GREEN + "/ctp stats " + ChatColor.WHITE + "- get your in-game stats");
             }
             if (canAccess(sender, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.stop"})) {
-                sender.sendMessage(ChatColor.GREEN + "/ctp stop " + ChatColor.WHITE + "- stops already running game"); // Kj -- fixed typo
+                sender.sendMessage(ChatColor.GREEN + "/ctp stop " + ChatColor.WHITE + "- stops already running game");
             }
             if (canAccess(sender, true, new String[]{"ctp.*", "ctp.admin", "ctp.play"})) {
                 sender.sendMessage(ChatColor.GREEN + "/ctp team  " + ChatColor.WHITE + "- gets the members on your team");
