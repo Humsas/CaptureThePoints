@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 
 public class PJoinCommand extends CTPCommand {
    
+    /** Allows admin to force a player into playing a CTP game. */
     public PJoinCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("pjoin");

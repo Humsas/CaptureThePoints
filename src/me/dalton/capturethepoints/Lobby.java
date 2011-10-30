@@ -6,13 +6,24 @@ import java.util.HashMap;
 import java.util.List;
 import org.bukkit.entity.Player;
 
+/** A Lobby in a CTP arena */
 public class Lobby {
-    public HashMap<Player, Boolean> playersinlobby = new HashMap<Player, Boolean>(); // Player and their ready status
+    /** List of Players and their ready status */
+    public HashMap<Player, Boolean> playersinlobby = new HashMap<Player, Boolean>();
+    
+    /** X co-ordinate of this lobby's spawn */
     public double x = 0D;
+    
+    /** Y co-ordinate of this lobby's spawn */
     public double y = 0D;
+    
+    /** Z co-ordinate of this lobby's spawn */
     public double z = 0D;
+    
+    /** Direction players spawn in this lobby */
     public double dir = 0D;
 
+    /** A Lobby in a CTP arena */
     public Lobby(double x, double y, double z, double dir) {
         this.x = x;
         this.y = y;

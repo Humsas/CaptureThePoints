@@ -1,5 +1,6 @@
 package me.dalton.capturethepoints;
 
+/** Class for the config options ctp accepts. */
 public class ConfigOptions {   
     /** Allow placement of blocks during a ctp game /||/ Disallow placement of blocks during a ctp game (except for capturing points) [Default: true] */
     public boolean allowBlockPlacement; // Kjhf

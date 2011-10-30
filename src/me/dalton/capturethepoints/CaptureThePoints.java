@@ -35,12 +35,20 @@ public class CaptureThePoints extends JavaPlugin {
 
     public static PermissionHandler Permissions;
     public static boolean UsePermissions;
+    
+    /** "plugins/CaptureThePoints" */
     public static final String mainDir = "plugins/CaptureThePoints";
+    
+    /** "plugins/CaptureThePoints/CaptureSettings.yml" */
     public static final File myfile = new File("plugins/CaptureThePoints" + File.separator + "CaptureSettings.yml");
+    
     public static final Logger logger = Logger.getLogger("Minecraft");
     public static PluginDescriptionFile info = null;
     public static PluginManager pluginManager = null;
+    
+    /** List of commands accepted by CTP */
     private static List<CTPCommand> commands = new ArrayList<CTPCommand>(); // Kj
+    
     public final CaptureThePointsBlockListener blockListener = new CaptureThePointsBlockListener(this);
     public final CaptureThePointsEntityListener entityListener = new CaptureThePointsEntityListener(this);
     public final CaptureThePointsPlayerListener playerListener = new CaptureThePointsPlayerListener(this);
@@ -49,20 +57,47 @@ public class CaptureThePoints extends JavaPlugin {
     private HashMap<Player, ItemStack[]> armor = new HashMap<Player, ItemStack[]>();
     public final HashMap<Player, Integer> health = new HashMap<Player, Integer>();
     //public HashMap<Player, PlayerData> playerData = new HashMap<Player, PlayerData>();
-    public Map<Player, PlayerData> playerData = new ConcurrentHashMap<Player, PlayerData>();  // To avoid concurent modification exceptions     
+    
+    /** The PlayerData stored by CTP. (HashMap: Player, and their data) */
+    public Map<Player, PlayerData> playerData = new ConcurrentHashMap<Player, PlayerData>();  // To avoid concurent modification exceptions    
+    
+    /** The Teams stored by CTP. */
     public List<Team> teams = new LinkedList<Team>();
+    
+    /** Player's previous Locations before they started playing CTP. */
     public final HashMap<Player, Location> previousLocation = new HashMap<Player, Location>();
-    public List<Lobby> lobbies = new LinkedList<Lobby>(); // List of all lobbies
+    
+    /** The Lobbies stored by CTP. */
+    public List<Lobby> lobbies = new LinkedList<Lobby>();
+    
+    /** The config options for CTP. */
     public ConfigOptions configOptions = new ConfigOptions();
+    
+    /** The list of arena names stored by CTP. */
     public List<String> arena_list = new LinkedList<String>();
+    
+    /** The selected arena for playing. */
     public ArenaData mainArena = new ArenaData();
-    public String editingArenaName = ""; // arena
+    
+    /** The arena currently being edited. */
+    public String editingArenaName = "";
+    
+    /** The roles/classes stored by CTP. (HashMap: Role's name, and the Items it contains) */
     public HashMap<String, List<Items>> roles = new HashMap<String, List<Items>>();
+    
+    /** The list of Healing Items stored by CTP. */
     public List<HealingItems> healingItems = new LinkedList<HealingItems>();
+    
+    /** The list of Rewards stored by CTP. */
     public CTPRewards rewards = new CTPRewards();
-    public CTPScheduler CTP_Scheduler = new CTPScheduler(); //timer
+    
+    /** The timers used by CTP. */
+    public CTPScheduler CTP_Scheduler = new CTPScheduler();
+    
+    /** Name of the player who needs teleporting. */
     public String playerNameForTeleport = ""; // Block destroy - teleport protection
-    // Arenos issaugojimui
+    
+    // Arenos issaugojimui -- Arena currently being edited
     public int x1, y1, z1, x2, y2, z2;
 
     public Configuration load() { //YamlConfiguration
@@ -655,7 +690,7 @@ public class CaptureThePoints extends JavaPlugin {
             }
         }
     }
-    
+
     /** 
      * This method changes the mainArena to a suitable arena using the number of players you have.
      * Note, it will not change the mainArena if useSelectedArenaOnly is set to true.
@@ -664,7 +699,7 @@ public class CaptureThePoints extends JavaPlugin {
     public void chooseSuitableArena(int numberofplayers) {
         // Is the config set to allow the random choosing of arenas?
         if (!configOptions.useSelectedArenaOnly) {
-            
+
             int size = arena_list.size();
 
             if (size > 1) {

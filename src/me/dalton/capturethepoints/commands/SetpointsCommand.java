@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 
 public class SetpointsCommand extends CTPCommand {
    
+    /** Allows admin to set the points/score that a team has. May screw up if points system is used rather than score. */
     public SetpointsCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("setpoints");

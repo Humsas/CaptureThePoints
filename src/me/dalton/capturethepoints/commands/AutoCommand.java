@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 
 public class AutoCommand extends CTPCommand {
 
-    /** Kj -- This command will bring all players on a world into a random lobby which is guaranteed to hold everyone (if not, use the already selected arena) */
+    /** This command will bring all players on a world into a random lobby which is guaranteed to hold everyone (if not, use the already selected arena) */
     public AutoCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("auto");

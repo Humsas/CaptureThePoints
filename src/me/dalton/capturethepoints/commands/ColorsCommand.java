@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 
 public class ColorsCommand extends CTPCommand {
     
+    /** Fetches the available teams, and the players on each team if a game has started. */
     public ColorsCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("colors");

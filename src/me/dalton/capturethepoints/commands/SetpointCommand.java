@@ -5,6 +5,7 @@ import org.bukkit.Location;
 
 public class SetpointCommand extends CTPCommand {
 
+    /** Shorthand for /ctp build setpoint <number> */
     public SetpointCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("setpoint");

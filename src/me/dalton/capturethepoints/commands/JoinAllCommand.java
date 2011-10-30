@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 
 public class JoinAllCommand extends CTPCommand {
    
+    /** Grabs EVERYONE on the server and puts them into a new ctp game. Stops any already in progress. */
     public JoinAllCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("joinall");

@@ -4,6 +4,7 @@ import me.dalton.capturethepoints.CaptureThePoints;
 
 public class SaveCommand extends CTPCommand {
 
+    /** Save command [not fully implemented] */
     public SaveCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("save");

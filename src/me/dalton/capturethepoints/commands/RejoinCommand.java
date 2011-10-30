@@ -5,7 +5,7 @@ import org.bukkit.ChatColor;
 
 public class RejoinCommand extends CTPCommand {
    
-    // Kj -- If there is a game on already, allow user to join. If not, deny. Useful for permissions.
+    /** Allows player to join a ctp game that is already running. Does NOT start a new one. */
     public RejoinCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("rejoin");

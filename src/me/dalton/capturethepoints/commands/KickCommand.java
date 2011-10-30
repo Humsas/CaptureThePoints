@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 
 public class KickCommand extends CTPCommand {
    
+    /** Allows an admin to kick a player from a CTP game. */
     public KickCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("kick");

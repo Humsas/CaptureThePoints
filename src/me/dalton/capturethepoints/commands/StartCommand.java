@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 
 public class StartCommand extends CTPCommand {
    
+    /** Allows admin to manually start a ctp game. */
     public StartCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("start");

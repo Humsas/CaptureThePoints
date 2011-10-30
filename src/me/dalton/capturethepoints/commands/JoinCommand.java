@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 
 public class JoinCommand extends CTPCommand {
    
+    /** Allows player to join ctp game. Starts a new one if one isn't running already. */
     public JoinCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("join");
