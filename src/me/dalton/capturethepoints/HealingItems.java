@@ -15,6 +15,8 @@ public class HealingItems
     public int instantHeal = 0;
     public int hotInterval = 0;
 
+    public boolean resetCooldownOnDeath = true;
+
     public Items item = null;
 
     public Map<String, PlayersAndCooldowns> cooldowns = new ConcurrentHashMap<String, PlayersAndCooldowns>();  // String - player name

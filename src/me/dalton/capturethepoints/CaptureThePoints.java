@@ -381,13 +381,16 @@ public class CaptureThePoints extends JavaPlugin {
             config.setProperty("HealingItems.BREAD.HOTInterval", "1");
             config.setProperty("HealingItems.BREAD.Duration", "5");
             config.setProperty("HealingItems.BREAD.Cooldown", "0");
+            config.setProperty("HealingItems.BREAD.ResetCooldownOnDeath", "true");
             config.setProperty("HealingItems.GOLDEN_APPLE.InstantHeal", "20");
             config.setProperty("HealingItems.GOLDEN_APPLE.Duration", "5");
+            config.setProperty("HealingItems.GOLDEN_APPLE.ResetCooldownOnDeath", "true");
             config.setProperty("HealingItems.GRILLED_PORK.HOTHeal", "1");
             config.setProperty("HealingItems.GRILLED_PORK.HOTInterval", "3");
             config.setProperty("HealingItems.GRILLED_PORK.Duration", "5");
             config.setProperty("HealingItems.GRILLED_PORK.Cooldown", "10");
             config.setProperty("HealingItems.GRILLED_PORK.InstantHeal", "5");
+            config.setProperty("HealingItems.GRILLED_PORK.ResetCooldownOnDeath", "true");
         }
         int itemNR = 0;
         for (String str : config.getKeys("HealingItems")) {
@@ -400,6 +403,7 @@ public class CaptureThePoints extends JavaPlugin {
                 hItem.hotInterval = config.getInt("HealingItems." + str + ".HOTInterval", 0);
                 hItem.duration = config.getInt("HealingItems." + str + ".Duration", 0);
                 hItem.cooldown = config.getInt("HealingItems." + str + ".Cooldown", 0);
+                hItem.resetCooldownOnDeath = config.getBoolean("HealingItems." + str + ".ResetCooldownOnDeath", true);
             } catch (Exception e) {
                 System.out.println("[CTP] Error while loading Healing items! " + itemNR + " item!");
             }
@@ -573,9 +577,14 @@ public class CaptureThePoints extends JavaPlugin {
             play.sendMessage("[CTP] " + ChatColor.GREEN + player.getName() + ChatColor.WHITE + " left the CTP game!");
         }
 
-        if (playerData.get(player).color != null) {
-            for (int i = 0; i < teams.size(); i++) {
-                if (teams.get(i).color.equalsIgnoreCase(playerData.get(player).color)) {
+        int originalMemberCount = 0;
+        if (playerData.get(player).color != null)
+        {
+            for (int i = 0; i < teams.size(); i++)
+            {
+                if (teams.get(i).color.equalsIgnoreCase(playerData.get(player).color)) 
+                {
+                    originalMemberCount = teams.get(i).memberCount;
                     teams.get(i).memberCount--;
                     break;
                 }
@@ -587,17 +596,72 @@ public class CaptureThePoints extends JavaPlugin {
         this.playerData.remove(player);
 
         // Check for player replacement if there is somone waiting to join the game
+        boolean wasReplaced = false;
         if (configOptions.exactTeamMemberCount && isGameRunning()) {
             for (Player play : playerData.keySet()) {
                 if (playerData.get(play).isInLobby && playerData.get(play).isReady) {
                     this.playerListener.moveToSpawns(play);
+                    wasReplaced = true;
                     break;
                 }
             }
         }
 
-        //check for player count
-        checkForGameEndThenPlayerLeft();
+        //check for player count, only then were no replacement
+        if(!wasReplaced)
+            checkForGameEndThenPlayerLeft();
+
+        // If there was no replacement we should move one member to lobby
+        if(!wasReplaced && configOptions.exactTeamMemberCount && this.isGameRunning())
+        {
+            balanceTeams(originalMemberCount);
+        }
+    }
+
+    public void balanceTeams(int originalMemberCount)
+    {
+        for(Player play : playerData.keySet())
+        {
+            if(playerData.get(play).isInArena && playerData.get(play).team.memberCount == originalMemberCount)
+            {
+                playerData.get(play).team.memberCount--;
+                //Reseting cooldowns
+                for (HealingItems item : healingItems)
+                {
+                    if (item != null && item.cooldowns != null && item.cooldowns.size() > 0)
+                    {
+                        for (String playName : item.cooldowns.keySet())
+                        {
+                            if (playName.equalsIgnoreCase(play.getName()))
+                            {
+                                item.cooldowns.remove(playName);
+                            }
+                        }
+                    }
+                }
+
+                // Reseting player data
+                playerData.get(play).isInArena = false;
+                playerData.get(play).isInLobby = true;
+                mainArena.lobby.playersinlobby.put(play, false);
+                playerData.get(play).color = null;
+                playerData.get(play).isReady = false;
+                // Flag for teleport
+                playerData.get(play).justJoined = true;
+                playerData.get(play).lobbyJoinTime = System.currentTimeMillis();
+                playerData.get(play).role = null;
+                playerData.get(play).team = null;
+                playerData.get(play).warnedAboutActivity = false;
+
+                // Get lobby location and move player to it.
+                Location loc = new Location(getServer().getWorld(mainArena.world), mainArena.lobby.x, mainArena.lobby.y + 1, mainArena.lobby.z);
+                loc.setYaw((float) mainArena.lobby.dir);
+                loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
+                play.teleport(loc); // Teleport player to lobby
+
+                Util.sendMessageToPlayers(this, "[CTP] " + ChatColor.GREEN + play.getName() + ChatColor.WHITE + " was moved to lobby!");
+            }
+        }
     }
 
     public void moveToLobby(Player player) {

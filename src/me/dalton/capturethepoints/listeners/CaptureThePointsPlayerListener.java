@@ -166,7 +166,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                                 return;
                             }
                             if (playName.equalsIgnoreCase(p.getName()) && item.cooldowns.get(playName).cooldown > 0) {
-                                p.sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " is on cooldown!");
+                                p.sendMessage(ChatColor.GREEN + item.item.item.toString() + ChatColor.WHITE + " is on cooldown! Time left: " + ChatColor.GREEN + item.cooldowns.get(playName).cooldown);
                                 return;
                             } else if (playName.equalsIgnoreCase(p.getName())) {
                                 cooldownData = item.cooldowns.get(playName);
@@ -285,9 +285,10 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 }
             }
             movedPeople = 0;
+            int maxPlayersToMove =  readyPpl / ctp.teams.size() * ctp.teams.size();
             for (Player play : ctp.playerData.keySet()) {
                 PlayerData data = ctp.playerData.get(play);
-                if ((data.isInLobby) && (data.isReady) && (movedPeople <= readyPpl / ctp.teams.size() * ctp.teams.size())) {
+                if ((data.isInLobby) && (data.isReady) && (movedPeople < maxPlayersToMove)) {
                     moveToSpawns(play);
                     movedPeople++;
                 }
@@ -629,9 +630,10 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     if (ctp.configOptions.exactTeamMemberCount) {
                         if (readypeople / ctp.teams.size() >= 1) {
                             int movedPeople = 0;
+                            int maxPlayersToMove =  readypeople / ctp.teams.size() * ctp.teams.size();
                             for (Player play : ctp.playerData.keySet()) {
                                 PlayerData data = ctp.playerData.get(play);
-                                if ((data.isInLobby) && (data.isReady) && (movedPeople <= (readypeople / ctp.teams.size() * ctp.teams.size()))) {
+                                if ((data.isInLobby) && (data.isReady) && (movedPeople < (maxPlayersToMove))) {
                                     moveToSpawns(play);
                                     movedPeople++;
                                 }

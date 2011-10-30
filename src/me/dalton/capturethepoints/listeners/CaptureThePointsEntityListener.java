@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import me.dalton.capturethepoints.CTPPoints;
 import me.dalton.capturethepoints.CaptureThePoints;
+import me.dalton.capturethepoints.HealingItems;
 import me.dalton.capturethepoints.Items;
 import me.dalton.capturethepoints.Lobby;
 import me.dalton.capturethepoints.Util;
@@ -136,10 +137,12 @@ public class CaptureThePointsEntityListener extends EntityListener {
                 }
 
                 //Player has "died"
-                if ((this.ctp.playerData.get(playa) != null) && (playa.getHealth() - event.getDamage() <= 0)) {
+                if ((this.ctp.playerData.get(playa) != null) && (playa.getHealth() - event.getDamage() <= 0))
+                {
                     event.setCancelled(true);
                     //Send message to all players
-                    if (attacker != null) {
+                    if (attacker != null)
+                    {
                         Util.sendMessageToPlayers(ctp, ctp.playerData.get(playa).team.chatcolor + playa.getName() + ChatColor.WHITE
                                 + " was killed by " + ctp.playerData.get(attacker).team.chatcolor + attacker.getName());
                         dropWool(playa);
@@ -152,9 +155,26 @@ public class CaptureThePointsEntityListener extends EntityListener {
                     playa.setHealth(ctp.configOptions.maxPlayerHealth);
                     playa.setFoodLevel(20);
                     CTPPoints point = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
-                    if (ctp.configOptions.giveNewRoleItemsOnRespawn) {
+                    if (ctp.configOptions.giveNewRoleItemsOnRespawn)
+                    {
                         giveRoleItemsAfterDeath(playa);
                     }
+
+                    // Reseting player cooldowns
+                    for (HealingItems item : ctp.healingItems)
+                    {
+                        if (item != null && item.cooldowns != null && item.cooldowns.size() > 0 && item.resetCooldownOnDeath)
+                        {
+                            for (String playName : item.cooldowns.keySet())
+                            {
+                                if (playName.equalsIgnoreCase(playa.getName()))
+                                {
+                                    item.cooldowns.remove(playName);
+                                }
+                            }
+                        }
+                    }
+
                     Location loc = new Location(ctp.getServer().getWorld(ctp.mainArena.world), point.x, point.y, point.z);
                     loc.setYaw((float) point.dir);
                     loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());

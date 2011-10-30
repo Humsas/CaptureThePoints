@@ -6,7 +6,8 @@ import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-public class Team {
+public class Team
+{
   public ChatColor chatcolor = ChatColor.GREEN; // Kjhf  
   public String color;
   public int memberCount;
