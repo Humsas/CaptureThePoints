@@ -8,7 +8,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.util.config.Configuration;
 
 public class BuildCommand extends CTPCommand {
-    
+
     // Kj -- This could be broken down further, perhaps into a new package compeltely.
     public BuildCommand(CaptureThePoints instance) {
         super.ctp = instance;
@@ -116,12 +116,12 @@ public class BuildCommand extends CTPCommand {
                         || (arg2.equals("pink"))
                         || (arg2.equals("magenta"))
                         || (arg2.equals("brown"))) {
-                    CTPPoints tmps = new CTPPoints();
-                    tmps.name = arg2;
-                    tmps.x = Double.valueOf(loc.getX()).doubleValue();
-                    tmps.y = Double.valueOf(loc.getY()).doubleValue();
-                    tmps.z = Double.valueOf(loc.getZ()).doubleValue();
-                    tmps.dir = loc.getYaw();
+                    Spawn spawn = new Spawn();
+                    spawn.name = arg2;
+                    spawn.x = Double.valueOf(loc.getX()).doubleValue();
+                    spawn.y = Double.valueOf(loc.getY()).doubleValue();
+                    spawn.z = Double.valueOf(loc.getZ()).doubleValue();
+                    spawn.dir = loc.getYaw();
 
                     String aWorld = arenaConf.getString("World");
                     if (aWorld == null) {
@@ -133,7 +133,7 @@ public class BuildCommand extends CTPCommand {
                     arenaConf.setProperty("Team-Spawns." + arg2 + ".X", Double.valueOf(loc.getX()));
                     arenaConf.setProperty("Team-Spawns." + arg2 + ".Y", Double.valueOf(loc.getY()));
                     arenaConf.setProperty("Team-Spawns." + arg2 + ".Z", Double.valueOf(loc.getZ()));
-                    arenaConf.setProperty("Team-Spawns." + arg2 + ".Dir", Double.valueOf(tmps.dir));
+                    arenaConf.setProperty("Team-Spawns." + arg2 + ".Dir", Double.valueOf(spawn.dir));
                     arenaConf.save();
 
                     if (ctp.mainArena.world == null) {
@@ -142,12 +142,13 @@ public class BuildCommand extends CTPCommand {
                         ctp.mainArena.name = ctp.editingArenaName;
                     }
                     if (ctp.mainArena.world.equals(player.getWorld().getName())) {
-                        ctp.mainArena.teamSpawns.put(arg2, tmps);
+                        ctp.mainArena.teamSpawns.put(arg2, spawn);
                         Team team = new Team();
+                        team.spawn = spawn;
                         team.color = arg2;
                         team.memberCount = 0;
                         try {
-                            team.chatcolor = ChatColor.valueOf(tmps.name.toUpperCase()); // Kj -- init teamchat colour
+                            team.chatcolor = ChatColor.valueOf(spawn.name.toUpperCase()); // Kj -- init teamchat colour
                         } catch (Exception ex) {
                             team.chatcolor = ChatColor.GREEN;
                         }
@@ -727,22 +728,22 @@ public class BuildCommand extends CTPCommand {
                 return;
             }
         }
-        
-        if (arg.equalsIgnoreCase("setpoint")) {
-                Location loc = player.getLocation();
-                if (arg.equalsIgnoreCase("1")) {
-                    ctp.x1 = loc.getBlockX();
-                    ctp.y1 = loc.getBlockY();
-                    ctp.z1 = loc.getBlockZ();
-                } else if (arg.equalsIgnoreCase("2")) {
-                    ctp.x2 = loc.getBlockX();
-                    ctp.y2 = loc.getBlockY();
-                    ctp.z2 = loc.getBlockZ();
-                }
 
-                return;
+        if (arg.equalsIgnoreCase("setpoint")) {
+            Location loc = player.getLocation();
+            if (arg.equalsIgnoreCase("1")) {
+                ctp.x1 = loc.getBlockX();
+                ctp.y1 = loc.getBlockY();
+                ctp.z1 = loc.getBlockZ();
+            } else if (arg.equalsIgnoreCase("2")) {
+                ctp.x2 = loc.getBlockX();
+                ctp.y2 = loc.getBlockY();
+                ctp.z2 = loc.getBlockZ();
             }
-        
+
+            return;
+        }
+
         // Kj
         if (arg.equalsIgnoreCase("maximumplayers") || arg.equalsIgnoreCase("maxplayers") || arg.equalsIgnoreCase("max")) {
             if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.maximumplayers"})) {
@@ -755,7 +756,7 @@ public class BuildCommand extends CTPCommand {
                     return;
                 }
                 ArenaData arena = ctp.loadArena(ctp.editingArenaName);
-                
+
                 int amount = 0;
                 try {
                     amount = Integer.parseInt(arg2);
@@ -763,13 +764,13 @@ public class BuildCommand extends CTPCommand {
                     player.sendMessage(ChatColor.WHITE + arg2 + " is not a number.");
                     return;
                 }
-                
+
                 File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArenaName + ".yml");
                 Configuration arenaConf = new Configuration(arenaFile);
                 arenaConf.load();
                 arenaConf.setProperty("MaximumPlayers", amount);
                 arenaConf.save();
-                
+
                 arena.maximumPlayers = amount;
                 player.sendMessage(ChatColor.GREEN + "Set maximum players of " + arena.name + " to " + amount + ".");
                 return;
@@ -789,7 +790,7 @@ public class BuildCommand extends CTPCommand {
                     return;
                 }
                 ArenaData arena = ctp.loadArena(ctp.editingArenaName);
-                
+
                 int amount = 0;
                 try {
                     amount = Integer.parseInt(arg2);
@@ -797,13 +798,13 @@ public class BuildCommand extends CTPCommand {
                     player.sendMessage(ChatColor.WHITE + arg2 + " is not a number.");
                     return;
                 }
-                
+
                 File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArenaName + ".yml");
                 Configuration arenaConf = new Configuration(arenaFile);
                 arenaConf.load();
                 arenaConf.setProperty("MinimumPlayers", amount);
                 arenaConf.save();
-                
+
                 arena.minimumPlayers = amount;
                 player.sendMessage(ChatColor.GREEN + "Set minimum players of " + arena.name + " to " + amount + ".");
                 return;
@@ -811,39 +812,39 @@ public class BuildCommand extends CTPCommand {
             player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
             return;
         }
-/*
+        /*
         if (arg.equalsIgnoreCase("save")) {
-            int xlow = ctp.x1;
-            int xhigh = ctp.x2;
-            if (ctp.x2 < ctp.x1) {
-                xlow = ctp.x2;
-                xhigh = ctp.x1;
-            }
-            int ylow = ctp.y1;
-            int yhigh = ctp.y2;
-            if (ctp.y2 < ctp.y1) {
-                ylow = ctp.y2;
-                yhigh = ctp.y1;
-            }
-            int zlow = ctp.z1;
-            int zhigh = ctp.z2;
-            if (ctp.z2 < ctp.z1) {
-                zlow = ctp.z2;
-                zhigh = ctp.z1;
-            }
-            for (int x = xlow; x <= xhigh; x++) {
-                for (int y = ylow; y <= yhigh; y++) {
-                    for (int z = zlow; z <= zhigh; z++) {
-                    }
-                }
-            }
-            return;
+        int xlow = ctp.x1;
+        int xhigh = ctp.x2;
+        if (ctp.x2 < ctp.x1) {
+        xlow = ctp.x2;
+        xhigh = ctp.x1;
         }
-*/
+        int ylow = ctp.y1;
+        int yhigh = ctp.y2;
+        if (ctp.y2 < ctp.y1) {
+        ylow = ctp.y2;
+        yhigh = ctp.y1;
+        }
+        int zlow = ctp.z1;
+        int zhigh = ctp.z2;
+        if (ctp.z2 < ctp.z1) {
+        zlow = ctp.z2;
+        zhigh = ctp.z1;
+        }
+        for (int x = xlow; x <= xhigh; x++) {
+        for (int y = ylow; y <= yhigh; y++) {
+        for (int z = zlow; z <= zhigh; z++) {
+        }
+        }
+        }
+        return;
+        }
+         */
 
         if (arg.equalsIgnoreCase("restore")) {
             return;
         }
-           
+
     }
 }

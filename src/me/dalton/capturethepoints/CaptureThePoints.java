@@ -352,20 +352,21 @@ public class CaptureThePoints extends JavaPlugin {
             }
             if (arenaConf.getString("Team-Spawns") != null) {
                 for (String str : arenaConf.getKeys("Team-Spawns")) {
-                    CTPPoints tmps = new CTPPoints();
-                    tmps.name = str;
+                    Spawn spawn = new Spawn();
+                    spawn.name = str;
                     str = "Team-Spawns." + str;
-                    tmps.x = arenaConf.getDouble(str + ".X", 0.0D);
-                    tmps.y = arenaConf.getDouble(str + ".Y", 0.0D);
-                    tmps.z = arenaConf.getDouble(str + ".Z", 0.0D);
-                    tmps.dir = arenaConf.getDouble(str + ".Dir", 0.0D);
-                    arena.teamSpawns.put(tmps.name, tmps);
+                    spawn.x = arenaConf.getDouble(str + ".X", 0.0D);
+                    spawn.y = arenaConf.getDouble(str + ".Y", 0.0D);
+                    spawn.z = arenaConf.getDouble(str + ".Z", 0.0D);
+                    spawn.dir = arenaConf.getDouble(str + ".Dir", 0.0D);
+                    arena.teamSpawns.put(spawn.name, spawn);
 
                     Team team = new Team();
-                    team.color = tmps.name;
+                    team.spawn = spawn;
+                    team.color = spawn.name;
                     team.memberCount = 0;
                     try {
-                        team.chatcolor = ChatColor.valueOf(tmps.name.toUpperCase());
+                        team.chatcolor = ChatColor.valueOf(spawn.name.toUpperCase());
                     } catch (Exception ex) {
                         team.chatcolor = ChatColor.GREEN;
                     }
@@ -375,7 +376,7 @@ public class CaptureThePoints extends JavaPlugin {
                     boolean hasTeam = false;
 
                     for (Team aTeam : teams) {
-                        if (aTeam.color.equalsIgnoreCase(tmps.name)) {
+                        if (aTeam.color.equalsIgnoreCase(spawn.name)) {
                             hasTeam = true;
                             //ctp.teams.remove(aTeam);
                         }

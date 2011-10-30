@@ -6,8 +6,8 @@ import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+/** A CTP Team */
 public class Team {
-
     /** The associated ChatColor of this Team. Defaults to GREEN 
      * @see ChatColor */
     public ChatColor chatcolor = ChatColor.GREEN; // Kjhf  
@@ -23,7 +23,10 @@ public class Team {
     
     /** The number of control points this Team has */
     public int controledPoints;
-
+    
+    /** This Team's spawn point */
+    public Spawn spawn;    
+    
     // Kjhf
     /** Get all Players in this team as a list of Players
      * @param ctp CaptureThePoints instance

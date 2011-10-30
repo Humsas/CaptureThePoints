@@ -1,12 +1,10 @@
 package me.dalton.capturethepoints.listeners;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import me.dalton.capturethepoints.CTPPoints;
 import me.dalton.capturethepoints.CaptureThePoints;
 import me.dalton.capturethepoints.HealingItems;
 import me.dalton.capturethepoints.Items;
-import me.dalton.capturethepoints.Lobby;
+import me.dalton.capturethepoints.Spawn;
 import me.dalton.capturethepoints.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
@@ -154,9 +152,8 @@ public class CaptureThePointsEntityListener extends EntityListener {
 
                     playa.setHealth(ctp.configOptions.maxPlayerHealth);
                     playa.setFoodLevel(20);
-                    CTPPoints point = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
-                    if (ctp.configOptions.giveNewRoleItemsOnRespawn)
-                    {
+                    Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
+                    if (ctp.configOptions.giveNewRoleItemsOnRespawn) {
                         giveRoleItemsAfterDeath(playa);
                     }
 
@@ -175,8 +172,8 @@ public class CaptureThePointsEntityListener extends EntityListener {
                         }
                     }
 
-                    Location loc = new Location(ctp.getServer().getWorld(ctp.mainArena.world), point.x, point.y, point.z);
-                    loc.setYaw((float) point.dir);
+                    Location loc = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);
+                    loc.setYaw((float) spawn.dir);
                     loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
                     playa.teleport(loc);
                 }
@@ -197,13 +194,13 @@ public class CaptureThePointsEntityListener extends EntityListener {
 //    }
 
     public boolean isProtected(Player player) {
-        if (ctp.mainArena == null && player == null) // Kj -- null check
-        {
+        // Kj -- null check
+        if (ctp.mainArena == null && player == null) {
             return false;
         }
-
-        CTPPoints point = ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color);
-        Location protectionPoint = new Location(ctp.getServer().getWorld(ctp.mainArena.world), point.x, point.y, point.z);
+        
+        Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color);
+        Location protectionPoint = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);
         double distance = player.getLocation().distance(protectionPoint);
 
         return distance <= ctp.configOptions.protectionDistance;
@@ -217,7 +214,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
                     HashMap<Integer, ? extends ItemStack> slots = inv.all(item.item);
                     int amount = 0;
                     for (int slotNum : slots.keySet()) {
-                        amount = amount + slots.get(slotNum).getAmount();
+                        amount += slots.get(slotNum).getAmount();
                     }
                     // nzn apie sita
 //                    for (Iterator<Integer> i$ = slots.keySet().iterator(); i$.hasNext();)
@@ -301,7 +298,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
                     ItemStack tmp = new ItemStack(item.getType(), item.getAmount(), (short) ((Wool) item.getData()).getColor().getData());
                     player.getWorld().dropItem(player.getLocation(), tmp);
                 } else {
-                    ownedWool = ownedWool + item.getAmount();
+                    ownedWool += item.getAmount();
                 }
             }
         }

@@ -14,9 +14,9 @@ public class ArenaData {
     /** The name of the world this arena is in */
     public String world;
     
-    /** The teamspawns this arena has (Hashmap of Teamcolor, CTPPoints). 
-     * @see CTPPoints */
-    public HashMap<String, CTPPoints> teamSpawns = new HashMap<String, CTPPoints>();
+    /** The teamspawns this arena has (Hashmap of Teamcolor, Spawn). 
+     * @see Spawn */
+    public HashMap<String, Spawn> teamSpawns = new HashMap<String, Spawn>();
     
     /** The capture points this arena has. 
      * @see CTPPoints */

@@ -1,6 +1,6 @@
  package me.dalton.capturethepoints;
  
- /** A Capture Point or Spawn Point in a CTP arena */
+ /** A Capture Point in a CTP arena */
  public class CTPPoints {
      
    /** X co-ordinate of this Point */
