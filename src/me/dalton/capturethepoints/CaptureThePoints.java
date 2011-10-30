@@ -82,7 +82,8 @@ public class CaptureThePoints extends JavaPlugin {
     /** The arena currently being edited. */
     public String editingArenaName = "";
     
-    /** The roles/classes stored by CTP. (HashMap: Role's name, and the Items it contains) */
+    /** The roles/classes stored by CTP. (HashMap: Role's name, and the Items it contains) 
+     * @see Items */
     public HashMap<String, List<Items>> roles = new HashMap<String, List<Items>>();
     
     /** The list of Healing Items stored by CTP. */
