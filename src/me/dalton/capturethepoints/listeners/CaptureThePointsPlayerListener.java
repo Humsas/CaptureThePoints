@@ -11,6 +11,7 @@ import me.dalton.capturethepoints.Items;
 import me.dalton.capturethepoints.Lobby;
 import me.dalton.capturethepoints.PlayerData;
 import me.dalton.capturethepoints.PlayersAndCooldowns;
+import me.dalton.capturethepoints.Spawn;
 import me.dalton.capturethepoints.Team;
 import me.dalton.capturethepoints.Util;
 import org.bukkit.ChatColor;
@@ -285,7 +286,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 }
             }
             movedPeople = 0;
-            int maxPlayersToMove =  readyPpl / ctp.teams.size() * ctp.teams.size();
+            int maxPlayersToMove = readyPpl / ctp.teams.size() * ctp.teams.size();
             for (Player play : ctp.playerData.keySet()) {
                 PlayerData data = ctp.playerData.get(play);
                 if ((data.isInLobby) && (data.isReady) && (movedPeople < maxPlayersToMove)) {
@@ -487,10 +488,15 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         ctp.playerData.get(player).color = color;
         ctp.playerData.get(player).isInLobby = false;
         ctp.mainArena.lobby.playersinlobby.remove(player);
+        //Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
+        Spawn spawn = team.spawn;
         Location loc = new Location(ctp.getServer().getWorld(ctp.mainArena.world), ctp.mainArena.teamSpawns.get(color).x, ctp.mainArena.teamSpawns.get(color).y + 1D, ctp.mainArena.teamSpawns.get(color).z); // Kj -- Y+1
         loc.setYaw((float) ctp.mainArena.teamSpawns.get(color).dir);
         loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
-        player.teleport(loc);
+        boolean teleport = player.teleport(loc);
+        if (!teleport) {
+            player.teleport(new Location(player.getWorld(), spawn.x, spawn.y, spawn.z, 0.0F, (float) spawn.dir));
+        }
         ctp.playerData.get(player).isInArena = true;
     }
 
@@ -523,8 +529,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     ctp.playerData.get(event.getPlayer()).justJoined = false;
                     return;
                 } else {
-                    if (this.ctp.playerData.get(event.getPlayer()).justJoined) // allowed to teleport
-                    {
+                    if (this.ctp.playerData.get(event.getPlayer()).justJoined) { // allowed to teleport
                         this.ctp.playerData.get(event.getPlayer()).justJoined = false;
                         return;
                     } else {
@@ -553,10 +558,18 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 
         // Find if player is in arena
         if (ctp.playerData.get(play).isInArena) {
+            Spawn playerspawn = ctp.playerData.get(play).team.spawn; // Get the player's spawnpoint
+            if (event.getTo().getX() == playerspawn.x && event.getTo().getZ() == playerspawn.z) {
+                // The player is going to their spawn.
+                return;
+            }
             if (isInside(event.getTo().getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(event.getTo().getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && event.getTo().getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
+                // The player is teleporting in the arena.
                 return;
             } else {
+                // The player is teleporting out of the arena!
                 event.setCancelled(true);
+                play.sendMessage(ChatColor.RED + "Not allowed to teleport out of the arena!");
             }
         }
     }
@@ -630,7 +643,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     if (ctp.configOptions.exactTeamMemberCount) {
                         if (readypeople / ctp.teams.size() >= 1) {
                             int movedPeople = 0;
-                            int maxPlayersToMove =  readypeople / ctp.teams.size() * ctp.teams.size();
+                            int maxPlayersToMove = readypeople / ctp.teams.size() * ctp.teams.size();
                             for (Player play : ctp.playerData.keySet()) {
                                 PlayerData data = ctp.playerData.get(play);
                                 if ((data.isInLobby) && (data.isReady) && (movedPeople < (maxPlayersToMove))) {

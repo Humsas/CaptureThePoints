@@ -21,15 +21,6 @@ public class JoinCommand extends CTPCommand {
     @Override
     public void perform() {
         if (!ctp.blockListener.isAlreadyInGame(player)) {
-            if (ctp.mainArena == null) {
-                player.sendMessage(ChatColor.RED + "Please create an arena first");
-                return;
-            }
-            if (ctp.mainArena.lobby == null) {
-                player.sendMessage(ChatColor.RED + "Please create arena lobby");
-                return;
-            }
-
             ctp.moveToLobby(player);
             return;
         }

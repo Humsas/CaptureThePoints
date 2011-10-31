@@ -143,7 +143,8 @@ public class CaptureThePointsEntityListener extends EntityListener {
 
                     playa.setHealth(ctp.configOptions.maxPlayerHealth);
                     playa.setFoodLevel(20);
-                    Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
+                    //Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
+                    Spawn spawn = ctp.playerData.get(playa).team.spawn;
                     if (ctp.configOptions.giveNewRoleItemsOnRespawn) {
                         giveRoleItemsAfterDeath(playa);
                     }
@@ -161,8 +162,11 @@ public class CaptureThePointsEntityListener extends EntityListener {
 
                     Location loc = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);
                     loc.setYaw((float) spawn.dir);
-                    loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
-                    playa.teleport(loc);
+                    ctp.getServer().getWorld(ctp.mainArena.world).loadChunk(loc.getBlockX(), loc.getBlockZ());
+                    boolean teleport = playa.teleport(loc);
+                    if (!teleport) {
+                        playa.teleport(new Location(playa.getWorld(), spawn.x, spawn.y, spawn.z, 0.0F, (float)spawn.dir));
+                    }
                 }
             }
         }

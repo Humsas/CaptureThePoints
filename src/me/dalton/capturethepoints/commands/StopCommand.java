@@ -18,7 +18,6 @@ public class StopCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        ctp.getServer().broadcastMessage("[CTP] The Capture The Points game has ended.");
         ctp.blockListener.endGame(true);
     }
 }

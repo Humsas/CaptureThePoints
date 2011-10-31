@@ -21,17 +21,24 @@ public class JoinAllCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        if (ctp.mainArena == null) {
-            sender.sendMessage(ChatColor.RED + "Please create an arena first");
-            return;
-        }
-        if (ctp.mainArena.lobby == null) {
-            sender.sendMessage(ChatColor.RED + "Please create arena lobby");
-            return;
+        if (sender instanceof Player) {
+            String error = ctp.checkMainArena(player);
+            if (!error.isEmpty()) {
+                sender.sendMessage(error);
+                return;
+            }
+        } else {
+            if (ctp.mainArena == null) {
+                sender.sendMessage(ChatColor.RED + "Please create an arena first");
+                return;
+            }
+            if (ctp.mainArena.lobby == null) {
+                sender.sendMessage(ChatColor.RED + "Please create arena lobby");
+                return;
+            }
         }
             
         if (ctp.isGameRunning()) {
-            sender.sendMessage("[CTP] A previous Capture The Points game has been terminated.");
             ctp.blockListener.endGame(true);
         }
         int numberofplayers = ctp.getServer().getOnlinePlayers().length;

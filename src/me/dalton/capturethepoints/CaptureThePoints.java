@@ -114,15 +114,24 @@ public class CaptureThePoints extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        disableCTP(true);
+    }
+    
+    public void disableCTP(boolean toLog) {
         if (CTP_Scheduler.lobbyActivity != 0) {
             getServer().getScheduler().cancelTask(CTP_Scheduler.lobbyActivity);
             CTP_Scheduler.lobbyActivity = 0;
         }
         clearConfig();
-        logger.info("[" + info.getName() + "] Disabled");
-        info = null;
         pluginManager = null;
+        Permissions = null;
+        commands.clear();
+        if(toLog) {
+            logger.info("[" + info.getName() + "] Disabled");
+            info = null;
+        }
     }
+        
 
     public void clearConfig() {
         if (this.blockListener.capturegame) {
@@ -135,8 +144,10 @@ public class CaptureThePoints extends JavaPlugin {
             }
         }
         arena_list.clear();
+        lobbies.clear();
         playerData.clear();
-        rewards = new CTPRewards();
+        healingItems.clear();
+        rewards = null;
         mainArena = null;
         editingArenaName = "";
         teams.clear();
@@ -167,25 +178,25 @@ public class CaptureThePoints extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        enableCTP(true);
+    }
+    
+    public void enableCTP(boolean toLog) {
         setupPermissions();
-        PluginManager pm = getServer().getPluginManager();
+        pluginManager = getServer().getPluginManager();
 
         // REGISTER EVENTS-----------------------------------------------------------------------------------
-        pm.registerEvent(Event.Type.BLOCK_PLACE, this.blockListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Highest, this); // Because when game starts you must deal damage to enemy
-        pm.registerEvent(Event.Type.PLAYER_MOVE, this.playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
-        pm.registerEvent(Event.Type.PLAYER_TELEPORT, this.playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.BLOCK_PLACE, this.blockListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Highest, this); // Because when game starts you must deal damage to enemy
+        pluginManager.registerEvent(Event.Type.PLAYER_MOVE, this.playerListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_TELEPORT, this.playerListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Event.Priority.Normal, this);
 
         PluginDescriptionFile pdfFile = getDescription();
-        //this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!");
-
-        //this.info = getDescription();
-        pluginManager = getServer().getPluginManager();
 
         loadConfigFiles();
 
@@ -212,7 +223,7 @@ public class CaptureThePoints extends JavaPlugin {
 
         //Kj: LobbyActivity timer.
         CTP_Scheduler.lobbyActivity = this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-
+            
             @Override
             public void run() {
                 if (playerData == null) {
@@ -247,7 +258,9 @@ public class CaptureThePoints extends JavaPlugin {
             }
         }, 200L, 200L); // 10 sec
 
-        logger.info("[CTP] " + pdfFile.getVersion() + " version is enabled.");
+        if(toLog) {
+            logger.info("[CTP] " + pdfFile.getVersion() + " version is enabled.");
+        }
     }
 
     private void loadArenas(File file) {
@@ -339,7 +352,6 @@ public class CaptureThePoints extends JavaPlugin {
             // Kj -- check the world to see if it exists. 
             if (getServer().getWorld(world) == null) {
                 logger.warning("[CTP] ### WARNING: "+name+" has an incorrect World. The World in the config, \""+world+"\", could not be found. ###");
-                
                 List<String> worlds = new LinkedList<String>();
                 for (World aWorld : getServer().getWorlds()) {
                     worlds.add(aWorld.getName());
@@ -424,7 +436,14 @@ public class CaptureThePoints extends JavaPlugin {
             if ((lobby.x == 0.0D) && (lobby.y == 0.0D) && (lobby.z == 0.0D) && (lobby.dir == 0.0D)) {
                 arena.lobby = null;
             }
-
+            
+            // Kj -- Test that the spawn points are within the map boundaries
+            for (Spawn aSpawn : arena.teamSpawns.values()) {
+                if (!playerListener.isInside((int)aSpawn.x, arena.x1, arena.x2) || !playerListener.isInside((int)aSpawn.z, arena.z1, arena.z2)) {
+                    logger.warning("[CTP] ### WARNING: The spawn point \"" + aSpawn.name + "\" in the arena \"" + arena.name + "\" is out of the arena boundaries. ###");
+                    continue;
+                }
+            }
             return arena;
         } else {
             logger.warning("[CTP] Could not load arena! Check your config file and existing arenas");
@@ -748,30 +767,13 @@ public class CaptureThePoints extends JavaPlugin {
     }
 
     public void moveToLobby(Player player) {
-        if (arena_list == null) { // Kj -- null checks
-            player.sendMessage("Oops, looks like an arena hasn't been built yet.");
+        String checkMainArena = checkMainArena(player); // Kj -- Check arena, if there is an error, an error message is returned.
+        if (!checkMainArena.isEmpty()) {
+            player.sendMessage(checkMainArena);
             return;
-        }
-        if (arena_list.isEmpty()) {
-            player.sendMessage("Oops, looks like an arena hasn't been built yet.");
-            return;
-        }
-        if (mainArena == null || mainArena.lobby == null) {
-            player.sendMessage("Oops, looks like an arena hasn't been built yet.");
-            return;
-        }
-        if (getServer().getWorld(mainArena.world) == null) {
-            if (canAccess(player, true, new String[]{"ctp.*", "ctp.admin"})) {
-                player.sendMessage("The arena config is incorrect. The world \"" + mainArena.world + "\" could not be found.");
-                player.sendMessage("The world you are currently playing in is \"" + player.getWorld().getName() + "\".");
-                return;
-            } else {
-                player.sendMessage("Sorry, this arena has not been set up properly. Please tell an admin.");
-                return;
-            }
         }
 
-        //some more checks
+        // Some more checks
         if (player.isInsideVehicle()) {
             player.leaveVehicle();
         }
@@ -827,6 +829,40 @@ public class CaptureThePoints extends JavaPlugin {
         saveInv(player);
     }
 
+    /** Checks whether the current mainArena is fit for purpose.
+     * @param p Player doing the checking
+     * @return An error message, else empty if the arena is safe. */
+    public String checkMainArena(Player p) {
+        if (arena_list == null) { // Kj -- null checks
+             return "Oops, looks like an arena hasn't been built yet.";
+        }
+        if (arena_list.isEmpty()) {
+             return "Oops, looks like an arena hasn't been built yet.";
+        }
+        if (mainArena == null || mainArena.lobby == null) {
+            return "Oops, looks like an arena hasn't been built yet.";
+        }
+        if (getServer().getWorld(mainArena.world) == null) {
+            if (canAccess(p, true, new String[]{"ctp.*", "ctp.admin"})) {
+                return "The arena config is incorrect. The world \"" + mainArena.world + "\" could not be found. The world you are currently playing in is \"" + p.getWorld().getName() + "\".";
+            } else {
+                return "Sorry, this arena has not been set up properly. Please tell an admin. [Incorrect World]";
+            }
+        }
+        // Kj -- Test that the spawn points are within the map boundaries
+        for (Spawn aSpawn : mainArena.teamSpawns.values()) {
+            if (!playerListener.isInside((int)aSpawn.x, mainArena.x1, mainArena.x2) || !playerListener.isInside((int)aSpawn.z, mainArena.z1, mainArena.z2)) {
+                if (canAccess(p, true, new String[]{"ctp.*", "ctp.admin"})) {
+                    return "The spawn point \"" + aSpawn.name + "\" in the arena \"" + mainArena.name + "\" is out of the arena boundaries. "
+                            + "[Spawn is "+(int)aSpawn.x+", "+(int)aSpawn.z+". Boundaries are "+mainArena.x1+"<==>"+mainArena.x2+", "+mainArena.z1+"<==>"+mainArena.z2+"].";
+                } else {
+                    return "Sorry, this arena has not been set up properly. Please tell an admin. [Incorrect Boundaries]";
+                }
+            }
+        }
+        return "";
+    }
+    
     public boolean canAccess(Player player, boolean notOpCommand, String... permissions) {
         if (UsePermissions) {
             for (String perm : permissions) {
