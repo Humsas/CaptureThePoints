@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import me.dalton.capturethepoints.CTPPoints;
 import me.dalton.capturethepoints.CaptureThePoints;
+import me.dalton.capturethepoints.HealingItems;
 import me.dalton.capturethepoints.Items;
 import me.dalton.capturethepoints.Team;
 import me.dalton.capturethepoints.Util;
@@ -81,7 +82,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                     WinMessage = team.chatcolor + team.color.toUpperCase() + ChatColor.WHITE + " wins!";
                 }
             }
-		} else {
+        } else {
             for (Team team : ctp.teams) {
                 if (team.controledPoints >= ctp.configOptions.pointsToWin) {
                     winningteams.add(team);
@@ -162,7 +163,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
     public void restoreThings(Player p) {
         ctp.playerData.get(p).justJoined = true;
         this.ctp.restoreInv(p);
-        
+
         Location loc = ctp.previousLocation.get(p);
         loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
         p.teleport(this.ctp.previousLocation.get(p));
@@ -227,13 +228,11 @@ public class CaptureThePointsBlockListener extends BlockListener {
             ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.pointMessenger);
             ctp.CTP_Scheduler.pointMessenger = 0;
         }
-        if (ctp.CTP_Scheduler.helmChecker != 0)
-        {
+        if (ctp.CTP_Scheduler.helmChecker != 0) {
             ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.helmChecker);
             ctp.CTP_Scheduler.helmChecker = 0;
         }
-        if(ctp.CTP_Scheduler.healingItemsCooldowns != 0)
-        {
+        if (ctp.CTP_Scheduler.healingItemsCooldowns != 0) {
             ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.healingItemsCooldowns);
             ctp.CTP_Scheduler.healingItemsCooldowns = 0;
         }
@@ -251,8 +250,12 @@ public class CaptureThePointsBlockListener extends BlockListener {
             }
         }
         ctp.arenaRestore.restoreAllBlocks();
-
-        this.ctp.mainArena.lobby.playersinlobby.clear();   //Reset if something has left
+        for (HealingItems item : ctp.healingItems) {
+            if (!item.cooldowns.isEmpty()) {
+                item.cooldowns.clear();
+            }
+        }
+        this.ctp.mainArena.lobby.playersinlobby.clear();   //Reset if someone has left
         this.ctp.health.clear();
         this.ctp.previousLocation.clear();
         this.ctp.playerData.clear();
@@ -301,15 +304,15 @@ public class CaptureThePointsBlockListener extends BlockListener {
         BlockState state = block.getState();
         MaterialData data = state.getData();
         if (isAlreadyInGame(player)) {
-            
+
             // Kj -- helmet checker
             /*boolean helmetRemoved = ctp.playerListener.checkHelmet(player);
             if (helmetRemoved) {
-                ctp.playerListener.fixHelmet(player);
-                event.setCancelled(true);
-                return;
+            ctp.playerListener.fixHelmet(player);
+            event.setCancelled(true);
+            return;
             }*/
-                
+
             // check for sign destroy
             if (state instanceof Sign) {
                 event.setCancelled(true);
@@ -352,7 +355,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                 }
             }
             ctp.arenaRestore.addBlock(block, true);
-            
+
             /* Kj -- this checks to see if the event was cancelled. If it wasn't, then it's a legit block break. 
              * If the config option is set to no items on block break, then cancel the event and set the block
              * to air instead. That way, it does not drop items.
@@ -465,15 +468,15 @@ public class CaptureThePointsBlockListener extends BlockListener {
         BlockState state = block.getState();
         MaterialData data = state.getData();
         if (isAlreadyInGame(player)) {
-            
+
             // Kj -- helmet checker
            /* boolean helmetRemoved = ctp.playerListener.checkHelmet(player);
             if (helmetRemoved) {
-                ctp.playerListener.fixHelmet(player);
-                block.setType(Material.AIR);
-                return;
+            ctp.playerListener.fixHelmet(player);
+            block.setType(Material.AIR);
+            return;
             }
-            */
+             */
             boolean inPoint = false; // Kj -- for block placement checker 
             if ((data instanceof Wool)) {
                 Location loc = block.getLocation();
@@ -483,7 +486,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                     double distance = pointLocation.distance(loc);
                     if (distance < 5) {
                         inPoint = true; // Kj -- for block placement checker 
-                        
+
                         // If building near the point with not your own colored wool(to prevent wool destry bug)
                         if (!ctp.playerData.get(player).color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
                             event.setCancelled(true);
@@ -530,12 +533,12 @@ public class CaptureThePointsBlockListener extends BlockListener {
                         }
                     }
                 }
-            }           
+            }
             // Kj -- block placement checker blocks placement of anything not in the CTPPoint if the config has set AllowBlockPlacement to false.
             if (!ctp.configOptions.allowBlockPlacement && !inPoint) {
                 event.setCancelled(true);
                 return;
-            }                
+            }
             ctp.arenaRestore.addBlock(block, false);
         }
     }

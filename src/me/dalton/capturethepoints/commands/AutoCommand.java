@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 
 public class AutoCommand extends CTPCommand {
 
-    /** Kj -- This command will bring all players on a world into a random lobby which is guaranteed to hold everyone (if not, use the already selected arena) */
+    /** This command will bring all players on a world into a random lobby which is guaranteed to hold everyone (if not, use the already selected arena) */
     public AutoCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("auto");
@@ -21,13 +21,21 @@ public class AutoCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        if (ctp.mainArena == null) {
-            sender.sendMessage(ChatColor.RED + "Please create an arena first!");
-            return;
-        }
-        if (ctp.mainArena.lobby == null) {
-            sender.sendMessage(ChatColor.RED + "Please create arena lobby!");
-            return;
+        if (sender instanceof Player) {
+            String error = ctp.checkMainArena(player);
+            if (!error.isEmpty()) {
+                sender.sendMessage(error);
+                return;
+            }
+        } else {
+            if (ctp.mainArena == null) {
+                sender.sendMessage(ChatColor.RED + "Please create an arena first");
+                return;
+            }
+            if (ctp.mainArena.lobby == null) {
+                sender.sendMessage(ChatColor.RED + "Please create arena lobby");
+                return;
+            }
         }
 
         World world = ctp.getServer().getWorld(parameters.get(2));

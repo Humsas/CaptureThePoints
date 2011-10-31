@@ -19,6 +19,7 @@ import me.dalton.capturethepoints.commands.*;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -35,12 +36,20 @@ public class CaptureThePoints extends JavaPlugin {
 
     public static PermissionHandler Permissions;
     public static boolean UsePermissions;
+    
+    /** "plugins/CaptureThePoints" */
     public static final String mainDir = "plugins/CaptureThePoints";
+    
+    /** "plugins/CaptureThePoints/CaptureSettings.yml" */
     public static final File myfile = new File("plugins/CaptureThePoints" + File.separator + "CaptureSettings.yml");
+    
     public static final Logger logger = Logger.getLogger("Minecraft");
     public static PluginDescriptionFile info = null;
     public static PluginManager pluginManager = null;
+    
+    /** List of commands accepted by CTP */
     private static List<CTPCommand> commands = new ArrayList<CTPCommand>(); // Kj
+    
     public final CaptureThePointsBlockListener blockListener = new CaptureThePointsBlockListener(this);
     public final CaptureThePointsEntityListener entityListener = new CaptureThePointsEntityListener(this);
     public final CaptureThePointsPlayerListener playerListener = new CaptureThePointsPlayerListener(this);
@@ -49,20 +58,48 @@ public class CaptureThePoints extends JavaPlugin {
     private HashMap<Player, ItemStack[]> armor = new HashMap<Player, ItemStack[]>();
     public final HashMap<Player, Integer> health = new HashMap<Player, Integer>();
     //public HashMap<Player, PlayerData> playerData = new HashMap<Player, PlayerData>();
-    public Map<Player, PlayerData> playerData = new ConcurrentHashMap<Player, PlayerData>();  // To avoid concurent modification exceptions     
+    
+    /** The PlayerData stored by CTP. (HashMap: Player, and their data) */
+    public Map<Player, PlayerData> playerData = new ConcurrentHashMap<Player, PlayerData>();  // To avoid concurent modification exceptions    
+    
+    /** The Teams stored by CTP. */
     public List<Team> teams = new LinkedList<Team>();
+    
+    /** Player's previous Locations before they started playing CTP. */
     public final HashMap<Player, Location> previousLocation = new HashMap<Player, Location>();
-    public List<Lobby> lobbies = new LinkedList<Lobby>(); // List of all lobbies
+    
+    /** The Lobbies stored by CTP. */
+    public List<Lobby> lobbies = new LinkedList<Lobby>();
+    
+    /** The config options for CTP. */
     public ConfigOptions configOptions = new ConfigOptions();
+    
+    /** The list of arena names stored by CTP. */
     public List<String> arena_list = new LinkedList<String>();
+    
+    /** The selected arena for playing. */
     public ArenaData mainArena = new ArenaData();
-    public String editingArenaName = ""; // arena
+    
+    /** The arena currently being edited. */
+    public String editingArenaName = "";
+    
+    /** The roles/classes stored by CTP. (HashMap: Role's name, and the Items it contains) 
+     * @see Items */
     public HashMap<String, List<Items>> roles = new HashMap<String, List<Items>>();
+    
+    /** The list of Healing Items stored by CTP. */
     public List<HealingItems> healingItems = new LinkedList<HealingItems>();
+    
+    /** The list of Rewards stored by CTP. */
     public CTPRewards rewards = new CTPRewards();
-    public CTPScheduler CTP_Scheduler = new CTPScheduler(); //timer
+    
+    /** The timers used by CTP. */
+    public CTPScheduler CTP_Scheduler = new CTPScheduler();
+    
+    /** Name of the player who needs teleporting. */
     public String playerNameForTeleport = ""; // Block destroy - teleport protection
-    // Arenos issaugojimui
+    
+    // Arenos issaugojimui -- Arena currently being edited
     public int x1, y1, z1, x2, y2, z2;
 
     public Configuration load() { //YamlConfiguration
@@ -77,15 +114,24 @@ public class CaptureThePoints extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        disableCTP(false);
+    }
+    
+    public void disableCTP(boolean reloading) {
         if (CTP_Scheduler.lobbyActivity != 0) {
             getServer().getScheduler().cancelTask(CTP_Scheduler.lobbyActivity);
             CTP_Scheduler.lobbyActivity = 0;
         }
         clearConfig();
-        logger.info("[" + info.getName() + "] Disabled");
-        info = null;
         pluginManager = null;
+        Permissions = null;
+        if(!reloading) {
+            commands.clear();
+            logger.info("[" + info.getName() + "] Disabled");
+            info = null;
+        }
     }
+        
 
     public void clearConfig() {
         if (this.blockListener.capturegame) {
@@ -98,8 +144,10 @@ public class CaptureThePoints extends JavaPlugin {
             }
         }
         arena_list.clear();
+        lobbies.clear();
         playerData.clear();
-        rewards = new CTPRewards();
+        healingItems.clear();
+        rewards = null;
         mainArena = null;
         editingArenaName = "";
         teams.clear();
@@ -120,9 +168,9 @@ public class CaptureThePoints extends JavaPlugin {
             if (test != null) {
                 UsePermissions = true;
                 Permissions = ((Permissions) test).getHandler();
-                System.out.println("[" + info.getName() + "] Permissions was found and enabled.");
+                logger.info("[CTP] Permissions was found and enabled.");
             } else {
-                System.out.println("[" + info.getName() + "] Permission system not detected, defaulting to OP");
+                logger.info("[CTP] Permission system not detected, defaulting to OP");
                 UsePermissions = false;
             }
         }
@@ -130,52 +178,54 @@ public class CaptureThePoints extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        enableCTP(false);
+    }
+    
+    public void enableCTP(boolean reloading) {
         setupPermissions();
-        PluginManager pm = getServer().getPluginManager();
-
-        // REGISTER EVENTS-----------------------------------------------------------------------------------
-        pm.registerEvent(Event.Type.BLOCK_PLACE, this.blockListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Highest, this); // Because when game starts you must deal damage to enemy
-        pm.registerEvent(Event.Type.PLAYER_MOVE, this.playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
-        pm.registerEvent(Event.Type.PLAYER_TELEPORT, this.playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Event.Priority.Normal, this);
-
-        PluginDescriptionFile pdfFile = getDescription();
-        //this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!");
-
-        //this.info = getDescription();
         pluginManager = getServer().getPluginManager();
 
-        loadConfigFiles();
+        // REGISTER EVENTS-----------------------------------------------------------------------------------
+        pluginManager.registerEvent(Event.Type.BLOCK_PLACE, this.blockListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Highest, this); // Because when game starts you must deal damage to enemy
+        pluginManager.registerEvent(Event.Type.PLAYER_MOVE, this.playerListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_TELEPORT, this.playerListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Event.Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Event.Priority.Normal, this);
 
-        commands.add(new AliasesCommand(this));
-        commands.add(new AutoCommand(this));
-        commands.add(new BuildCommand(this));
-        commands.add(new ColorsCommand(this));
-        commands.add(new HelpCommand(this));
-        commands.add(new JoinAllCommand(this));
-        commands.add(new JoinCommand(this));
-        commands.add(new KickCommand(this));
-        commands.add(new LeaveCommand(this));
-        commands.add(new PJoinCommand(this));
-        commands.add(new RejoinCommand(this));
-        commands.add(new ReloadCommand(this));
-        //commands.add(new SaveCommand(this));
-        commands.add(new SelectCommand(this));
-        commands.add(new SetpointsCommand(this));
-        commands.add(new StartCommand(this));
-        commands.add(new StatsCommand(this));
-        commands.add(new StopCommand(this));
-        commands.add(new TeamCommand(this));
-        commands.add(new VersionCommand(this));
+        PluginDescriptionFile pdfFile = getDescription();
+
+        loadConfigFiles();
+        
+        if(!reloading) {
+            commands.add(new AliasesCommand(this));
+            commands.add(new AutoCommand(this));
+            commands.add(new BuildCommand(this));
+            commands.add(new ColorsCommand(this));
+            commands.add(new HelpCommand(this));
+            commands.add(new JoinAllCommand(this));
+            commands.add(new JoinCommand(this));
+            commands.add(new KickCommand(this));
+            commands.add(new LeaveCommand(this));
+            commands.add(new PJoinCommand(this));
+            commands.add(new RejoinCommand(this));
+            commands.add(new ReloadCommand(this));
+            //commands.add(new SaveCommand(this));
+            commands.add(new SelectCommand(this));
+            commands.add(new SetpointsCommand(this));
+            commands.add(new StartCommand(this));
+            commands.add(new StatsCommand(this));
+            commands.add(new StopCommand(this));
+            commands.add(new TeamCommand(this));
+            commands.add(new VersionCommand(this));
+        }
 
         //Kj: LobbyActivity timer.
         CTP_Scheduler.lobbyActivity = this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-
+            
             @Override
             public void run() {
                 if (playerData == null) {
@@ -210,7 +260,9 @@ public class CaptureThePoints extends JavaPlugin {
             }
         }, 200L, 200L); // 10 sec
 
-        System.out.println("[" + info.getName() + "]  " + pdfFile.getVersion() + " version is enabled.");
+        if(!reloading) {
+            logger.info("[CTP] " + pdfFile.getVersion() + " version is enabled.");
+        }
     }
 
     private void loadArenas(File file) {
@@ -297,7 +349,25 @@ public class CaptureThePoints extends JavaPlugin {
             File arenaFile = new File(mainDir + File.separator + "Arenas" + File.separator + name + ".yml");
             Configuration arenaConf = new Configuration(arenaFile);
             arenaConf.load();
-            arena.world = arenaConf.getString("World");
+            String world = arenaConf.getString("World");
+            
+            // Kj -- check the world to see if it exists. 
+            if (getServer().getWorld(world) == null) {
+                logger.warning("[CTP] ### WARNING: "+name+" has an incorrect World. The World in the config, \""+world+"\", could not be found. ###");
+                List<String> worlds = new LinkedList<String>();
+                for (World aWorld : getServer().getWorlds()) {
+                    worlds.add(aWorld.getName());
+                }
+                if (worlds.size() == 1) {
+                    arena.world = worlds.get(0);
+                    logger.info("[CTP] Successfully resolved. \""+arena.world+"\" will be used.");
+                } else {
+                    logger.info("[CTP] Could not resolve. Please fix this manually. Hint: Your installed worlds are: "+worlds);
+                }
+            } else {
+                arena.world = world;
+            }
+
             arena.name = name;
             arena.maximumPlayers = arenaConf.getInt("MaximumPlayers", 9999); // Kj
             arena.minimumPlayers = arenaConf.getInt("MinimumPlayers", 2); // Kj
@@ -317,20 +387,21 @@ public class CaptureThePoints extends JavaPlugin {
             }
             if (arenaConf.getString("Team-Spawns") != null) {
                 for (String str : arenaConf.getKeys("Team-Spawns")) {
-                    CTPPoints tmps = new CTPPoints();
-                    tmps.name = str;
+                    Spawn spawn = new Spawn();
+                    spawn.name = str;
                     str = "Team-Spawns." + str;
-                    tmps.x = arenaConf.getDouble(str + ".X", 0.0D);
-                    tmps.y = arenaConf.getDouble(str + ".Y", 0.0D);
-                    tmps.z = arenaConf.getDouble(str + ".Z", 0.0D);
-                    tmps.dir = arenaConf.getDouble(str + ".Dir", 0.0D);
-                    arena.teamSpawns.put(tmps.name, tmps);
+                    spawn.x = arenaConf.getDouble(str + ".X", 0.0D);
+                    spawn.y = arenaConf.getDouble(str + ".Y", 0.0D);
+                    spawn.z = arenaConf.getDouble(str + ".Z", 0.0D);
+                    spawn.dir = arenaConf.getDouble(str + ".Dir", 0.0D);
+                    arena.teamSpawns.put(spawn.name, spawn);
 
                     Team team = new Team();
-                    team.color = tmps.name;
+                    team.spawn = spawn;
+                    team.color = spawn.name;
                     team.memberCount = 0;
                     try {
-                        team.chatcolor = ChatColor.valueOf(tmps.name.toUpperCase());
+                        team.chatcolor = ChatColor.valueOf(spawn.name.toUpperCase());
                     } catch (Exception ex) {
                         team.chatcolor = ChatColor.GREEN;
                     }
@@ -340,7 +411,7 @@ public class CaptureThePoints extends JavaPlugin {
                     boolean hasTeam = false;
 
                     for (Team aTeam : teams) {
-                        if (aTeam.color.equalsIgnoreCase(tmps.name)) {
+                        if (aTeam.color.equalsIgnoreCase(spawn.name)) {
                             hasTeam = true;
                             //ctp.teams.remove(aTeam);
                         }
@@ -367,10 +438,17 @@ public class CaptureThePoints extends JavaPlugin {
             if ((lobby.x == 0.0D) && (lobby.y == 0.0D) && (lobby.z == 0.0D) && (lobby.dir == 0.0D)) {
                 arena.lobby = null;
             }
-
+            
+            // Kj -- Test that the spawn points are within the map boundaries
+            for (Spawn aSpawn : arena.teamSpawns.values()) {
+                if (!playerListener.isInside((int)aSpawn.x, arena.x1, arena.x2) || !playerListener.isInside((int)aSpawn.z, arena.z1, arena.z2)) {
+                    logger.warning("[CTP] ### WARNING: The spawn point \"" + aSpawn.name + "\" in the arena \"" + arena.name + "\" is out of the arena boundaries. ###");
+                    continue;
+                }
+            }
             return arena;
         } else {
-            System.out.println("[" + info.getName() + "] Could not load arena! Check your config file and existing arenas");
+            logger.warning("[CTP] Could not load arena! Check your config file and existing arenas");
             return null;
         }
     }
@@ -407,7 +485,7 @@ public class CaptureThePoints extends JavaPlugin {
                 hItem.cooldown = config.getInt("HealingItems." + str + ".Cooldown", 0);
                 hItem.resetCooldownOnDeath = config.getBoolean("HealingItems." + str + ".ResetCooldownOnDeath", true);
             } catch (Exception e) {
-                System.out.println("[CTP] Error while loading Healing items! " + itemNR + " item!");
+                logger.warning("[CTP] Error while loading Healing items! " + itemNR + " item!");
             }
 
             healingItems.add(hItem);
@@ -441,6 +519,7 @@ public class CaptureThePoints extends JavaPlugin {
             config.setProperty("Rewards.ForKillingEnemy", "APPLE, BREAD, ARROW:10");
             config.setProperty("Rewards.ForCapturingThePoint", "CLAY_BRICK, SNOW_BALL:2, SLIME_BALL, IRON_INGOT");
         }
+        rewards = new CTPRewards();
         rewards.winnerRewardCount = config.getInt("Rewards.WinnerTeam.ItemCount", 2);
         rewards.winnerRewards = Util.getItemListFromString(config.getString("Rewards.WinnerTeam.Items"));
         rewards.otherTeamRewardCount = config.getInt("Rewards.OtherTeams.ItemCount", 1);
@@ -655,7 +734,7 @@ public class CaptureThePoints extends JavaPlugin {
             }
         }
     }
-    
+
     /** 
      * This method changes the mainArena to a suitable arena using the number of players you have.
      * Note, it will not change the mainArena if useSelectedArenaOnly is set to true.
@@ -664,7 +743,7 @@ public class CaptureThePoints extends JavaPlugin {
     public void chooseSuitableArena(int numberofplayers) {
         // Is the config set to allow the random choosing of arenas?
         if (!configOptions.useSelectedArenaOnly) {
-            
+
             int size = arena_list.size();
 
             if (size > 1) {
@@ -682,34 +761,22 @@ public class CaptureThePoints extends JavaPlugin {
                     int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of arenas (exclusive)
                     mainArena = loadArena(arena_list.get(nextInt)) == null ? mainArena : loadArena(arena_list.get(nextInt)); // Change the mainArena based on this. (Ternary null check)
                 }
-                System.out.println("[CTP] ChooseSuitableArena: Players found: " + numberofplayers + ", total arenas found: " + size + " " + arena_list + ", of which " + arenas.size() + " were suitable: " + arenas);
+                logger.info("[CTP] ChooseSuitableArena: Players found: " + numberofplayers + ", total arenas found: " + size + " " + arena_list + ", of which " + arenas.size() + " were suitable: " + arenas);
 
                 // else ctp.mainArena = ctp.mainArena;
             }
-            System.out.println("[CTP] The selected arena, " + mainArena.name + ", has a minimum of " + mainArena.minimumPlayers + ", and a maximum of " + mainArena.maximumPlayers + ".");
+            logger.info("[CTP] The selected arena, " + mainArena.name + ", has a minimum of " + mainArena.minimumPlayers + ", and a maximum of " + mainArena.maximumPlayers + ".");
         }
     }
 
     public void moveToLobby(Player player) {
-        if (arena_list == null) { // Kj -- null checks
-            player.sendMessage("Oops, looks like an arena hasn't been built yet.");
-            return;
-        }
-        if (arena_list.isEmpty()) {
-            player.sendMessage("Oops, looks like an arena hasn't been built yet.");
-            return;
-        }
-        if (mainArena == null || mainArena.lobby == null) {
-            player.sendMessage("Oops, looks like an arena hasn't been built yet.");
-            return;
-        }
-        if (getServer().getWorld(mainArena.world) == null) {
-            player.sendMessage("Your world in the arena config is incorrect. The world \"" + mainArena.world + "\" could not be found.");
-            player.sendMessage("The world you are currently playing in is \"" + player.getWorld().getName() + "\".");
+        String checkMainArena = checkMainArena(player); // Kj -- Check arena, if there is an error, an error message is returned.
+        if (!checkMainArena.isEmpty()) {
+            player.sendMessage(checkMainArena);
             return;
         }
 
-        //some more checks
+        // Some more checks
         if (player.isInsideVehicle()) {
             player.leaveVehicle();
         }
@@ -765,6 +832,40 @@ public class CaptureThePoints extends JavaPlugin {
         saveInv(player);
     }
 
+    /** Checks whether the current mainArena is fit for purpose.
+     * @param p Player doing the checking
+     * @return An error message, else empty if the arena is safe. */
+    public String checkMainArena(Player p) {
+        if (arena_list == null) { // Kj -- null checks
+             return "Oops, looks like an arena hasn't been built yet.";
+        }
+        if (arena_list.isEmpty()) {
+             return "Oops, looks like an arena hasn't been built yet.";
+        }
+        if (mainArena == null || mainArena.lobby == null) {
+            return "Oops, looks like an arena hasn't been built yet.";
+        }
+        if (getServer().getWorld(mainArena.world) == null) {
+            if (canAccess(p, true, new String[]{"ctp.*", "ctp.admin"})) {
+                return "The arena config is incorrect. The world \"" + mainArena.world + "\" could not be found. The world you are currently playing in is \"" + p.getWorld().getName() + "\".";
+            } else {
+                return "Sorry, this arena has not been set up properly. Please tell an admin. [Incorrect World]";
+            }
+        }
+        // Kj -- Test that the spawn points are within the map boundaries
+        for (Spawn aSpawn : mainArena.teamSpawns.values()) {
+            if (!playerListener.isInside((int)aSpawn.x, mainArena.x1, mainArena.x2) || !playerListener.isInside((int)aSpawn.z, mainArena.z1, mainArena.z2)) {
+                if (canAccess(p, true, new String[]{"ctp.*", "ctp.admin"})) {
+                    return "The spawn point \"" + aSpawn.name + "\" in the arena \"" + mainArena.name + "\" is out of the arena boundaries. "
+                            + "[Spawn is "+(int)aSpawn.x+", "+(int)aSpawn.z+". Boundaries are "+mainArena.x1+"<==>"+mainArena.x2+", "+mainArena.z1+"<==>"+mainArena.z2+"].";
+                } else {
+                    return "Sorry, this arena has not been set up properly. Please tell an admin. [Incorrect Boundaries]";
+                }
+            }
+        }
+        return "";
+    }
+    
     public boolean canAccess(Player player, boolean notOpCommand, String... permissions) {
         if (UsePermissions) {
             for (String perm : permissions) {

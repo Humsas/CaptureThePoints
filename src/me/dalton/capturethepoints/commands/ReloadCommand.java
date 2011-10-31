@@ -1,9 +1,11 @@
 package me.dalton.capturethepoints.commands;
 
 import me.dalton.capturethepoints.CaptureThePoints;
+import org.bukkit.ChatColor;
 
 public class ReloadCommand extends CTPCommand {
    
+    /** Reload the config files and get version */
     public ReloadCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("reload");
@@ -17,9 +19,9 @@ public class ReloadCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        ctp.clearConfig();
-        ctp.loadConfigFiles();
-        sender.sendMessage("[CTP] successfully reloaded!");
+        ctp.disableCTP(true);
+        ctp.enableCTP(true);
+        sendMessage(ChatColor.GREEN + "Successfully reloaded CTP "+ctp.getDescription().getVersion()+"!");
         return;
     }
 }

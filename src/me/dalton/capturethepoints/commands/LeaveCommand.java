@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 
 public class LeaveCommand extends CTPCommand {
    
+    /** Allows player to leave ctp game. */
     public LeaveCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("leave");

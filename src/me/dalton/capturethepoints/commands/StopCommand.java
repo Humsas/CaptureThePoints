@@ -4,6 +4,7 @@ import me.dalton.capturethepoints.CaptureThePoints;
 
 public class StopCommand extends CTPCommand {
    
+    /** Allows admin to stop a CTP game. */
     public StopCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("stop");
@@ -17,7 +18,6 @@ public class StopCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        ctp.getServer().broadcastMessage("[CTP] The Capture The Points game has ended.");
         ctp.blockListener.endGame(true);
     }
 }

@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 
 public class JoinCommand extends CTPCommand {
    
+    /** Allows player to join ctp game. Starts a new one if one isn't running already. */
     public JoinCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("join");
@@ -20,15 +21,6 @@ public class JoinCommand extends CTPCommand {
     @Override
     public void perform() {
         if (!ctp.blockListener.isAlreadyInGame(player)) {
-            if (ctp.mainArena == null) {
-                player.sendMessage(ChatColor.RED + "Please create an arena first");
-                return;
-            }
-            if (ctp.mainArena.lobby == null) {
-                player.sendMessage(ChatColor.RED + "Please create arena lobby");
-                return;
-            }
-
             ctp.moveToLobby(player);
             return;
         }

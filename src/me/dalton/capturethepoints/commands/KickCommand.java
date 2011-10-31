@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 
 public class KickCommand extends CTPCommand {
    
+    /** Allows an admin to kick a player from a CTP game. */
     public KickCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("kick");
@@ -19,13 +20,21 @@ public class KickCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        if (ctp.mainArena == null) {
-            sender.sendMessage(ChatColor.RED + "Please create an arena first");
-            return;
-        }
-        if (ctp.mainArena.lobby == null) {
-            sender.sendMessage(ChatColor.RED + "Please create arena lobby");
-            return;
+        if (sender instanceof Player) {
+            String error = ctp.checkMainArena(player);
+            if (!error.isEmpty()) {
+                sender.sendMessage(error);
+                return;
+            }
+        } else {
+            if (ctp.mainArena == null) {
+                sender.sendMessage(ChatColor.RED + "Please create an arena first");
+                return;
+            }
+            if (ctp.mainArena.lobby == null) {
+                sender.sendMessage(ChatColor.RED + "Please create arena lobby");
+                return;
+            }
         }
         Player bob = ctp.getServer().getPlayer(parameters.get(2));
         if (bob == null) {

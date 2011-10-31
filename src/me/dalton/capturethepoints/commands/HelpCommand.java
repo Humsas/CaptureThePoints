@@ -5,9 +5,11 @@ import org.bukkit.ChatColor;
 
 public class HelpCommand extends CTPCommand {
     
+    /** Help command. Also displays if just "/ctp" is typed. */
     public HelpCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("help");
+        super.aliases.add("?");
         super.notOpCommand = true;
         super.senderMustBePlayer = false;
         super.minParameters = 1;

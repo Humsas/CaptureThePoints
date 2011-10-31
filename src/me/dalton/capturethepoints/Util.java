@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package me.dalton.capturethepoints;
 
 import java.util.LinkedList;
@@ -107,7 +103,7 @@ public class Util {
     }
 
 
-    /* Helper method for equipping armor pieces. */
+    /** Helper method for equipping armor pieces. */
     public static void equipArmorPiece(ItemStack stack, PlayerInventory inv) {
         Material type = stack.getType();
 
@@ -122,9 +118,13 @@ public class Util {
         }
     }
 
-    public static void sendMessageToPlayers(CaptureThePoints plugin, String s) {
-        for (Player play : plugin.playerData.keySet()) {
-            play.sendMessage("[CTP] "+ s); // Kj
+    /** Send message to Players that are playing CTP (specifically, have playerData)
+     * @param ctp The CTP instance
+     * @param s The message to send. "[CTP] " has been included.
+     * @see PlayerData */
+    public static void sendMessageToPlayers(CaptureThePoints ctp, String s) {
+        for (Player play : ctp.playerData.keySet()) {
+            play.sendMessage("[CTP] " + s); // Kj
         }
     }
 
@@ -197,7 +197,7 @@ public class Util {
         return result;
     }
 
-    /* Helper methods for making ItemStacks out of strings and ints */
+    /** Helper methods for making ItemStacks out of strings and ints */
     public static ItemStack makeItemStack(String name, int amount, String data) {
         try {
             byte offset = 0;
@@ -220,10 +220,12 @@ public class Util {
         }
     }
 
+    /** Short for makeItemStack(name, amount, "0") */
     public static ItemStack makeItemStack(String name, int amount) {
         return makeItemStack(name, amount, "0");
     }
 
+    /** Returns whether String is a number. */
     public static boolean isItInteger(String text) {
         int id = 0;
         try {
@@ -280,7 +282,7 @@ public class Util {
             if (i.item != null) {
                 list.add(i);
             } else {
-                System.out.println("[CTP] Error while loading config file. Check: " + item);
+                CaptureThePoints.logger.warning("[CTP] Error while loading config file. Check: " + item);
             }
         }
         return list;
@@ -377,9 +379,11 @@ public class Util {
         }
         player.updateInventory();
     }
-    
 
-    // Generates a random number from startV to endV
+    /** Generates a random number from startV to endV
+     * @param startV Starting boundary
+     * @param endV End boundary
+     * @return A number generated in the boundary between startV to endV */
     public static int random(int startV, int endV) { // Kj -- n must be positive checking
         if (endV > startV) {
             return new Random().nextInt(endV) + startV;
@@ -390,7 +394,7 @@ public class Util {
         }
     }
 
-    // Builds a vertical gate
+    /** Builds a vertical gate */
     public static void buildVert(Player player, int start_x, int start_y, int start_z, int plusX, int plusY, int plusZ, int blockID) {
         for (int x = start_x; x < start_x + plusX; x++) {
             for (int y = start_y; y < start_y + plusY; y++) {
@@ -401,6 +405,7 @@ public class Util {
         }
     }
 
+    /** Removes a vertical point */
     public static void removeVertPoint(Player player, String dir, int start_x, int start_y, int start_z, int blockID) {
         if (dir.equals("NORTH")) {
             Util.buildVert(player, start_x, start_y - 1, start_z - 1, 2, 4, 4, 0);
@@ -413,6 +418,7 @@ public class Util {
         }
     }
 
+    /** Get the direction of facing from a Location's yaw. */
     public static BlockFace getFace(Location loc) {
         BlockFace direction;
         double yaw = loc.getYaw();
@@ -431,5 +437,18 @@ public class Util {
         }
 
         return direction;
+    }
+    
+    /** 
+     * Gets distance between two locations. World friendly.
+     * @param loc1 The first Location
+     * @param loc2 The second Location
+     * @return Returns a double of the distance between them. Returns NaN if the Locations are not on the same World or distance is too great.
+     */
+     public static double getDistance(Location loc1, Location loc2) { // Kjhf's
+        if (loc1 != null && loc2 != null && loc1.getWorld() == loc2.getWorld()) {
+            return loc1.distance(loc2);
+        }
+        return Double.NaN;
     }
 }

@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 
 public class StatsCommand extends CTPCommand {
    
+    /** Allows players to view their kills, deaths, K/D, and money in-game. */
     public StatsCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("stats");

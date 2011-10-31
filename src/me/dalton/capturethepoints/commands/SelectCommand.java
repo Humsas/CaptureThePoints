@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 
 public class SelectCommand extends CTPCommand {
    
+    /** Allows admin to select an arena to play. */
     public SelectCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("setarena");
@@ -25,22 +26,23 @@ public class SelectCommand extends CTPCommand {
         String newarena = parameters.get(2);
         
         if (!ctp.arena_list.contains(newarena)) {
-            sender.sendMessage(ChatColor.RED + "Could not load arena " + ChatColor.GOLD + newarena + ChatColor.RED + " because the name cannot be found. Check your config file and existing arenas.");
+            sendMessage(ChatColor.RED + "Could not load arena " + ChatColor.GOLD + newarena + ChatColor.RED + " because the name cannot be found. Check your config file and existing arenas.");
             return;
         }
         
         ArenaData loadArena = ctp.loadArena(newarena);
         
         if (loadArena == null) {
-            sender.sendMessage(ChatColor.RED + "Could not load arena " + ChatColor.GOLD + newarena + ChatColor.RED + " because it isn't finished yet. Check your config file and existing arenas.");
+            sendMessage(ChatColor.RED + "Could not load arena " + ChatColor.GOLD + newarena + ChatColor.RED + " because it isn't finished yet. Check your config file and existing arenas.");
             return;            
         }
 
         if (!ctp.mainArena.name.isEmpty()) {
-            sender.sendMessage(ChatColor.GREEN + "Changed selected arena from " + ctp.mainArena.name + " to " + newarena + " to play.");
+            sendMessage(ChatColor.GREEN + "Changed selected arena from " + ctp.mainArena.name + " to " + newarena + " to play.");
         } else {
-            sender.sendMessage(ChatColor.GREEN + "Selected " + newarena + " for playing.");
+            sendMessage(ChatColor.GREEN + "Selected " + newarena + " for playing.");
         }
+        sendMessage(ChatColor.GREEN + "If you wanted to edit this arena instead, use " +ChatColor.WHITE+ "/ctp build selectarena <arena>");
         
         ctp.mainArena = loadArena;
         return;
