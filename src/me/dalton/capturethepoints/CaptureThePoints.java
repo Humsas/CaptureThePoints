@@ -114,10 +114,10 @@ public class CaptureThePoints extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        disableCTP(true);
+        disableCTP(false);
     }
     
-    public void disableCTP(boolean toLog) {
+    public void disableCTP(boolean reloading) {
         if (CTP_Scheduler.lobbyActivity != 0) {
             getServer().getScheduler().cancelTask(CTP_Scheduler.lobbyActivity);
             CTP_Scheduler.lobbyActivity = 0;
@@ -125,8 +125,8 @@ public class CaptureThePoints extends JavaPlugin {
         clearConfig();
         pluginManager = null;
         Permissions = null;
-        commands.clear();
-        if(toLog) {
+        if(!reloading) {
+            commands.clear();
             logger.info("[" + info.getName() + "] Disabled");
             info = null;
         }
@@ -178,10 +178,10 @@ public class CaptureThePoints extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        enableCTP(true);
+        enableCTP(false);
     }
     
-    public void enableCTP(boolean toLog) {
+    public void enableCTP(boolean reloading) {
         setupPermissions();
         pluginManager = getServer().getPluginManager();
 
@@ -199,27 +199,29 @@ public class CaptureThePoints extends JavaPlugin {
         PluginDescriptionFile pdfFile = getDescription();
 
         loadConfigFiles();
-
-        commands.add(new AliasesCommand(this));
-        commands.add(new AutoCommand(this));
-        commands.add(new BuildCommand(this));
-        commands.add(new ColorsCommand(this));
-        commands.add(new HelpCommand(this));
-        commands.add(new JoinAllCommand(this));
-        commands.add(new JoinCommand(this));
-        commands.add(new KickCommand(this));
-        commands.add(new LeaveCommand(this));
-        commands.add(new PJoinCommand(this));
-        commands.add(new RejoinCommand(this));
-        commands.add(new ReloadCommand(this));
-        //commands.add(new SaveCommand(this));
-        commands.add(new SelectCommand(this));
-        commands.add(new SetpointsCommand(this));
-        commands.add(new StartCommand(this));
-        commands.add(new StatsCommand(this));
-        commands.add(new StopCommand(this));
-        commands.add(new TeamCommand(this));
-        commands.add(new VersionCommand(this));
+        
+        if(!reloading) {
+            commands.add(new AliasesCommand(this));
+            commands.add(new AutoCommand(this));
+            commands.add(new BuildCommand(this));
+            commands.add(new ColorsCommand(this));
+            commands.add(new HelpCommand(this));
+            commands.add(new JoinAllCommand(this));
+            commands.add(new JoinCommand(this));
+            commands.add(new KickCommand(this));
+            commands.add(new LeaveCommand(this));
+            commands.add(new PJoinCommand(this));
+            commands.add(new RejoinCommand(this));
+            commands.add(new ReloadCommand(this));
+            //commands.add(new SaveCommand(this));
+            commands.add(new SelectCommand(this));
+            commands.add(new SetpointsCommand(this));
+            commands.add(new StartCommand(this));
+            commands.add(new StatsCommand(this));
+            commands.add(new StopCommand(this));
+            commands.add(new TeamCommand(this));
+            commands.add(new VersionCommand(this));
+        }
 
         //Kj: LobbyActivity timer.
         CTP_Scheduler.lobbyActivity = this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
@@ -258,7 +260,7 @@ public class CaptureThePoints extends JavaPlugin {
             }
         }, 200L, 200L); // 10 sec
 
-        if(toLog) {
+        if(!reloading) {
             logger.info("[CTP] " + pdfFile.getVersion() + " version is enabled.");
         }
     }
@@ -517,6 +519,7 @@ public class CaptureThePoints extends JavaPlugin {
             config.setProperty("Rewards.ForKillingEnemy", "APPLE, BREAD, ARROW:10");
             config.setProperty("Rewards.ForCapturingThePoint", "CLAY_BRICK, SNOW_BALL:2, SLIME_BALL, IRON_INGOT");
         }
+        rewards = new CTPRewards();
         rewards.winnerRewardCount = config.getInt("Rewards.WinnerTeam.ItemCount", 2);
         rewards.winnerRewards = Util.getItemListFromString(config.getString("Rewards.WinnerTeam.Items"));
         rewards.otherTeamRewardCount = config.getInt("Rewards.OtherTeams.ItemCount", 1);
