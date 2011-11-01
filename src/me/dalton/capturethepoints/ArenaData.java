@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 /** Arena Data of the saved arenas for playing CTP. */
 public class ArenaData {
     /** The name of this arena */
-    public String name;
+    public String name = "";
     
     /** The name of the world this arena is in */
     public String world;
@@ -25,6 +25,9 @@ public class ArenaData {
     /** This arena's Lobby 
      * @see Lobby */
     public Lobby lobby;
+    
+    /** This arena's config options */
+    public ConfigOptions co;
     
     /** The first X co-ordinate representing the boundary of this arena. */
     public int x1;
@@ -44,6 +47,7 @@ public class ArenaData {
     /** The maximum number of players this arena can take. [Default: 9999] */
     public int maximumPlayers = 9999;
 
+    
     /** Get all Players in this arena as a list of playername strings
      * @param ctp CaptureThePoints instance
      * @return The playername list */

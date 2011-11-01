@@ -19,20 +19,21 @@ public class HelpCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        String pagenumber = "";
-        if (parameters.size() == 3) {
-            pagenumber = parameters.get(2);
-        }
-        if (parameters.size() == 1 || parameters.size() == 2 || pagenumber.isEmpty() || pagenumber.equals("1")) {
+        int size = parameters.size();
+        // ctp = parameters.get(0)
+        String arg = size > 1 ? parameters.get(1) : "help"; // Kj -- grab the arguments with null -> empty checking. If only /ctp build, assume help.
+        String arg2 = size > 2 ? parameters.get(2) : "";
+        String pagenumber = arg2;
+        
+        if (parameters.size() == 1 || pagenumber.isEmpty() || pagenumber.equals("1")) {
             sender.sendMessage(ChatColor.RED + "CTP Commands: " + ChatColor.GOLD + " Page 1/2");
-            if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
-                sender.sendMessage(ChatColor.GREEN + "/ctp help [pagenumber] " + ChatColor.WHITE + "- view this menu.");
-            }
+            sender.sendMessage(ChatColor.DARK_GREEN + "/ctp help [pagenumber] " + ChatColor.WHITE + "- view this menu.");
+            
             if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
                 sender.sendMessage(ChatColor.GREEN + "/ctp aliases " + ChatColor.WHITE + "- list of helpful command aliases");
             }
             if (canAccess(sender, false, new String[]{"ctp.*", "ctp.auto", "ctp.admin"})) {
-                sender.sendMessage(ChatColor.GREEN + "/ctp auto <worldname>" + ChatColor.WHITE + "- bring every player in the world to a random suitable arena.");
+                sender.sendMessage(ChatColor.GREEN + "/ctp auto <worldname>" + ChatColor.WHITE + "- start ctp with all players in a world.");
             }
             if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
                 sender.sendMessage(ChatColor.GREEN + "/ctp build help " + ChatColor.WHITE + "- arena editing commands list");

@@ -75,16 +75,16 @@ public class CaptureThePointsBlockListener extends BlockListener {
     public boolean didSomeoneWin() {
         List<Team> winningteams = new ArrayList<Team>();
         String WinMessage = "";
-        if (ctp.configOptions.useScoreGeneration) {
+        if (ctp.mainArena.co.useScoreGeneration) {
             for (Team team : ctp.teams) {
-                if (team.score >= ctp.configOptions.scoreToWin) {
+                if (team.score >= ctp.mainArena.co.scoreToWin) {
                     winningteams.add(team);
                     WinMessage = team.chatcolor + team.color.toUpperCase() + ChatColor.WHITE + " wins!";
                 }
             }
         } else {
             for (Team team : ctp.teams) {
-                if (team.controledPoints >= ctp.configOptions.pointsToWin) {
+                if (team.controledPoints >= ctp.mainArena.co.pointsToWin) {
                     winningteams.add(team);
                     WinMessage = team.chatcolor + team.color.toUpperCase() + ChatColor.WHITE + " wins!";
                 }
@@ -94,10 +94,10 @@ public class CaptureThePointsBlockListener extends BlockListener {
         if (winningteams.isEmpty()) {
             return false;
         } else if (winningteams.size() > 1) {
-            if (ctp.configOptions.useScoreGeneration) {
-                WinMessage = "It's a tie! " + winningteams.size() + " teams have passed " + ctp.configOptions.pointsToWin + " points!";
+            if (ctp.mainArena.co.useScoreGeneration) {
+                WinMessage = "It's a tie! " + winningteams.size() + " teams have passed " + ctp.mainArena.co.pointsToWin + " points!";
             } else {
-                WinMessage = "It's a tie! " + winningteams.size() + " teams have a score of " + ctp.configOptions.scoreToWin + "!";
+                WinMessage = "It's a tie! " + winningteams.size() + " teams have a score of " + ctp.mainArena.co.scoreToWin + "!";
             }
         }
 
@@ -111,7 +111,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
 
         Util.sendMessageToPlayers(ctp, WinMessage);
         String message = "";
-        if (ctp.configOptions.useScoreGeneration) {
+        if (ctp.mainArena.co.useScoreGeneration) {
             for (Team aTteam : ctp.teams) {
                 message = message + aTteam.chatcolor + aTteam.color.toUpperCase() + ChatColor.WHITE + " final score: " + aTteam.score + ChatColor.AQUA + " // ";
             }
@@ -132,8 +132,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
             for (Team team : ctp.teams) {
                 if (team.color.equalsIgnoreCase(aTeam)) {
                     team.controledPoints++;
-                    if (!ctp.configOptions.useScoreGeneration) {
-                        return team.chatcolor + aTeam.toUpperCase() + ChatColor.WHITE + " captured " + ChatColor.GOLD + gainedpoint + ChatColor.WHITE + ". (" + team.controledPoints + "/" + ctp.configOptions.pointsToWin + " points).";
+                    if (!ctp.mainArena.co.useScoreGeneration) {
+                        return team.chatcolor + aTeam.toUpperCase() + ChatColor.WHITE + " captured " + ChatColor.GOLD + gainedpoint + ChatColor.WHITE + ". (" + team.controledPoints + "/" + ctp.mainArena.co.pointsToWin + " points).";
                     } else {
                         return team.chatcolor + aTeam.toUpperCase() + ChatColor.WHITE + " captured " + ChatColor.GOLD + gainedpoint + ChatColor.WHITE + ". (" + team.controledPoints + "/" + ctp.mainArena.capturePoints.size() + " points).";
                     }
@@ -358,9 +358,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
 
             /* Kj -- this checks to see if the event was cancelled. If it wasn't, then it's a legit block break. 
              * If the config option is set to no items on block break, then cancel the event and set the block
-             * to air instead. That way, it does not drop items.
-             */
-            if (!ctp.configOptions.breakingBlocksDropsItems) {
+             * to air instead. That way, it does not drop items. */
+            if (!ctp.mainArena.co.breakingBlocksDropsItems) {
                 if (!event.isCancelled()) {
                     event.setCancelled(true);
                     block.setType(Material.AIR);
@@ -503,7 +502,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                                     point.controledByTeam = ctp.playerData.get(player).color;
                                     Util.sendMessageToPlayers(ctp, addPoints(((Wool) data).getColor().toString(), point.name));
                                     ctp.playerData.get(player).pointCaptures++;
-                                    ctp.playerData.get(player).money += ctp.configOptions.moneyForPointCapture;
+                                    ctp.playerData.get(player).money += ctp.mainArena.co.moneyForPointCapture;
                                     player.sendMessage("Money: " + ChatColor.GREEN + ctp.playerData.get(player).money);
                                     if (didSomeoneWin()) {
                                         loc.getBlock().setTypeId(0);
@@ -522,7 +521,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                                     point.controledByTeam = ctp.playerData.get(player).color;
                                     Util.sendMessageToPlayers(ctp, addPoints(((Wool) data).getColor().toString(), point.name));
                                     ctp.playerData.get(player).pointCaptures++;
-                                    ctp.playerData.get(player).money += ctp.configOptions.moneyForPointCapture;
+                                    ctp.playerData.get(player).money += ctp.mainArena.co.moneyForPointCapture;
                                     player.sendMessage("Money: " + ChatColor.GREEN + ctp.playerData.get(player).money);
                                     if (didSomeoneWin()) {
                                         loc.getBlock().setTypeId(0);
@@ -535,7 +534,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                 }
             }
             // Kj -- block placement checker blocks placement of anything not in the CTPPoint if the config has set AllowBlockPlacement to false.
-            if (!ctp.configOptions.allowBlockPlacement && !inPoint) {
+            if (!ctp.mainArena.co.allowBlockPlacement && !inPoint) {
                 event.setCancelled(true);
                 return;
             }

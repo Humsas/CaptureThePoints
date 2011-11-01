@@ -10,6 +10,7 @@ public class JoinCommand extends CTPCommand {
         super.ctp = instance;
         super.aliases.add("join");
         super.aliases.add("j");
+        super.aliases.add("play");
         super.notOpCommand = true;
         super.requiredPermissions = new String[]{"ctp.*", "ctp.play", "ctp.admin", "ctp.join"};
         super.senderMustBePlayer = true;

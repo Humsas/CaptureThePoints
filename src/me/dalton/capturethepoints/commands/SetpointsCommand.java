@@ -28,7 +28,7 @@ public class SetpointsCommand extends CTPCommand {
             return;
         }
 
-        if (ctp.configOptions.useScoreGeneration) {
+        if (ctp.mainArena.co.useScoreGeneration) {
             for (Team team : ctp.teams) {
                 if (team.color.equalsIgnoreCase(parameters.get(2))) {
                     team.score = points;

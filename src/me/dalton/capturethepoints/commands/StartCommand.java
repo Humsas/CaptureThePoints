@@ -40,7 +40,7 @@ public class StartCommand extends CTPCommand {
         
         // The maximum number of players must be greater than the players already playing.
         if (ctp.mainArena.maximumPlayers > ctp.mainArena.getPlayersPlaying(ctp).size()) {                
-            if (ctp.configOptions.exactTeamMemberCount) {
+            if (ctp.mainArena.co.exactTeamMemberCount) {
                 if (readypeople / ctp.teams.size() >= 1 && readypeople >= ctp.mainArena.minimumPlayers) {
                     if (lobby.hasUnreadyPeople()) {
                         String message = readypeople % ctp.teams.size() == 1 ? "Starting game." : "Starting game. Caution: Someone may be left at lobby due to uneven teams.";
