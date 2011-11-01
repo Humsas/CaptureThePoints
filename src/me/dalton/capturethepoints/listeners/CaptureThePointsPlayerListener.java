@@ -100,6 +100,13 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 
     @Override
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (ctp.mainArena == null) {
+            return;
+        }
+        if (ctp.mainArena.lobby == null) {
+            return;
+        }
+        
         if (ctp.playerData.containsKey(event.getPlayer())) {
             Player p = event.getPlayer();
             // Iron block
@@ -128,26 +135,74 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 } else if (!ctp.roles.containsKey(role.toLowerCase()) && !role.equalsIgnoreCase("random")) {
                     return;
                 } else {
+                    // Player is in Lobby choosing role.
+                    if (ctp.mainArena.lobby.playersinlobby.containsKey(p)) {
+                        
+                        // Kj's
+                        if (role.equalsIgnoreCase("random")) {
+                            int size = ctp.roles.size();
+                            if (size > 1) { // If there is more than 1 role to choose from
+                                Random random = new Random();
+                                int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of roles (exclusive)
+                                List<String> roles = new LinkedList<String>(ctp.roles.keySet()); // Get a list of available roles and convert to a String List
+                                role = roles.get(nextInt) == null ? roles.get(0) : roles.get(nextInt); // Change the role based on the random number. (Ternary null check)
+                            }
+                        }
 
-                    // Kj's
-                    if (role.equalsIgnoreCase("random")) {
-                        int size = ctp.roles.size();
-                        if (size > 1) { // If there is more than 1 role to choose from
-                            Random random = new Random();
-                            int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of roles (exclusive)
-                            Set<String> keySet = ctp.roles.keySet(); // Get a list of available roles... 
-                            List<String> roles = new LinkedList<String>(keySet); // And convert to a String List
-                            role = roles.get(nextInt) == null ? roles.get(0) : roles.get(nextInt); // Change the role based on the random number. (Ternary null check)
+                        if (ctp.playerData.get(p).role != null && !ctp.playerData.get(p).role.isEmpty()) {
+                            String oldRole = ctp.playerData.get(p).role;
+                            p.sendMessage(ChatColor.LIGHT_PURPLE + "Changing your role from "+ChatColor.GOLD + oldRole.substring(0, 1).toUpperCase() + oldRole.substring(1).toLowerCase()
+                                + ChatColor.LIGHT_PURPLE + " to " + ChatColor.GOLD + role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase() + ChatColor.LIGHT_PURPLE + ".");
+                            p.sendMessage("Remember to hit the iron block to ready up!");
+
+                        } else {
+                            p.sendMessage(ChatColor.GOLD + role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase()
+                                + ChatColor.LIGHT_PURPLE + " selected. Hit the iron block to ready up!");
+                        }
+                        ctp.blockListener.assignRole(p, role.toLowerCase()); // Assign new role
+                        ctp.playerData.get(p).isReady = false; // Un-ready the player
+                        ctp.mainArena.lobby.playersinlobby.put(p, false);
+                        /*
+                        ctp.playerData.get(p).lobbyJoinTime = System.currentTimeMillis(); // Restart the lobby activity timer
+                        ctp.playerData.get(p).warnedAboutActivity = false; 
+                         */
+                        
+                    // Player is in game choosing role.
+                    } else if (ctp.playerData.get(p).isInArena) {
+                        
+                        int price = 0;
+                        try {
+                            price = Integer.parseInt(sign.getLine(2));
+                        } catch (Exception NumberFormatException) {
+                            price = Integer.MAX_VALUE;
+                        }
+        
+                        // Kj's
+                        if (role.equalsIgnoreCase("random")) {
+                            int size = ctp.roles.size();
+                            if (size > 1) { // If there is more than 1 role to choose from
+                                Random random = new Random();
+                                int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of roles (exclusive)
+                                List<String> roles = new LinkedList<String>(ctp.roles.keySet()); // Get a list of available roles and convert to a String List
+                                role = roles.get(nextInt) == null ? roles.get(0) : roles.get(nextInt); // Change the role based on the random number. (Ternary null check)
+                            }
+                        }
+                        boolean hasPaid = chargeAccount(p, price);
+                        
+                        if (hasPaid) {
+                            String oldRole = ctp.playerData.get(p).role;
+                            p.sendMessage(ChatColor.LIGHT_PURPLE + "Changing your role from "+ChatColor.GOLD + oldRole.substring(0, 1).toUpperCase() + oldRole.substring(1).toLowerCase()
+                                + ChatColor.LIGHT_PURPLE + " to " + ChatColor.GOLD + role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase() + ChatColor.LIGHT_PURPLE + ".");
+
+                            ctp.blockListener.assignRole(p, role.toLowerCase()); // Assign new role
+                        } else {
+                            String message = price == Integer.MAX_VALUE ? 
+                                    "Not enough money! You have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money, but you need " + ChatColor.GREEN + price + ChatColor.WHITE + " money." :
+                                    ChatColor.RED + "This sign does not have a legal price. Please inform an admin.";
+                            p.sendMessage(message);
                         }
                     }
-
-                    ctp.blockListener.assignRole(p, role.toLowerCase());
-                    ctp.playerData.get(p).isReady = false;
-                    ctp.mainArena.lobby.playersinlobby.put(p, false);
-                    p.sendMessage(ChatColor.GOLD + role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase()
-                            + ChatColor.LIGHT_PURPLE + " selected. Hit the iron block to ready up!");
                 }
-
                 return;
             }
             // check for Healing item usage
@@ -237,11 +292,11 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             return;
         }
 
-        int price = 999999;
+        int price = 0;
         try {
             price = Integer.parseInt(sign.getLine(2));
         } catch (Exception NumberFormatException) {
-            return;
+            price = Integer.MAX_VALUE;
         }
 
         if (ctp.playerData.get(p).money >= price) {
@@ -264,19 +319,29 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 p.getInventory().addItem(stack);
                 //p.getInventory().addItem(new ItemStack[]{tmp});
             }
-            ctp.playerData.get(p).money -= price;
-
+            
+            chargeAccount(p, price);
             //ItemStack i = new ItemStack(mat.getId(), kiekis);
             //p.getInventory().addItem(i);
             p.sendMessage("You bought " + ChatColor.AQUA + list.get(0).amount + " " + list.get(0).item.toString().toLowerCase() + ChatColor.WHITE + " for " + ChatColor.GREEN + price + ChatColor.WHITE + " money.");
             p.sendMessage("You now have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money.");
             p.updateInventory();
         } else {
-            p.sendMessage("Not enough money! You have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money, but you need " + ChatColor.GREEN + price + ChatColor.WHITE + " money.");
+            String message = price == Integer.MAX_VALUE ? 
+                    "Not enough money! You have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money, but you need " + ChatColor.GREEN + price + ChatColor.WHITE + " money." :
+                    ChatColor.RED + "This sign does not have a legal price. Please inform an admin.";
+            p.sendMessage(message);
         }
-
     }
 
+    public boolean chargeAccount(Player player, int price) {
+        if (ctp.playerData.get(player).money >= price) {
+            ctp.playerData.get(player).money -= price;
+            return true;
+        }
+        return false;
+    }
+    
     public void moveToSpawns() {
         int readyPpl;
         int movedPeople;
@@ -488,8 +553,6 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         //Move to spawn     TODO do not move players to same point
         ctp.playerData.get(player).team = team;
         ctp.playerData.get(player).color = color;
-        ctp.playerData.get(player).isInLobby = false;
-        ctp.mainArena.lobby.playersinlobby.remove(player);
         //Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
         Spawn spawn = team.spawn;
         Location loc = new Location(ctp.getServer().getWorld(ctp.mainArena.world), ctp.mainArena.teamSpawns.get(color).x, ctp.mainArena.teamSpawns.get(color).y + 1D, ctp.mainArena.teamSpawns.get(color).z); // Kj -- Y+1
@@ -499,6 +562,8 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         if (!teleport) {
             player.teleport(new Location(player.getWorld(), spawn.x, spawn.y, spawn.z, 0.0F, (float) spawn.dir));
         }
+        ctp.mainArena.lobby.playersinlobby.remove(player);
+        ctp.playerData.get(player).isInLobby = false;
         ctp.playerData.get(player).isInArena = true;
     }
 

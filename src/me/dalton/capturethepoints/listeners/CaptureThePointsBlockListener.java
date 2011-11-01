@@ -190,12 +190,16 @@ public class CaptureThePointsBlockListener extends BlockListener {
     }
 
     public void assignRole(Player p, String role) {
-        ctp.playerData.get(p).role = role;
         p.setHealth(20);
         PlayerInventory inv = p.getInventory();
-        // Does not clear armor slots
         inv.clear();
-        inv.setArmorContents(null);
+        inv.setHelmet(null);
+        inv.setChestplate(null);
+        inv.setLeggings(null);
+        inv.setBoots(null);
+        p.updateInventory();
+
+        ctp.playerData.get(p).role = role;
 
         for (Items item : ctp.roles.get(role.toLowerCase())) {
             if (Util.ARMORS_TYPE.contains(item.item) && (!Util.HELMETS_TYPE.contains(item.item))) {
