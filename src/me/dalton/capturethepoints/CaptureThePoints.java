@@ -263,6 +263,7 @@ public class CaptureThePoints extends JavaPlugin {
         commands.add(new JoinAllCommand(this));
         commands.add(new JoinCommand(this));
         commands.add(new KickCommand(this));
+        commands.add(new LateJoinCommand(this));
         commands.add(new LeaveCommand(this));
         commands.add(new PJoinCommand(this));
         commands.add(new RejoinCommand(this));
@@ -750,13 +751,34 @@ public class CaptureThePoints extends JavaPlugin {
             }
         }
     }
-
-    /** 
-     * This method changes the mainArena to a suitable arena using the number of players you have.
+    
+    /** This method finds if a suitable arena exists.
+     * If useSelectedArenaOnly is true, this method will always return false.
+     * @param numberofplayers The number of players that want to play.
+     * @return If a suitable arena exists, else false. */
+    public boolean hasSuitableArena(int numberofplayers) {
+        // Is the config set to allow the random choosing of arenas?
+        if (!mainArena.co.useSelectedArenaOnly) {
+            int size = arena_list.size();
+            if (size > 1) {
+                // If there is more than 1 arena to choose from
+                List<String> arenas = new ArrayList<String>();
+                for (String arena : arena_list) {
+                    ArenaData loadArena = loadArena(arena);
+                    if (loadArena.maximumPlayers >= numberofplayers && loadArena.minimumPlayers <= numberofplayers) {
+                        return true;
+                    }
+                }
+            }
+        }   
+        return false;
+    }
+    
+    /** This method changes the mainArena to a suitable arena using the number of players you have.
      * Note, it will not change the mainArena if useSelectedArenaOnly is set to true.
      * @param numberofplayers The number of players that want to play.
-     */
-    public void chooseSuitableArena(int numberofplayers) {
+     * @return The name of the selected mainArena, else empty String. */
+    public String chooseSuitableArena(int numberofplayers) {
         // Is the config set to allow the random choosing of arenas?
         if (!mainArena.co.useSelectedArenaOnly) {
 
@@ -782,7 +804,9 @@ public class CaptureThePoints extends JavaPlugin {
                 // else ctp.mainArena = ctp.mainArena;
             }
             logger.info("[CTP] The selected arena, " + mainArena.name + ", has a minimum of " + mainArena.minimumPlayers + ", and a maximum of " + mainArena.maximumPlayers + ".");
+            return mainArena.name;
         }
+        return mainArena.name == null ? "" : mainArena.name;
     }
 
     public void moveToLobby(Player player) {
@@ -825,9 +849,12 @@ public class CaptureThePoints extends JavaPlugin {
             player.setGameMode(GameMode.SURVIVAL);
         }
 
+        mainArena.lobby.playersinlobby.put(player, false); // Kj
+        mainArena.lobby.playerswhowereinlobby.add(player); // Kj
+        
         health.put(player, Integer.valueOf(player.getHealth()));
         player.setHealth(mainArena.co.maxPlayerHealth);
-        mainArena.lobby.playersinlobby.put(player, false); // Kj
+
 
         Double X = Double.valueOf(player.getLocation().getX());
         Double y = Double.valueOf(player.getLocation().getY());

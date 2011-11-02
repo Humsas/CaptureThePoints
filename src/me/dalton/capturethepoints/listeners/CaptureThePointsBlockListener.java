@@ -259,7 +259,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                 item.cooldowns.clear();
             }
         }
-        this.ctp.mainArena.lobby.playersinlobby.clear();   //Reset if someone has left
+        this.ctp.mainArena.lobby.clearLobbyPlayerData();
         this.ctp.health.clear();
         this.ctp.previousLocation.clear();
         this.ctp.playerData.clear();

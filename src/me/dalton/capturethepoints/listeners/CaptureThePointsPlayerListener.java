@@ -1,10 +1,10 @@
 package me.dalton.capturethepoints.listeners;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import me.dalton.capturethepoints.CaptureThePoints;
 import me.dalton.capturethepoints.HealingItems;
 import me.dalton.capturethepoints.Items;
@@ -14,6 +14,7 @@ import me.dalton.capturethepoints.PlayersAndCooldowns;
 import me.dalton.capturethepoints.Spawn;
 import me.dalton.capturethepoints.Team;
 import me.dalton.capturethepoints.Util;
+import me.dalton.capturethepoints.commands.AutoCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -172,7 +173,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                         
                         int price = 0;
                         try {
-                            price = Integer.parseInt(sign.getLine(2));
+                            price = Integer.parseInt(sign.getLine(2)); // Line 1 on sign is price. Assign.
                         } catch (Exception NumberFormatException) {
                             price = Integer.MAX_VALUE;
                         }
@@ -196,7 +197,8 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 
                             ctp.blockListener.assignRole(p, role.toLowerCase()); // Assign new role
                         } else {
-                            String message = price == Integer.MAX_VALUE ? 
+                            String message = 
+                                    price != Integer.MAX_VALUE ? 
                                     "Not enough money! You have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money, but you need " + ChatColor.GREEN + price + ChatColor.WHITE + " money." :
                                     ChatColor.RED + "This sign does not have a legal price. Please inform an admin.";
                             p.sendMessage(message);
@@ -278,7 +280,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 //        if(p.getName().equalsIgnoreCase("Humsas"))
 //            plugin.playerData.get(p).money = 100000;
         List<Items> list = new LinkedList<Items>();
-        list = Util.getItemListFromString(sign.getLine(1));
+        list = Util.getItemListFromString(sign.getLine(1)); // Items for sale from line 2 on sign
 
         if (list.get(0).item == null) { // Kj -- changed bracing from != null ... to == null return;
             return;
@@ -320,14 +322,21 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 //p.getInventory().addItem(new ItemStack[]{tmp});
             }
             
-            chargeAccount(p, price);
+            boolean hasPaid = chargeAccount(p, price);
             //ItemStack i = new ItemStack(mat.getId(), kiekis);
             //p.getInventory().addItem(i);
-            p.sendMessage("You bought " + ChatColor.AQUA + list.get(0).amount + " " + list.get(0).item.toString().toLowerCase() + ChatColor.WHITE + " for " + ChatColor.GREEN + price + ChatColor.WHITE + " money.");
-            p.sendMessage("You now have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money.");
+            if (hasPaid) {
+                p.sendMessage("You bought " + ChatColor.AQUA + list.get(0).amount + " " + list.get(0).item.toString().toLowerCase() + ChatColor.WHITE + " for " + ChatColor.GREEN + price + ChatColor.WHITE + " money.");
+                p.sendMessage("You now have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money.");
+            } else {
+            String message = price != Integer.MAX_VALUE ? 
+                    "Not enough money! You have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money, but you need " + ChatColor.GREEN + price + ChatColor.WHITE + " money." :
+                    ChatColor.RED + "This sign does not have a legal price. Please inform an admin.";
+                p.sendMessage(message);
+            }
             p.updateInventory();
         } else {
-            String message = price == Integer.MAX_VALUE ? 
+            String message = price != Integer.MAX_VALUE ? 
                     "Not enough money! You have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money, but you need " + ChatColor.GREEN + price + ChatColor.WHITE + " money." :
                     ChatColor.RED + "This sign does not have a legal price. Please inform an admin.";
             p.sendMessage(message);
@@ -690,13 +699,20 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 
                 // Game not yet started
                 if (ctp.isPreGame()) {
-                    if (ctp.mainArena.co.exactTeamMemberCount) {
-
-                        if (readypeople / ctp.teams.size() >= 1 /*&& !lobby.hasUnreadyPeople() */ && readypeople >= ctp.mainArena.minimumPlayers) {
+                    if (readypeople >= ctp.mainArena.minimumPlayers) {
+                        if (ctp.mainArena.co.exactTeamMemberCount) {
+                            if (readypeople / ctp.teams.size() >= 1) {
+                                moveToSpawns();
+                            }
+                            // Does not require exact count and everyone is ready. Move them.
+                        } else if (!lobby.hasUnreadyPeople()) {
                             moveToSpawns();
                         }
-                    } else if (/*(readypeople == ctp.playerData.size()) && */!lobby.hasUnreadyPeople() && readypeople >= ctp.mainArena.minimumPlayers) {
-                        moveToSpawns();
+                    } else {
+                        if (ctp.hasSuitableArena(readypeople)) {
+                            AutoCommand ac = new AutoCommand(ctp, ctp.mainArena.world);
+                            ac.execute(ctp.getServer().getConsoleSender(), Arrays.asList("ctp","auto",ctp.mainArena.world));
+                        }
                     }
 
                     // Game already started

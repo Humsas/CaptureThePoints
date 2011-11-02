@@ -6,9 +6,16 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 public class AutoCommand extends CTPCommand {
-
+    private String worldname = "";
+    
     /** This command will bring all players on a world into a random lobby which is guaranteed to hold everyone (if not, use the already selected arena) */
     public AutoCommand(CaptureThePoints instance) {
+        this(instance, "");
+    }
+    
+    /** If the world name is supplied */
+    public AutoCommand(CaptureThePoints instance, String worldname) {
+        this.worldname = worldname;
         super.ctp = instance;
         super.aliases.add("auto");
         super.notOpCommand = false;
@@ -37,10 +44,13 @@ public class AutoCommand extends CTPCommand {
                 return;
             }
         }
+        if (this.worldname.isEmpty()) {
+            this.worldname = parameters.get(2);
+        }
 
-        World world = ctp.getServer().getWorld(parameters.get(2));
+        World world = ctp.getServer().getWorld(worldname);
         if (world == null) {
-            sender.sendMessage(ChatColor.RED + parameters.get(2) + " is not a recognised world.");
+            sender.sendMessage(ChatColor.RED + worldname + " is not a recognised world.");
             sender.sendMessage(ChatColor.RED + "Hint: your first world's name is \"" + ctp.getServer().getWorlds().get(0).getName() + "\".");
             return;
         }
