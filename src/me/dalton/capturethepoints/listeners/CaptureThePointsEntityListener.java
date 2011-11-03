@@ -135,17 +135,17 @@ public class CaptureThePointsEntityListener extends EntityListener {
                         Util.sendMessageToPlayers(ctp, ctp.playerData.get(playa).team.chatcolor + playa.getName() + ChatColor.WHITE
                                 + " was killed by " + ctp.playerData.get(attacker).team.chatcolor + attacker.getName());
                         dropWool(playa);
-                        ctp.playerData.get(attacker).money += ctp.configOptions.moneyForKill;
+                        ctp.playerData.get(attacker).money += ctp.mainArena.co.moneyForKill;
                         attacker.sendMessage("Money: " + ChatColor.GREEN + ctp.playerData.get(attacker).money);
                         ctp.checkForKillMSG(attacker, false);
                         ctp.checkForKillMSG(playa, true);
                     }
 
-                    playa.setHealth(ctp.configOptions.maxPlayerHealth);
+                    playa.setHealth(ctp.mainArena.co.maxPlayerHealth);
                     playa.setFoodLevel(20);
                     //Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
                     Spawn spawn = ctp.playerData.get(playa).team.spawn;
-                    if (ctp.configOptions.giveNewRoleItemsOnRespawn) {
+                    if (ctp.mainArena.co.giveNewRoleItemsOnRespawn) {
                         giveRoleItemsAfterDeath(playa);
                     }
 
@@ -197,7 +197,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
         if (distance == Double.NaN) {
             return false; // Kj -- it will return Double.NaN if cross-world or couldn't work out distance for whatever reason.
         } else {
-            return distance <= ctp.configOptions.protectionDistance;
+            return distance <= ctp.mainArena.co.protectionDistance;
         }
     }
 
@@ -280,7 +280,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
     }
 
     private boolean dropWool(Player player) {
-        if (!ctp.configOptions.dropWoolOnDeath) {
+        if (!ctp.mainArena.co.dropWoolOnDeath) {
             return false;
         }
 

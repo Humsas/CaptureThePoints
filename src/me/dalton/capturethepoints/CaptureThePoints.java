@@ -41,7 +41,10 @@ public class CaptureThePoints extends JavaPlugin {
     public static final String mainDir = "plugins/CaptureThePoints";
     
     /** "plugins/CaptureThePoints/CaptureSettings.yml" */
-    public static final File myfile = new File("plugins/CaptureThePoints" + File.separator + "CaptureSettings.yml");
+    //public static final File myFile = new File("plugins/CaptureThePoints" + File.separator + "CaptureSettings.yml");
+    
+    /** "plugins/CaptureThePoints/Global.yml" */
+    public static final File globalConfigFile = new File("plugins/CaptureThePoints" + File.separator + "Global.yml");
     
     public static final Logger logger = Logger.getLogger("Minecraft");
     public static PluginDescriptionFile info = null;
@@ -71,8 +74,9 @@ public class CaptureThePoints extends JavaPlugin {
     /** The Lobbies stored by CTP. */
     public List<Lobby> lobbies = new LinkedList<Lobby>();
     
-    /** The config options for CTP. */
-    public ConfigOptions configOptions = new ConfigOptions();
+    // public ConfigOptions configOptions = new ConfigOptions();
+    /** The global config options for CTP. */
+    public ConfigOptions globalConfigOptions = new ConfigOptions();
     
     /** The list of arena names stored by CTP. */
     public List<String> arena_list = new LinkedList<String>();
@@ -81,7 +85,7 @@ public class CaptureThePoints extends JavaPlugin {
     public ArenaData mainArena = new ArenaData();
     
     /** The arena currently being edited. */
-    public String editingArenaName = "";
+    public ArenaData editingArena = new ArenaData();
     
     /** The roles/classes stored by CTP. (HashMap: Role's name, and the Items it contains) 
      * @see Items */
@@ -102,9 +106,15 @@ public class CaptureThePoints extends JavaPlugin {
     // Arenos issaugojimui -- Arena currently being edited
     public int x1, y1, z1, x2, y2, z2;
 
-    public Configuration load() { //YamlConfiguration
+    /** Load from CaptureSettings.yml */
+    public Configuration load() { //Yaml Configuration
+        return load(globalConfigFile);
+    }
+    
+    /** Load yml from specified file */
+    public Configuration load(File file) {
         try {
-            Configuration PluginPropConfig = new Configuration(myfile);
+            Configuration PluginPropConfig = new Configuration(file);
             PluginPropConfig.load();
             return PluginPropConfig;
         } catch (Exception localException) {
@@ -131,7 +141,6 @@ public class CaptureThePoints extends JavaPlugin {
             info = null;
         }
     }
-        
 
     public void clearConfig() {
         if (this.blockListener.capturegame) {
@@ -149,7 +158,7 @@ public class CaptureThePoints extends JavaPlugin {
         healingItems.clear();
         rewards = null;
         mainArena = null;
-        editingArenaName = "";
+        editingArena = null;
         teams.clear();
         roles.clear();
     }
@@ -198,31 +207,9 @@ public class CaptureThePoints extends JavaPlugin {
 
         PluginDescriptionFile pdfFile = getDescription();
 
+        populateCommands();
         loadConfigFiles();
         
-        if(!reloading) {
-            commands.add(new AliasesCommand(this));
-            commands.add(new AutoCommand(this));
-            commands.add(new BuildCommand(this));
-            commands.add(new ColorsCommand(this));
-            commands.add(new HelpCommand(this));
-            commands.add(new JoinAllCommand(this));
-            commands.add(new JoinCommand(this));
-            commands.add(new KickCommand(this));
-            commands.add(new LeaveCommand(this));
-            commands.add(new PJoinCommand(this));
-            commands.add(new RejoinCommand(this));
-            commands.add(new ReloadCommand(this));
-            //commands.add(new SaveCommand(this));
-            commands.add(new SelectCommand(this));
-            commands.add(new SetpointsCommand(this));
-            commands.add(new StartCommand(this));
-            commands.add(new StatsCommand(this));
-            commands.add(new StopCommand(this));
-            commands.add(new TeamCommand(this));
-            commands.add(new VersionCommand(this));
-        }
-
         //Kj: LobbyActivity timer.
         CTP_Scheduler.lobbyActivity = this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
             
@@ -234,7 +221,7 @@ public class CaptureThePoints extends JavaPlugin {
                 if (playerData.isEmpty()) {
                     return;
                 }
-                if (configOptions.lobbyKickTime <= 0) {
+                if (globalConfigOptions.lobbyKickTime <= 0) {
                     return;
                 }
 
@@ -242,13 +229,13 @@ public class CaptureThePoints extends JavaPlugin {
                     PlayerData data = playerData.get(player);
                     if (data.isInLobby && !data.isReady) {
                         // Kj -- Time inactivity warning.
-                        if (((System.currentTimeMillis() - data.lobbyJoinTime) >= ((configOptions.lobbyKickTime * 1000) / 2)) && !data.warnedAboutActivity) {
+                        if (((System.currentTimeMillis() - data.lobbyJoinTime) >= ((globalConfigOptions.lobbyKickTime * 1000) / 2)) && !data.warnedAboutActivity) {
                             player.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] Please choose your class and ready up, else you will be kicked from the lobby!");
                             data.warnedAboutActivity = true;
                         }
 
                         // Kj -- Time inactive in the lobby is greater than the lobbyKickTime specified in config (in ms)
-                        if ((System.currentTimeMillis() - data.lobbyJoinTime >= (configOptions.lobbyKickTime * 1000)) && data.warnedAboutActivity) {
+                        if ((System.currentTimeMillis() - data.lobbyJoinTime >= (globalConfigOptions.lobbyKickTime * 1000)) && data.warnedAboutActivity) {
                             data.isInLobby = false;
                             data.isInArena = false;
                             data.warnedAboutActivity = false;
@@ -263,6 +250,32 @@ public class CaptureThePoints extends JavaPlugin {
         if(!reloading) {
             logger.info("[CTP] " + pdfFile.getVersion() + " version is enabled.");
         }
+    }
+    
+    /** Add the CTP commands to the master commands list */
+    private void populateCommands() {
+        commands.clear();
+        commands.add(new AliasesCommand(this));
+        commands.add(new AutoCommand(this));
+        commands.add(new BuildCommand(this));
+        commands.add(new ColorsCommand(this));
+        commands.add(new HelpCommand(this));
+        commands.add(new JoinAllCommand(this));
+        commands.add(new JoinCommand(this));
+        commands.add(new KickCommand(this));
+        commands.add(new LateJoinCommand(this));
+        commands.add(new LeaveCommand(this));
+        commands.add(new PJoinCommand(this));
+        commands.add(new RejoinCommand(this));
+        commands.add(new ReloadCommand(this));
+        //commands.add(new SaveCommand(this));
+        commands.add(new SelectCommand(this));
+        commands.add(new SetpointsCommand(this));
+        commands.add(new StartCommand(this));
+        commands.add(new StatsCommand(this));
+        commands.add(new StopCommand(this));
+        commands.add(new TeamCommand(this));
+        commands.add(new VersionCommand(this));
     }
 
     private void loadArenas(File file) {
@@ -287,51 +300,22 @@ public class CaptureThePoints extends JavaPlugin {
         //Load existing arenas
         File file = new File(mainDir + File.separator + "Arenas");
         loadArenas(file);
-        Configuration config = load();
-        String arenaName = config.getString("Arena");
+        
+        Configuration globalConfig = load();
+        globalConfigOptions = getConfigOptions(globalConfig);
+
+        String arenaName = globalConfig.getString("Arena");
         if (arenaName == null) {
             mainArena = null;
         } else {
             mainArena = loadArena(arenaName);
         }
-        editingArenaName = "";
+        editingArena = mainArena;
         if (mainArena == null) {
-            config.removeProperty("Arena");
+            globalConfig.removeProperty("Arena");
         }
-
-        // Kj -- documentation for the different options can be found under the configOptions class.
-        configOptions.allowBlockPlacement = config.getBoolean("AllowBlockPlacement", true); // Kj
-        configOptions.allowCommands = config.getBoolean("AllowCommands", false);
-        configOptions.allowLateJoin = config.getBoolean("AllowLateJoin", true); // Kj
-        configOptions.autoStart = config.getBoolean("AutoStart", true); // Kj
-        configOptions.breakingBlocksDropsItems = config.getBoolean("BreakingBlocksDropsItems", false); // Kj
-        configOptions.dropWoolOnDeath = config.getBoolean("DropWoolOnDeath", true); // Kj
-//        configOptions.enableHardArenaRestore = config.getBoolean("EnableHardArenaRestore", false);
-        configOptions.exactTeamMemberCount = config.getBoolean("ExactTeamMemberCount", false);
-        configOptions.giveNewRoleItemsOnRespawn = config.getBoolean("GiveNewRoleItemsOnRespawn", true);
-        configOptions.givenWoolNumber = config.getInt("GivenWoolNumber", 64) <= 0 ? -1 : config.getInt("GivenWoolNumber", 64); // Kj
-        configOptions.lobbyKickTime = config.getInt("LobbyKickTime", 60); // Kj
-        configOptions.maxPlayerHealth = config.getInt("MaxPlayerHealth", 20);
-        configOptions.moneyAtTheLobby = config.getInt("MoneyAtTheLobby", 0);
-        configOptions.moneyEvery30Sec = config.getInt("MoneyEvery30sec", 100);
-        configOptions.moneyForKill = config.getInt("MoneyForKill", 100);
-        configOptions.moneyForPointCapture = config.getInt("MoneyForPointCapture", 100);
-//        configOptions.mysqlAddress = config.getString("Mysql.Address", "localhost");
-//        configOptions.mysqlDatabase = config.getString("Mysql.Database", "");
-//        configOptions.mysqlPass = config.getString("Mysql.Pass", "");
-//        configOptions.mysqlPort = config.getInt("Mysql.Port", 3306);
-//        configOptions.mysqlUser = config.getString("Mysql.User", "root");
-        configOptions.onePointGeneratedScoreEvery30sec = config.getInt("OnePointGeneratedScoreEvery30sec", 1);
-        configOptions.playTime = config.getInt("PlayTime", 10);
-        configOptions.pointsToWin = config.getInt("PointsToWin", 1);
-        configOptions.protectionDistance = config.getInt("DamageImmunityNearSpawnDistance", 10);
-        configOptions.ringBlock = config.getInt("RingBlock", 7);
-        configOptions.scoreAnnounceTime = config.getInt("ScoreAnnounceTime", 30);
-        configOptions.scoreToWin = config.getInt("ScoreToWin", 15);
-        configOptions.useScoreGeneration = config.getBoolean("UseScoreGeneration", false);
-        configOptions.useSelectedArenaOnly = config.getBoolean("UseSelectedArenaOnly", true); // Kj
-
-        config.save();
+        
+        globalConfig.save();
 
         CTP_Scheduler.money_Score = 0;
         CTP_Scheduler.playTimer = 0;
@@ -341,7 +325,7 @@ public class CaptureThePoints extends JavaPlugin {
         CTP_Scheduler.healingItemsCooldowns = 0;
     }
 
-    //Loads mainArena data
+    /**Loads ArenaData data ready for assignment to mainArena */
     public ArenaData loadArena(String name) {
         ArenaData arena = new ArenaData();
 
@@ -446,6 +430,10 @@ public class CaptureThePoints extends JavaPlugin {
                     continue;
                 }
             }
+            
+            arena.co = getConfigOptions(arenaConf);
+            arenaConf.save();
+            
             return arena;
         } else {
             logger.warning("[CTP] Could not load arena! Check your config file and existing arenas");
@@ -529,22 +517,58 @@ public class CaptureThePoints extends JavaPlugin {
         config.save();
     }
 
-//  public boolean isDebugging(Player player)
-//  {
-//    if (this.debugees.containsKey(player))
-//    {
-//        return ((Boolean)this.debugees.get(player)).booleanValue();
-//    }
-//    return false;
-//  }
-//
-//  public void setDebugging(Player player, boolean value)
-//  {
-//    this.debugees.put(player, Boolean.valueOf(value));
-//  }
-//  public boolean enabled(Player player) {
-//    return this.basicUsers.containsKey(player);
-//  }
+    /** Get the configOptions from this file. */
+    public ConfigOptions getConfigOptions(File arenafile) {
+        return getConfigOptions(load(arenafile));
+    }
+    
+    /** Get the configOptions from the config file. */
+    public ConfigOptions getConfigOptions(Configuration config) {
+        ConfigOptions co = new ConfigOptions();
+        // Kj -- documentation for the different options, including their default values, can be found under the ConfigOptions class.
+        co.allowBlockPlacement = config.getBoolean("Options.AllowBlockPlacement", globalConfigOptions.allowBlockPlacement);
+        co.allowCommands = config.getBoolean("Options.AllowCommands", globalConfigOptions.allowCommands);
+        co.allowLateJoin = config.getBoolean("Options.AllowLateJoin", globalConfigOptions.allowLateJoin);
+        co.autoStart = config.getBoolean("Options.AutoStart", globalConfigOptions.autoStart);
+        co.breakingBlocksDropsItems = config.getBoolean("Options.BreakingBlocksDropsItems", globalConfigOptions.breakingBlocksDropsItems);
+        co.dropWoolOnDeath = config.getBoolean("Options.DropWoolOnDeath", globalConfigOptions.dropWoolOnDeath); 
+//        co.enableHardArenaRestore = config.getBoolean("Options.EnableHardArenaRestore", globalConfigOptions.EnableHardArenaRestore);
+        co.exactTeamMemberCount = config.getBoolean("Options.ExactTeamMemberCount", globalConfigOptions.exactTeamMemberCount);
+        co.giveNewRoleItemsOnRespawn = config.getBoolean("Options.GiveNewRoleItemsOnRespawn", globalConfigOptions.giveNewRoleItemsOnRespawn);
+        co.givenWoolNumber = config.getInt("Options.GivenWoolNumber", 64) <= 0 ? -1 : config.getInt("Options.GivenWoolNumber", globalConfigOptions.givenWoolNumber); 
+        co.lobbyKickTime = config.getInt("Options.LobbyKickTime", globalConfigOptions.lobbyKickTime); 
+        co.maxPlayerHealth = config.getInt("Options.MaxPlayerHealth", globalConfigOptions.maxPlayerHealth);
+        co.moneyAtTheLobby = config.getInt("Options.MoneyAtTheLobby", globalConfigOptions.moneyAtTheLobby);
+        co.moneyEvery30Sec = config.getInt("Options.MoneyEvery30sec", globalConfigOptions.moneyEvery30Sec);
+        co.moneyForKill = config.getInt("Options.MoneyForKill", globalConfigOptions.moneyForKill);
+        co.moneyForPointCapture = config.getInt("Options.MoneyForPointCapture", globalConfigOptions.moneyForPointCapture);
+        co.onePointGeneratedScoreEvery30sec = config.getInt("Options.OnePointGeneratedScoreEvery30sec", globalConfigOptions.onePointGeneratedScoreEvery30sec);
+        co.playTime = config.getInt("Options.PlayTime", globalConfigOptions.playTime);
+        co.pointsToWin = config.getInt("Options.PointsToWin", globalConfigOptions.pointsToWin);
+        co.protectionDistance = config.getInt("Options.DamageImmunityNearSpawnDistance", globalConfigOptions.protectionDistance);
+        co.ringBlock = config.getInt("Options.RingBlock", globalConfigOptions.ringBlock);
+        co.scoreAnnounceTime = config.getInt("Options.ScoreAnnounceTime", globalConfigOptions.scoreAnnounceTime);
+        co.scoreToWin = config.getInt("Options.ScoreToWin", globalConfigOptions.scoreToWin);
+        co.useScoreGeneration = config.getBoolean("Options.UseScoreGeneration", globalConfigOptions.useScoreGeneration);
+        co.useSelectedArenaOnly = config.getBoolean("Options.UseSelectedArenaOnly", globalConfigOptions.useSelectedArenaOnly);
+        
+        
+        KillStreakMessages ksm = new KillStreakMessages();
+        
+        HashMap<Integer, String> hm = new HashMap<Integer, String>();
+        for (int i = 0; i < 50; i++) {
+            if (config.getString("StreakMessage."+i) != null) {
+                hm.put(i, config.getString("StreakMessage."+i));
+            } else if (!ksm.getMessage(i).isEmpty()) { 
+                hm.put(i, ksm.getMessage(i));
+                config.setProperty("StreakMessage."+i, ksm.getMessage(i));
+            }
+        }
+        co.killStreakMessages = new KillStreakMessages(hm); 
+        
+        return co;
+    }
+    
     public void checkForGameEndThenPlayerLeft() {
         if (this.playerData.size() < 2 && !isPreGame()) {
             //maybe dc or something. it should be moved to cheking to see players who left the game
@@ -567,6 +591,9 @@ public class CaptureThePoints extends JavaPlugin {
         }
     }
 
+    /** Checks and calculates the Player's killstreak and deathstreak and outputs an appropriate message according to config.
+     * @param player The player
+     * @param died If they died (false if they were the killer). */
     public void checkForKillMSG(Player player, boolean died) {
         PlayerData data = playerData.get(player);
         if (died) {
@@ -577,20 +604,10 @@ public class CaptureThePoints extends JavaPlugin {
             data.kills++;
             data.killsInARow++;
             data.deathsInARow = 0;
-            if (data.killsInARow == 2) {
-                Util.sendMessageToPlayers(this, playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE + " strikes again!");
-            }
-            if (data.killsInARow == 3) {
-                Util.sendMessageToPlayers(this, playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE + " is on a killing spree!");
-            }
-            if (data.killsInARow == 4) {
-                Util.sendMessageToPlayers(this, playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE + " is on a rampage!");
-            }
-            if (data.killsInARow == 5) {
-                Util.sendMessageToPlayers(this, playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE + " is unstoppable!");
-            }
-            if (data.killsInARow >= 6) {
-                Util.sendMessageToPlayers(this, playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE + " is GOD-LIKE!");
+            String message = mainArena.co.killStreakMessages.getMessage(data.killsInARow);
+            
+            if (!message.isEmpty()) {
+                Util.sendMessageToPlayers(this, message.replace("%player", playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE));
             }
         }
 
@@ -675,7 +692,7 @@ public class CaptureThePoints extends JavaPlugin {
 
         // Check for player replacement if there is somone waiting to join the game
         boolean wasReplaced = false;
-        if (configOptions.exactTeamMemberCount && isGameRunning()) {
+        if (mainArena.co.exactTeamMemberCount && isGameRunning()) {
             for (Player play : playerData.keySet()) {
                 if (playerData.get(play).isInLobby && playerData.get(play).isReady) {
                     this.playerListener.moveToSpawns(play);
@@ -691,7 +708,7 @@ public class CaptureThePoints extends JavaPlugin {
         }
 
         // If there was no replacement we should move one member to lobby
-        if (!wasReplaced && configOptions.exactTeamMemberCount && this.isGameRunning()) {
+        if (!wasReplaced && mainArena.co.exactTeamMemberCount && this.isGameRunning()) {
             balanceTeams(originalMemberCount);
         }
     }
@@ -734,15 +751,36 @@ public class CaptureThePoints extends JavaPlugin {
             }
         }
     }
-
-    /** 
-     * This method changes the mainArena to a suitable arena using the number of players you have.
+    
+    /** This method finds if a suitable arena exists.
+     * If useSelectedArenaOnly is true, this method will always return false.
+     * @param numberofplayers The number of players that want to play.
+     * @return If a suitable arena exists, else false. */
+    public boolean hasSuitableArena(int numberofplayers) {
+        // Is the config set to allow the random choosing of arenas?
+        if (!mainArena.co.useSelectedArenaOnly) {
+            int size = arena_list.size();
+            if (size > 1) {
+                // If there is more than 1 arena to choose from
+                List<String> arenas = new ArrayList<String>();
+                for (String arena : arena_list) {
+                    ArenaData loadArena = loadArena(arena);
+                    if (loadArena.maximumPlayers >= numberofplayers && loadArena.minimumPlayers <= numberofplayers) {
+                        return true;
+                    }
+                }
+            }
+        }   
+        return false;
+    }
+    
+    /** This method changes the mainArena to a suitable arena using the number of players you have.
      * Note, it will not change the mainArena if useSelectedArenaOnly is set to true.
      * @param numberofplayers The number of players that want to play.
-     */
-    public void chooseSuitableArena(int numberofplayers) {
+     * @return The name of the selected mainArena, else empty String. */
+    public String chooseSuitableArena(int numberofplayers) {
         // Is the config set to allow the random choosing of arenas?
-        if (!configOptions.useSelectedArenaOnly) {
+        if (!mainArena.co.useSelectedArenaOnly) {
 
             int size = arena_list.size();
 
@@ -766,7 +804,9 @@ public class CaptureThePoints extends JavaPlugin {
                 // else ctp.mainArena = ctp.mainArena;
             }
             logger.info("[CTP] The selected arena, " + mainArena.name + ", has a minimum of " + mainArena.minimumPlayers + ", and a maximum of " + mainArena.maximumPlayers + ".");
+            return mainArena.name;
         }
+        return mainArena.name == null ? "" : mainArena.name;
     }
 
     public void moveToLobby(Player player) {
@@ -794,10 +834,9 @@ public class CaptureThePoints extends JavaPlugin {
         data.deathsInARow = 0;
         data.kills = 0;
         data.killsInARow = 0;
-        data.money = configOptions.moneyAtTheLobby;
+        data.money = mainArena.co.moneyAtTheLobby;
         data.pointCaptures = 0;
         data.isReady = false;
-        data.isInLobby = true;
         data.isInArena = false;
         data.foodLevel = player.getFoodLevel();
         data.lobbyJoinTime = System.currentTimeMillis();
@@ -810,9 +849,12 @@ public class CaptureThePoints extends JavaPlugin {
             player.setGameMode(GameMode.SURVIVAL);
         }
 
-        health.put(player, Integer.valueOf(player.getHealth()));
-        player.setHealth(configOptions.maxPlayerHealth);
         mainArena.lobby.playersinlobby.put(player, false); // Kj
+        mainArena.lobby.playerswhowereinlobby.add(player); // Kj
+        
+        health.put(player, Integer.valueOf(player.getHealth()));
+        player.setHealth(mainArena.co.maxPlayerHealth);
+
 
         Double X = Double.valueOf(player.getLocation().getX());
         Double y = Double.valueOf(player.getLocation().getY());
@@ -829,6 +871,7 @@ public class CaptureThePoints extends JavaPlugin {
         loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
         player.teleport(loc); // Teleport player to lobby
         player.sendMessage(ChatColor.GREEN + "Joined CTP lobby " + ChatColor.GOLD + mainArena.name + ChatColor.GREEN + ".");
+        playerData.get(player).isInLobby = true;
         saveInv(player);
     }
 
@@ -842,8 +885,11 @@ public class CaptureThePoints extends JavaPlugin {
         if (arena_list.isEmpty()) {
              return "Oops, looks like an arena hasn't been built yet.";
         }
-        if (mainArena == null || mainArena.lobby == null) {
+        if (mainArena == null) {
             return "Oops, looks like an arena hasn't been built yet.";
+        }
+        if (mainArena.lobby == null) {
+            return "Oops, looks like an arena hasn't been built yet. [No lobby]";
         }
         if (getServer().getWorld(mainArena.world) == null) {
             if (canAccess(p, true, new String[]{"ctp.*", "ctp.admin"})) {
@@ -888,27 +934,37 @@ public class CaptureThePoints extends JavaPlugin {
         if (!command.getName().equalsIgnoreCase("ctp")) {
             return true;
         }
+        
+        if (commands == null || commands.isEmpty()) { // Really weird bug that rarely occurs. Could call it a sanity check.
+            populateCommands();
+        }
 
         List<String> parameters = new ArrayList<String>();
         parameters.add(command.getName());
         parameters.addAll(Arrays.asList(args));
-
+        
         if (parameters.size() == 1) {
-            HelpCommand helpCommand = new HelpCommand(this);
-            helpCommand.execute(sender, parameters);
+            sendHelp(sender);
             return true;
         }
 
         for (CTPCommand each : commands) {
-            if (each.aliases.contains(parameters.get(1))) { // Search the command aliases for the first argument given. If found, execute command.
-                each.execute(sender, parameters);
-                return true;
+            for (String aString : each.aliases) {
+                if (aString.equalsIgnoreCase(parameters.get(1))) { // Search the command aliases for the first argument given. If found, execute command.
+                    each.execute(sender, parameters);
+                    return true;
+                }
             }
         }
         
-        HelpCommand helpCommand = new HelpCommand(this);
-        helpCommand.execute(sender, parameters);
-        
+        logger.info(sender.getName()+ " issued an unknown CTP command. It has "+parameters.size()+" Parameters: "+parameters+". Displaying help to them.");
+        sendHelp(sender);
         return true;
+    }
+    
+    /** Send the CTP help to this sender */
+    public void sendHelp(CommandSender sender) {
+        HelpCommand helpCommand = new HelpCommand(this);
+        helpCommand.execute(sender, Arrays.asList("ctp"));
     }
 }

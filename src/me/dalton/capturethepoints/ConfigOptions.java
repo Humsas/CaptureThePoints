@@ -3,76 +3,81 @@ package me.dalton.capturethepoints;
 /** Class for the config options ctp accepts. */
 public class ConfigOptions {   
     /** Allow placement of blocks during a ctp game /||/ Disallow placement of blocks during a ctp game (except for capturing points) [Default: true] */
-    public boolean allowBlockPlacement; // Kjhf
+    public boolean allowBlockPlacement = true; // Kjhf
     
     /** Allow use of commands during a ctp game /||/ Disallow use of commands during a ctp game (excludes /ctp) [Default: false] */
-    public boolean allowCommands;
+    public boolean allowCommands = false;
     
     /** Allow joining a ctp game if one has already started /||/ Disallow joining a ctp game if one has already started [Default: true] */
-    public boolean allowLateJoin; // Kjhf
+    public boolean allowLateJoin = true; // Kjhf
     
     /** Allow the game to start automatically when there are enough players /||/ Don't start game until an admin does /ctp start [Default: true] */
-    public boolean autoStart; // Kjhf
+    public boolean autoStart = true; // Kjhf
     
     /** Breaking blocks in game drops items /||/ Cancel any item drops resulting from breaking blocks in game [Default: false] */
-    public boolean breakingBlocksDropsItems; // Kjhf
+    public boolean breakingBlocksDropsItems = false; // Kjhf
     
     /** Drop wool if a player dies /||/ Don't drop wool if a player dies [Default: true] */
-    public boolean dropWoolOnDeath; // Kjhf
+    public boolean dropWoolOnDeath = true; // Kjhf
        
     /** Teams must be even on start (may result in one person being left at lobby) /||/ Teams can be uneven on start (everyone can play) [Default: false] */
-    public boolean exactTeamMemberCount;
+    public boolean exactTeamMemberCount = false;
     
     /** Replenish items on respawn /||/ Limited ammo and durability! [Default: true] */
-    public boolean giveNewRoleItemsOnRespawn;
+    public boolean giveNewRoleItemsOnRespawn = true;
     
     /** Use scoring system /||/ Use points system [Default: false] */
-    public boolean useScoreGeneration;
+    public boolean useScoreGeneration = false;
     
     /** Only choose the arena that an admin has picked (/ctp select) or one specified as main. /||/ Allow suitable arena pick. [Default: true] */
-    public boolean useSelectedArenaOnly; // Kjhf
+    public boolean useSelectedArenaOnly = true; // Kjhf
     
     /** The starting wool players are given. [Default: 64] */
-    public int givenWoolNumber;
+    public int givenWoolNumber = 64;
     
     /** The time, in seconds, players are given to ready up else they are kicked. [Default: 60] */
-    public int lobbyKickTime; // Kjhf
+    public int lobbyKickTime = 60; // Kjhf
     
     /** The maximum player health in game. [Default: 20] */
-    public int maxPlayerHealth;
+    public int maxPlayerHealth = 20;
     
     /** The starting money players are given. [Default: 0] */
-    public int moneyAtTheLobby;
+    public int moneyAtTheLobby = 0;
     
     /** The money players are awarded every 30s. [Default: 100] */
-    public int moneyEvery30Sec;
+    public int moneyEvery30Sec = 100;
     
     /** The money players are awarded per kill [Default: 100] */
-    public int moneyForKill;
+    public int moneyForKill = 100;
     
     /** The money players are awarded for a point capture [Default: 100] */
-    public int moneyForPointCapture;
+    public int moneyForPointCapture = 100;
     
     /** How much score a team gets per point per 30s [Default: 1] */
-    public int onePointGeneratedScoreEvery30sec;
+    public int onePointGeneratedScoreEvery30sec = 1;
     
     /** Maximum play time in minutes [Default: 10] */
-    public int playTime;
+    public int playTime = 10;
     
     /** Points a team much reach to win [Default: 1] */
-    public int pointsToWin;
+    public int pointsToWin = 1;
     
     /** Spawn camping protection radius [Default: 10] */
-    public int protectionDistance;
+    public int protectionDistance = 10;
     
     /** The block ID of a point [Default: 7 (Bedrock)] */
-    public int ringBlock;
+    public int ringBlock = 7;
     
     /** How often scores are announced in seconds [Default: 30] */
-    public int scoreAnnounceTime;
+    public int scoreAnnounceTime = 30;
     
     /** The score a team much reach to win [Default: 15] */
-    public int scoreToWin;
+    public int scoreToWin = 15;
+    
+    /** The KillStreak messages generated, starting from 2 kills in a row. <br>
+     * [Default: "%player strikes again!", "%player is on a killing spree!", "%player is on a rampage!", "%player is unstoppable!", "%player is GOD-LIKE!"] 
+     * @see KillStreakMessages */
+    public KillStreakMessages killStreakMessages = new KillStreakMessages();
     
     /*
     public boolean enableHardArenaRestore; // Write to MYSQL

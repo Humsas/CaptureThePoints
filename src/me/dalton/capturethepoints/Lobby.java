@@ -11,6 +11,9 @@ public class Lobby {
     /** List of Players and their ready status */
     public HashMap<Player, Boolean> playersinlobby = new HashMap<Player, Boolean>();
     
+    /** List of Players who have been in this ctp lobby. Feeds to rejoin command. */
+    public List<Player> playerswhowereinlobby = new ArrayList<Player>();
+    
     /** X co-ordinate of this lobby's spawn */
     public double x = 0D;
     
@@ -89,5 +92,11 @@ public class Lobby {
     /** Return number of players in lobby hashmap. */
     public int getAmountOfPlayersInLobby() {
         return playersinlobby.size();        
+    }
+    
+    /** Clears the data for the players and their statuses saved by this lobby */
+    public void clearLobbyPlayerData() {
+        this.playersinlobby.clear();
+        this.playerswhowereinlobby.clear();
     }
 }

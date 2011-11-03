@@ -4,8 +4,8 @@ import me.dalton.capturethepoints.CaptureThePoints;
 import org.bukkit.ChatColor;
 
 public class RejoinCommand extends CTPCommand {
-   
-    /** Allows player to join a ctp game that is already running. Does NOT start a new one. */
+  
+    /** Allows player to join a ctp game that is already running if they have previously disconnected from it. Does NOT start a new one. */
     public RejoinCommand(CaptureThePoints instance) {
         super.ctp = instance;
         super.aliases.add("rejoin");
@@ -22,13 +22,16 @@ public class RejoinCommand extends CTPCommand {
     public void perform() {
         if (!ctp.blockListener.isAlreadyInGame(player)) {
             if (ctp.isGameRunning()) {
-                ctp.moveToLobby(player);
+                if (ctp.mainArena.lobby.playerswhowereinlobby.contains(player)) {
+                    ctp.moveToLobby(player);
+                } else {
+                    player.sendMessage(ChatColor.RED + "Cannot rejoin -- you haven't disconnected from this game.");
+                }
             } else {
                 player.sendMessage(ChatColor.RED + "Game not started yet.");
             }
-            return;
+        } else {
+            player.sendMessage(ChatColor.RED + "You are already playing game!");
         }
-        player.sendMessage(ChatColor.RED + "You are already playing game!");
-        return;
     }
 }

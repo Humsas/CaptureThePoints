@@ -22,7 +22,7 @@ public class AliasesCommand extends CTPCommand {
         sender.sendMessage(ChatColor.RED + "Aliases for some commands:");
             sender.sendMessage(ChatColor.GREEN + "alias: " + ChatColor.WHITE + "aliases");
         if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
-            sender.sendMessage(ChatColor.GREEN + "build: " + ChatColor.WHITE + "create, make");
+            sender.sendMessage(ChatColor.GREEN + "build: " + ChatColor.WHITE + "b, create, make");
         }
         if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin", "ctp.colors"})) {
             sender.sendMessage(ChatColor.GREEN + "colors: " + ChatColor.WHITE + "colours, teams, players");
@@ -32,7 +32,7 @@ public class AliasesCommand extends CTPCommand {
             sender.sendMessage(ChatColor.GREEN + "joinall: " + ChatColor.WHITE + "jall");
         }
         if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
-            sender.sendMessage(ChatColor.GREEN + "join: " + ChatColor.WHITE + "j");
+            sender.sendMessage(ChatColor.GREEN + "join: " + ChatColor.WHITE + "j, play");
         }            
         if (canAccess(sender, true, new String[]{"ctp.*", "ctp.play", "ctp.admin"})) {
             sender.sendMessage(ChatColor.GREEN + "leave: " + ChatColor.WHITE + "exit, part, quit");
