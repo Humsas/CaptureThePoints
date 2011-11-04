@@ -23,7 +23,7 @@ import org.bukkit.util.config.Configuration;
 
 public class CaptureThePointsEntityListener extends EntityListener {
 
-    private CaptureThePoints ctp;
+    private final CaptureThePoints ctp;
 
     public double loadDouble(String s) {
         Configuration config = this.ctp.load();

@@ -22,6 +22,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
@@ -259,6 +260,7 @@ public class CaptureThePoints extends JavaPlugin {
         commands.add(new AutoCommand(this));
         commands.add(new BuildCommand(this));
         commands.add(new ColorsCommand(this));
+        commands.add(new DebugCommand(this));
         commands.add(new HelpCommand(this));
         commands.add(new JoinAllCommand(this));
         commands.add(new JoinCommand(this));
@@ -878,22 +880,22 @@ public class CaptureThePoints extends JavaPlugin {
     /** Checks whether the current mainArena is fit for purpose.
      * @param p Player doing the checking
      * @return An error message, else empty if the arena is safe. */
-    public String checkMainArena(Player p) {
+    public String checkMainArena(CommandSender sender) {
         if (arena_list == null) { // Kj -- null checks
-             return "Oops, looks like an arena hasn't been built yet.";
+             return "An arena hasn't been built yet.";
         }
         if (arena_list.isEmpty()) {
-             return "Oops, looks like an arena hasn't been built yet.";
+             return "An arena hasn't been built yet.";
         }
         if (mainArena == null) {
-            return "Oops, looks like an arena hasn't been built yet.";
+            return "An arena hasn't been built yet.";
         }
         if (mainArena.lobby == null) {
-            return "Oops, looks like an arena hasn't been built yet. [No lobby]";
+            return "An arena hasn't been built yet. [No lobby]";
         }
         if (getServer().getWorld(mainArena.world) == null) {
-            if (canAccess(p, true, new String[]{"ctp.*", "ctp.admin"})) {
-                return "The arena config is incorrect. The world \"" + mainArena.world + "\" could not be found. The world you are currently playing in is \"" + p.getWorld().getName() + "\".";
+            if (canAccess(sender, true, new String[]{"ctp.*", "ctp.admin"})) {
+                return "The arena config is incorrect. The world \"" + mainArena.world + "\" could not be found. Hint: your first world's name is \"" + getServer().getWorlds().get(0).getName() + "\".";
             } else {
                 return "Sorry, this arena has not been set up properly. Please tell an admin. [Incorrect World]";
             }
@@ -901,7 +903,7 @@ public class CaptureThePoints extends JavaPlugin {
         // Kj -- Test that the spawn points are within the map boundaries
         for (Spawn aSpawn : mainArena.teamSpawns.values()) {
             if (!playerListener.isInside((int)aSpawn.x, mainArena.x1, mainArena.x2) || !playerListener.isInside((int)aSpawn.z, mainArena.z1, mainArena.z2)) {
-                if (canAccess(p, true, new String[]{"ctp.*", "ctp.admin"})) {
+                if (canAccess(sender, true, new String[]{"ctp.*", "ctp.admin"})) {
                     return "The spawn point \"" + aSpawn.name + "\" in the arena \"" + mainArena.name + "\" is out of the arena boundaries. "
                             + "[Spawn is "+(int)aSpawn.x+", "+(int)aSpawn.z+". Boundaries are "+mainArena.x1+"<==>"+mainArena.x2+", "+mainArena.z1+"<==>"+mainArena.z2+"].";
                 } else {
@@ -912,19 +914,46 @@ public class CaptureThePoints extends JavaPlugin {
         return "";
     }
     
-    public boolean canAccess(Player player, boolean notOpCommand, String... permissions) {
-        if (UsePermissions) {
+    /**  
+     * Test whether a command sender can use this CTP command.
+     * @param sender The sender issuing the command
+     * @param notOpCommand Set to true if anyone can use the command, else false if the command issuer has to be an op or CTP admin.
+     * @param permissions The permissions to check against that are associated with the command.
+     * @return True if sender has permission, else false. 
+     */
+    public boolean canAccess(CommandSender sender, boolean notOpCommand, String[] permissions) {
+        if (sender instanceof ConsoleCommandSender) {
+            return true;
+        } else if (!(sender instanceof Player)) {
+            return false;
+        } else {
+            return canAccess((Player) sender, notOpCommand, permissions);
+        }
+    }
+
+    /**  
+     * Test whether a player can use this CTP command.
+     * @param p The player issuing the command
+     * @param notOpCommand Set to true if anyone can use the command, else false if the command issuer has to be an op or CTP admin.
+     * @param permissions The permissions to check against that are associated with the command.
+     * @return True if player has permission, else false. 
+     */
+    public boolean canAccess(Player p, boolean notOpCommand, String[] permissions) {
+        if (permissions == null) {
+            return true;
+        }
+
+        if (CaptureThePoints.UsePermissions) {
             for (String perm : permissions) {
-                if (Permissions.has(player, perm)) {
+                if (CaptureThePoints.Permissions.has(p, perm)) {
                     return true;
                 }
             }
         } else {
             if (notOpCommand) {
                 return true;
-            } else {
-                return player.isOp();
             }
+            return p.isOp();
         }
         return false;
     }

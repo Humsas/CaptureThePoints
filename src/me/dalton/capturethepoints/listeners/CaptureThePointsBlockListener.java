@@ -29,7 +29,7 @@ import org.bukkit.util.config.Configuration;
 
 public class CaptureThePointsBlockListener extends BlockListener {
 
-    private CaptureThePoints ctp;
+    private final CaptureThePoints ctp;
     public boolean capturegame = false;
     public boolean preGame = true;
 
