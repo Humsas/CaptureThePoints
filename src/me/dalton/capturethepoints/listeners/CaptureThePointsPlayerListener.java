@@ -53,15 +53,14 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         Player player = event.getPlayer();
         //String error = ctp.checkMainArena(player, ctp.mainArena);  // No error checking on commands!
         //if (error.isEmpty()) { // Error not found, main arena exists.
-            if (ctp.mainArena != null && ctp.mainArena.co != null && !ctp.mainArena.co.allowCommands)
-            {
-                String[] args = event.getMessage().split(" ");
-                if (!ctp.canAccess(player, false, new String[] { "ctp.*", "ctp.admin" }) && ctp.isGameRunning() && ctp.playerData.containsKey(player)
-                        && !args[0].equalsIgnoreCase("/ctp")) {
-                    player.sendMessage(ChatColor.RED + "You can't use commands while playing!");
-                    event.setCancelled(true);
-                }
+        if (ctp.mainArena != null && ctp.mainArena.co != null && !ctp.mainArena.co.allowCommands) {
+            String[] args = event.getMessage().split(" ");
+            if (!ctp.canAccess(player, false, new String[] { "ctp.*", "ctp.admin" }) && ctp.isGameRunning() && ctp.playerData.containsKey(player)
+                    && !args[0].equalsIgnoreCase("/ctp")) {
+                player.sendMessage(ChatColor.RED + "You can't use commands while playing!");
+                event.setCancelled(true);
             }
+        }
         //}
     }
 
@@ -133,8 +132,10 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                                 Random random = new Random();
                                 int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of roles (exclusive)
                                 List<String> roles = new LinkedList<String>(ctp.roles.keySet()); // Get a list of available roles and convert to a String List
-                                role = roles.get(nextInt) == null
-                                        ? roles.get(0) : roles.get(nextInt); // Change the role based on the random number. (Ternary null check)
+                                role =
+                                        roles.get(nextInt) == null
+                                        ? roles.get(0)
+                                        : roles.get(nextInt); // Change the role based on the random number. (Ternary null check)
                             }
                         }
 
@@ -174,9 +175,10 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                                 Random random = new Random();
                                 int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of roles (exclusive)
                                 List<String> roles = new LinkedList<String>(ctp.roles.keySet()); // Get a list of available roles and convert to a String List
-                                role =  roles.get(nextInt) == null? 
-                                        roles.get(0) : 
-                                        roles.get(nextInt); // Change the role based on the random number. (Ternary null check)
+                                role =
+                                        roles.get(nextInt) == null
+                                        ? roles.get(0)
+                                        : roles.get(nextInt); // Change the role based on the random number. (Ternary null check)
                             }
                         }
                         if (canPay(p, price)) {
@@ -211,27 +213,20 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }
         Location loc = event.getTo();
         // Find if player is in arena
-        if (this.ctp.playerData.get(event.getPlayer()) != null && !ctp.playerData.get(event.getPlayer()).isInLobby)
-        {
+        if (this.ctp.playerData.get(event.getPlayer()) != null && !ctp.playerData.get(event.getPlayer()).isInLobby) {
             Player player = event.getPlayer();
-            if(ctp.playerData.get(player).moveChecker >= 10)
-            {
+            if (ctp.playerData.get(player).moveChecker >= 10) {
                 ctp.playerData.get(player).moveChecker = 0;
-                if (isInside(loc.getBlockY(), 0, 999) && isInside(loc.getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(loc.getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && loc.getWorld().getName().equalsIgnoreCase(ctp.mainArena.world))
-                {
+                if (isInside(loc.getBlockY(), 0, 999) && isInside(loc.getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(loc.getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && loc.getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
                     return;
-                }
-                else
-                {
+                } else {
                     String color = ctp.playerData.get(player).color;
                     Location loc2 = new Location(ctp.getServer().getWorld(ctp.mainArena.world), ctp.mainArena.teamSpawns.get(color).x, ctp.mainArena.teamSpawns.get(color).y + 1, ctp.mainArena.teamSpawns.get(color).z);
                     loc2.setYaw((float) ctp.mainArena.teamSpawns.get(color).dir);
                     loc2.getWorld().loadChunk(loc2.getBlockX(), loc2.getBlockZ());
                     player.teleport(loc2);
                 }
-            }
-            else
-            {
+            } else {
                 ctp.playerData.get(player).moveChecker++;
             }
         }
@@ -326,9 +321,9 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             // The maximum number of players must be greater than the players already playing.
             if (ctp.mainArena.maximumPlayers > ctp.mainArena.getPlayersPlaying(ctp).size()) {
 
-                if (!lobby.hasUnreadyPeople()) {
-                    // Game not yet started
-                    if (ctp.isPreGame()) {
+                // Game not yet started
+                if (ctp.isPreGame()) {
+                    if (!lobby.hasUnreadyPeople()) {
                         if (readypeople >= ctp.mainArena.minimumPlayers) {
                             if (readypeople % 2 == 0) {
                                 moveToSpawns();
@@ -356,37 +351,36 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                                 ctp.blockListener.endGame(true);
                             }
                         }
-
-                        // Game already started
                     } else {
-                        if (!ctp.mainArena.co.allowLateJoin) {
-                            p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] A game has already started. You may not join."); // Kj
-                            return;
-                        }
-                        
-                        // Player is ready.
-                        if (lobby.playersinlobby.get(p)) {
-                            if (ctp.mainArena.co.exactTeamMemberCount) {
-                                
-                                // Uneven number of people and balanced teams is on.  
-                                if (ctp.mainArena.getPlayersPlaying(ctp).size() % 2 != 0) {
-                                    moveToSpawns(p);
-                                    return;
-                                    
-                                // Even number of people and balanced teams is on.  
-                                } else if (lobby.playersinlobby.get(p)) {
-                                    p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] There is an even number of players. Please wait or do /ctp leave."); // Kj
-                                    return;
-                                }
-                                
-                            // Exact player count off. Player can be moved.
-                            } else {
+                        p.sendMessage(ChatColor.GREEN + "Thank you for readying. Waiting for " + lobby.countUnreadyPeople() + "/" + lobby.countAllPeople() + " people to ready up."); // Kj
+                    }
+                    // Game already started
+                } else {
+                    if (!ctp.mainArena.co.allowLateJoin) {
+                        p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] A game has already started. You may not join."); // Kj
+                        return;
+                    }
+
+                    // Player is ready.
+                    if (lobby.playersinlobby.get(p)) {
+                        if (ctp.mainArena.co.exactTeamMemberCount) {
+
+                            // Uneven number of people and balanced teams is on.  
+                            if (ctp.mainArena.getPlayersPlaying(ctp).size() % 2 != 0) {
                                 moveToSpawns(p);
+                                return;
+
+                                // Even number of people and balanced teams is on.  
+                            } else if (lobby.playersinlobby.get(p)) {
+                                p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] There is an even number of players. Please wait or do /ctp leave."); // Kj
+                                return;
                             }
+
+                            // Exact player count off. Player can be moved.
+                        } else {
+                            moveToSpawns(p);
                         }
                     }
-                } else {
-                    p.sendMessage(ChatColor.GREEN+"Thank you for readying. We are waiting for "+lobby.countUnreadyPeople()+"/"+lobby.countAllPeople()+" people to ready up."); // Kj
                 }
             } else {
                 p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] This arena is full."); // Kj
@@ -645,8 +639,12 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         //Move to spawn     TODO do not move players to same point
         ctp.playerData.get(player).team = team;
         ctp.playerData.get(player).color = color;
-        //Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
-        Spawn spawn = team.spawn;
+
+        Spawn spawn =
+                ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color) != null
+                ? ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color)
+                : team.spawn;
+
         Location loc = new Location(ctp.getServer().getWorld(ctp.mainArena.world), ctp.mainArena.teamSpawns.get(color).x, ctp.mainArena.teamSpawns.get(color).y + 1D, ctp.mainArena.teamSpawns.get(color).z); // Kj -- Y+1
         loc.setYaw((float) ctp.mainArena.teamSpawns.get(color).dir);
         loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());

@@ -1,7 +1,6 @@
 package me.dalton.capturethepoints;
 
 import java.util.Set;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 /** Player Data of the people playing CTP. */

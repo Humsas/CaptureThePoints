@@ -105,8 +105,11 @@ public class CaptureThePointsEntityListener extends EntityListener {
 
                     playa.setHealth(ctp.mainArena.co.maxPlayerHealth);
                     playa.setFoodLevel(20);
-                    //Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color);
-                    Spawn spawn = ctp.playerData.get(playa).team.spawn;
+                    Spawn spawn = 
+                            ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color) != null ?
+                            ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color) :
+                            ctp.playerData.get(playa).team.spawn;
+                            
                     if (ctp.mainArena.co.giveNewRoleItemsOnRespawn) {
                         giveRoleItemsAfterDeath(playa);
                     }
@@ -272,7 +275,11 @@ public class CaptureThePointsEntityListener extends EntityListener {
             return false;
         }
 
-        Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color);
+        Spawn spawn = 
+            ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color) != null ?
+            ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color) :
+            ctp.playerData.get(player).team.spawn;
+                            
         Location protectionPoint = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);
         double distance = Util.getDistance(player.getLocation(), protectionPoint); // Kj -- this method is world-friendly.
         if (distance == Double.NaN) {

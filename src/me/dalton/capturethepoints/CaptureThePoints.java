@@ -34,6 +34,7 @@ import org.bukkit.util.config.Configuration;
 
 public class CaptureThePoints extends JavaPlugin {
     public static PermissionHandler Permissions;
+
     public static boolean UsePermissions;
 
     /** "plugins/CaptureThePoints" */
@@ -43,17 +44,26 @@ public class CaptureThePoints extends JavaPlugin {
     //public static final File myFile = new File(mainDir + File.separator + "CaptureSettings.yml");
     /** "plugins/CaptureThePoints/Global.yml" */
     public static final File globalConfigFile = new File(mainDir + File.separator + "CaptureSettings.yml");
+
     public static final Logger logger = Logger.getLogger("Minecraft");
+
     public static PluginDescriptionFile info = null;
+
     public static PluginManager pluginManager = null;
 
     /** List of commands accepted by CTP */
     private static List<CTPCommand> commands = new ArrayList<CTPCommand>(); // Kj
+
     public final CaptureThePointsBlockListener blockListener = new CaptureThePointsBlockListener(this);
+
     public final CaptureThePointsEntityListener entityListener = new CaptureThePointsEntityListener(this);
+
     public final CaptureThePointsPlayerListener playerListener = new CaptureThePointsPlayerListener(this);
+
     public ArenaRestore arenaRestore = new ArenaRestore(this);
+
     public final HashMap<Player, ItemStack[]> Inventories = new HashMap<Player, ItemStack[]>();
+
     private HashMap<Player, ItemStack[]> armor = new HashMap<Player, ItemStack[]>();
     //public HashMap<Player, PlayerData> playerData = new HashMap<Player, PlayerData>();
 
@@ -118,15 +128,12 @@ public class CaptureThePoints extends JavaPlugin {
     }
 
     @Override
-    public void onEnable ()
-    {
+    public void onEnable () {
         enableCTP(false);
     }
 
-    public void enableCTP (boolean reloading)
-    {
-        if(!reloading)
-        {
+    public void enableCTP (boolean reloading) {
+        if (!reloading) {
             setupPermissions();
             pluginManager = getServer().getPluginManager();
 
@@ -183,18 +190,15 @@ public class CaptureThePoints extends JavaPlugin {
 
         }, 200L, 200L); // 10 sec
 
-        if (!reloading) 
-        {
+        if (!reloading) {
             PluginDescriptionFile pdfFile = getDescription();
             logger.info("[CTP] " + pdfFile.getVersion() + " version is enabled.");
         }
     }
 
     @Override
-    public void onDisable ()
-    {
-        if (CTP_Scheduler.lobbyActivity != 0)
-        {
+    public void onDisable () {
+        if (CTP_Scheduler.lobbyActivity != 0) {
             getServer().getScheduler().cancelTask(CTP_Scheduler.lobbyActivity);
             CTP_Scheduler.lobbyActivity = 0;
         }
@@ -337,19 +341,24 @@ public class CaptureThePoints extends JavaPlugin {
     /** Checks whether the current mainArena is fit for purpose.
      * @param p Player doing the checking
      * @return An error message, else empty if the arena is safe. */
-    public String checkMainArena (CommandSender sender, ArenaData arena)
-    {
-//        if (arena_list == null) { // Kj -- null checks
-//            return "An arena hasn't been built yet.";
-//        }
-//        if (arena_list.isEmpty()) {
-//            return "An arena hasn't been built yet.";
-//        }
+    public String checkMainArena (CommandSender sender, ArenaData arena) {
         if (arena == null) {
-            return "An arena hasn't been built yet.";
+            // Arenas were loaded but a main arena wasn't selected.
+            if (arena_list == null) {
+                return "An arena hasn't been built yet.";
+            } else if (!arena_list.isEmpty() && arena_list.get(0) != null) {
+                String anArena = arena_list.get(0);
+                mainArena = loadArena(anArena);
+                editingArena = mainArena;
+                if (mainArena == null) {
+                    return "An arena hasn't been built yet."; 
+                } else {
+                    arena = mainArena;
+                }
+            }
         }
         if (arena.lobby == null) {
-            return "An arena hasn't been built yet. [No lobby]";
+            return "No lobby for main arena "+arena.name+".";
         }
         if (getServer().getWorld(arena.world) == null) {
             if (canAccess(sender, true, new String[] { "ctp.*", "ctp.admin" })) {
@@ -439,7 +448,7 @@ public class CaptureThePoints extends JavaPlugin {
         CTP_Scheduler.pointMessenger = 0;
         getServer().getScheduler().cancelTasks(this);
     }
-    
+
     /** Get the configOptions from this file. */
     public ConfigOptions getConfigOptions (File arenafile) {
         return getConfigOptions(load(arenafile));
@@ -453,12 +462,11 @@ public class CaptureThePoints extends JavaPlugin {
         String global = "";
         boolean updateConfig = false;
 
-        if(config.getProperty("Version") == null)// old configuration
-        {
+        if (config.getProperty("Version") == null) {
+            // old configuration
             updateConfig = true;
-        }
-        else //version 2
-        {
+        } else {
+            //version 2
             pointCapture = "GlobalSettings.GameMode.PointCapture.";
             pointCaptureWithScore = "GlobalSettings.GameMode.PointCaptureWithScoreGeneration.";
             global = "GlobalSettings.";
@@ -473,7 +481,7 @@ public class CaptureThePoints extends JavaPlugin {
         co.onePointGeneratedScoreEvery30sec = config.getInt(pointCaptureWithScore + "OnePointGeneratedScoreEvery30sec", globalConfigOptions.onePointGeneratedScoreEvery30sec);
         co.scoreAnnounceTime = config.getInt(pointCaptureWithScore + "ScoreAnnounceTime", globalConfigOptions.scoreAnnounceTime);
 
-        
+
         // Global configuration
         // Kj -- documentation for the different options, including their default values, can be found under the ConfigOptions class.
         co.allowBlockPlacement = config.getBoolean(global + "AllowBlockPlacement", globalConfigOptions.allowBlockPlacement);
@@ -512,13 +520,14 @@ public class CaptureThePoints extends JavaPlugin {
         }
         co.killStreakMessages = new KillStreakMessages(hm);
 
-        if(updateConfig)
+        if (updateConfig) {
             updateOldConfiguration(config, co);
+        }
 
         return co;
     }
-    public ConfigOptions getArenaConfigOptions (Configuration config)
-    {
+
+    public ConfigOptions getArenaConfigOptions (Configuration config) {
         ConfigOptions co = new ConfigOptions();
 
         String pointCapture = "GlobalSettings.GameMode.PointCapture.";
@@ -578,8 +587,7 @@ public class CaptureThePoints extends JavaPlugin {
     }
 
     // Updates old configuration
-    public void updateOldConfiguration(Configuration config, ConfigOptions co)
-    {
+    public void updateOldConfiguration (Configuration config, ConfigOptions co) {
         config.removeProperty("PointsToWin");
         config.removeProperty("PlayTime");
         config.removeProperty("UseScoreGeneration");
@@ -604,7 +612,7 @@ public class CaptureThePoints extends JavaPlugin {
         config.removeProperty("DamageImmunityNearSpawnDistance");
         config.removeProperty("RingBlock");
         config.removeProperty("UseSelectedArenaOnly");
-        
+
         config.setProperty("GlobalSettings.GameMode.PointCapture.PointsToWin", co.pointsToWin);
         config.setProperty("GlobalSettings.GameMode.PointCapture.PlayTime", co.playTime);
         config.setProperty("GlobalSettings.GameMode.PointCaptureWithScoreGeneration.UseScoreGeneration", co.useScoreGeneration);
@@ -629,10 +637,9 @@ public class CaptureThePoints extends JavaPlugin {
         config.setProperty("GlobalSettings.DamageImmunityNearSpawnDistance", co.protectionDistance);
         config.setProperty("GlobalSettings.RingBlock", co.ringBlock);
         config.setProperty("GlobalSettings.UseSelectedArenaOnly", co.useSelectedArenaOnly);
-        
+
         config.setProperty("Version", 2);
     }
-
 
     /** This method finds if a suitable arena exists.
      * If useSelectedArenaOnly is true, this method will always return false.
@@ -719,30 +726,21 @@ public class CaptureThePoints extends JavaPlugin {
             checkForGameEndThenPlayerLeft();
         }
 
-         //If there was no replacement we should move one member to lobby
-        if(!wasReplaced && mainArena.co.exactTeamMemberCount && mainArena.co.balanceTeamsWhenPlayerLeaves && this.isGameRunning())
-        {
+        //If there was no replacement we should move one member to lobby
+        if (!wasReplaced && mainArena.co.exactTeamMemberCount && mainArena.co.balanceTeamsWhenPlayerLeaves && this.isGameRunning()) {
             balanceTeams(originalMemberCount);
         }
     }
 
-
-    public void balanceTeams(int originalMemberCount)
-    {
-        for(Player play : playerData.keySet())
-        {
-            if(playerData.get(play).isInArena && playerData.get(play).team.memberCount == originalMemberCount)
-            {
+    public void balanceTeams (int originalMemberCount) {
+        for (Player play : playerData.keySet()) {
+            if (playerData.get(play).isInArena && playerData.get(play).team.memberCount == originalMemberCount) {
                 playerData.get(play).team.memberCount--;
                 //Reseting cooldowns
-                for (HealingItems item : healingItems)
-                {
-                    if (item != null && item.cooldowns != null && item.cooldowns.size() > 0)
-                    {
-                        for (String playName : item.cooldowns.keySet())
-                        {
-                            if (playName.equalsIgnoreCase(play.getName()))
-                            {
+                for (HealingItems item : healingItems) {
+                    if (item != null && item.cooldowns != null && item.cooldowns.size() > 0) {
+                        for (String playName : item.cooldowns.keySet()) {
+                            if (playName.equalsIgnoreCase(play.getName())) {
                                 item.cooldowns.remove(playName);
                             }
                         }
@@ -787,8 +785,7 @@ public class CaptureThePoints extends JavaPlugin {
         }
     }
 
-    public void loadConfigFiles ()
-    {
+    public void loadConfigFiles () {
         loadRoles();
         loadRewards();
         loadHealingItems();
@@ -1146,8 +1143,7 @@ public class CaptureThePoints extends JavaPlugin {
         PlayerInv.setBoots(null);
     }
 
-    private void setupPermissions ()
-    {
+    private void setupPermissions () {
         Plugin test = getServer().getPluginManager().getPlugin("Permissions");
         info = getDescription();
         if (Permissions == null) {

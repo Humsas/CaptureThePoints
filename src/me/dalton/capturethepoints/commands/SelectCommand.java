@@ -37,7 +37,7 @@ public class SelectCommand extends CTPCommand {
             return;            
         }
 
-        if (!ctp.mainArena.name.isEmpty()) {
+        if (ctp.mainArena != null && !ctp.mainArena.name.isEmpty()) {
             sendMessage(ChatColor.GREEN + "Changed selected arena from " + ctp.mainArena.name + " to " + newarena + " to play.");
         } else {
             sendMessage(ChatColor.GREEN + "Selected " + newarena + " for playing.");
