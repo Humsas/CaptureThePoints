@@ -18,6 +18,8 @@ public class PlayerData {
     
     /** The game money this player has. */
     public int money;
+
+    public int health;
     
     /** The number of kills this player has. */
     public int kills;

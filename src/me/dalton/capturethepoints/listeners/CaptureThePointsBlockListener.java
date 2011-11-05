@@ -512,7 +512,6 @@ public class CaptureThePointsBlockListener extends BlockListener {
             }
         }
         this.ctp.mainArena.lobby.clearLobbyPlayerData();
-        this.ctp.health.clear();
         this.ctp.previousLocation.clear();
         this.ctp.playerData.clear();
         for (int i = 0; i < ctp.teams.size(); i++) {
@@ -601,10 +600,10 @@ public class CaptureThePointsBlockListener extends BlockListener {
             p.setGameMode(GameMode.CREATIVE);
         }
 
-        if ((ctp.health.get(p)).intValue() > 200 || (ctp.health.get(p)).intValue() < 0) {
+        if (ctp.playerData.get(p).health > 200 || ctp.playerData.get(p).health < 0) {
             p.setHealth(20);
         } else {
-            p.setHealth((ctp.health.get(p)).intValue());
+            p.setHealth(ctp.playerData.get(p).health);
         }
     }
 

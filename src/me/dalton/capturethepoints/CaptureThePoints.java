@@ -42,7 +42,7 @@ public class CaptureThePoints extends JavaPlugin {
     /** "plugins/CaptureThePoints/CaptureSettings.yml" */
     //public static final File myFile = new File(mainDir + File.separator + "CaptureSettings.yml");
     /** "plugins/CaptureThePoints/Global.yml" */
-    public static final File globalConfigFile = new File(mainDir + File.separator + "Global.yml");
+    public static final File globalConfigFile = new File(mainDir + File.separator + "CaptureSettings.yml");
     public static final Logger logger = Logger.getLogger("Minecraft");
     public static PluginDescriptionFile info = null;
     public static PluginManager pluginManager = null;
@@ -55,7 +55,6 @@ public class CaptureThePoints extends JavaPlugin {
     public ArenaRestore arenaRestore = new ArenaRestore(this);
     public final HashMap<Player, ItemStack[]> Inventories = new HashMap<Player, ItemStack[]>();
     private HashMap<Player, ItemStack[]> armor = new HashMap<Player, ItemStack[]>();
-    public final HashMap<Player, Integer> health = new HashMap<Player, Integer>();
     //public HashMap<Player, PlayerData> playerData = new HashMap<Player, PlayerData>();
 
     /** The PlayerData stored by CTP. (HashMap: Player, and their data) */
@@ -119,7 +118,8 @@ public class CaptureThePoints extends JavaPlugin {
     }
 
     @Override
-    public void onEnable () {
+    public void onEnable ()
+    {
         enableCTP(false);
     }
 
@@ -191,20 +191,19 @@ public class CaptureThePoints extends JavaPlugin {
     }
 
     @Override
-    public void onDisable () {
-        disableCTP(false);
-    }
-
-    public void disableCTP (boolean reloading) {
-        clearSchedule();
+    public void onDisable ()
+    {
+        if (CTP_Scheduler.lobbyActivity != 0)
+        {
+            getServer().getScheduler().cancelTask(CTP_Scheduler.lobbyActivity);
+            CTP_Scheduler.lobbyActivity = 0;
+        }
         clearConfig();
+        logger.info("[" + info.getName() + "] Disabled");
+        info = null;
         pluginManager = null;
         Permissions = null;
-        if (!reloading) {
-            commands.clear();
-            logger.info("[" + info.getName() + "] Disabled");
-            info = null;
-        }
+        commands.clear();
     }
 
     @Override
@@ -419,6 +418,7 @@ public class CaptureThePoints extends JavaPlugin {
                 players.sendMessage(ChatColor.RED + "[CTP] Reloading plugin configuration. The CTP game has been terminated.");  // Kj
             }
         }
+        clearSchedule();
         arena_list.clear();
         lobbies.clear();
         playerData.clear();
@@ -448,35 +448,118 @@ public class CaptureThePoints extends JavaPlugin {
     /** Get the configOptions from the config file. */
     public ConfigOptions getConfigOptions (Configuration config) {
         ConfigOptions co = new ConfigOptions();
-        // Kj -- documentation for the different options, including their default values, can be found under the ConfigOptions class.
-        co.allowBlockPlacement = config.getBoolean("Options.AllowBlockPlacement", globalConfigOptions.allowBlockPlacement);
-        co.allowCommands = config.getBoolean("Options.AllowCommands", globalConfigOptions.allowCommands);
-        co.allowLateJoin = config.getBoolean("Options.AllowLateJoin", globalConfigOptions.allowLateJoin);
-        co.autoStart = config.getBoolean("Options.AutoStart", globalConfigOptions.autoStart);
-        co.breakingBlocksDropsItems = config.getBoolean("Options.BreakingBlocksDropsItems", globalConfigOptions.breakingBlocksDropsItems);
-        co.dropWoolOnDeath = config.getBoolean("Options.DropWoolOnDeath", globalConfigOptions.dropWoolOnDeath);
-//        co.enableHardArenaRestore = config.getBoolean("Options.EnableHardArenaRestore", globalConfigOptions.EnableHardArenaRestore);
-        co.exactTeamMemberCount = config.getBoolean("Options.ExactTeamMemberCount", globalConfigOptions.exactTeamMemberCount);
-        co.giveNewRoleItemsOnRespawn = config.getBoolean("Options.GiveNewRoleItemsOnRespawn", globalConfigOptions.giveNewRoleItemsOnRespawn);
-        co.givenWoolNumber = config.getInt("Options.GivenWoolNumber", 64) <= 0
-                ? -1
-                : config.getInt("Options.GivenWoolNumber", globalConfigOptions.givenWoolNumber);
-        co.lobbyKickTime = config.getInt("Options.LobbyKickTime", globalConfigOptions.lobbyKickTime);
-        co.maxPlayerHealth = config.getInt("Options.MaxPlayerHealth", globalConfigOptions.maxPlayerHealth);
-        co.moneyAtTheLobby = config.getInt("Options.MoneyAtTheLobby", globalConfigOptions.moneyAtTheLobby);
-        co.moneyEvery30Sec = config.getInt("Options.MoneyEvery30sec", globalConfigOptions.moneyEvery30Sec);
-        co.moneyForKill = config.getInt("Options.MoneyForKill", globalConfigOptions.moneyForKill);
-        co.moneyForPointCapture = config.getInt("Options.MoneyForPointCapture", globalConfigOptions.moneyForPointCapture);
-        co.onePointGeneratedScoreEvery30sec = config.getInt("Options.OnePointGeneratedScoreEvery30sec", globalConfigOptions.onePointGeneratedScoreEvery30sec);
-        co.playTime = config.getInt("Options.PlayTime", globalConfigOptions.playTime);
-        co.pointsToWin = config.getInt("Options.PointsToWin", globalConfigOptions.pointsToWin);
-        co.protectionDistance = config.getInt("Options.DamageImmunityNearSpawnDistance", globalConfigOptions.protectionDistance);
-        co.ringBlock = config.getInt("Options.RingBlock", globalConfigOptions.ringBlock);
-        co.scoreAnnounceTime = config.getInt("Options.ScoreAnnounceTime", globalConfigOptions.scoreAnnounceTime);
-        co.scoreToWin = config.getInt("Options.ScoreToWin", globalConfigOptions.scoreToWin);
-        co.useScoreGeneration = config.getBoolean("Options.UseScoreGeneration", globalConfigOptions.useScoreGeneration);
-        co.useSelectedArenaOnly = config.getBoolean("Options.UseSelectedArenaOnly", globalConfigOptions.useSelectedArenaOnly);
+        String pointCapture = "";
+        String pointCaptureWithScore = "";
+        String global = "";
+        boolean updateConfig = false;
 
+        if(config.getProperty("Version") == null)// old configuration
+        {
+            updateConfig = true;
+        }
+        else //version 2
+        {
+            pointCapture = "GlobalSettings.GameMode.PointCapture.";
+            pointCaptureWithScore = "GlobalSettings.GameMode.PointCaptureWithScoreGeneration.";
+            global = "GlobalSettings.";
+        }
+        //Game mode configuration
+        co.pointsToWin = config.getInt(pointCapture + "PointsToWin", globalConfigOptions.pointsToWin);
+        co.playTime = config.getInt(pointCapture + "PlayTime", globalConfigOptions.playTime);
+
+        // Score mod
+        co.useScoreGeneration = config.getBoolean(pointCaptureWithScore + "UseScoreGeneration", globalConfigOptions.useScoreGeneration);
+        co.scoreToWin = config.getInt(pointCaptureWithScore + "ScoreToWin", globalConfigOptions.scoreToWin);
+        co.onePointGeneratedScoreEvery30sec = config.getInt(pointCaptureWithScore + "OnePointGeneratedScoreEvery30sec", globalConfigOptions.onePointGeneratedScoreEvery30sec);
+        co.scoreAnnounceTime = config.getInt(pointCaptureWithScore + "ScoreAnnounceTime", globalConfigOptions.scoreAnnounceTime);
+
+        
+        // Global configuration
+        // Kj -- documentation for the different options, including their default values, can be found under the ConfigOptions class.
+        co.allowBlockPlacement = config.getBoolean(global + "AllowBlockPlacement", globalConfigOptions.allowBlockPlacement);
+        co.allowCommands = config.getBoolean(global + "AllowCommands", globalConfigOptions.allowCommands);
+        co.allowLateJoin = config.getBoolean(global + "AllowLateJoin", globalConfigOptions.allowLateJoin);
+        co.autoStart = config.getBoolean(global + "AutoStart", globalConfigOptions.autoStart);
+        co.breakingBlocksDropsItems = config.getBoolean(global + "BreakingBlocksDropsItems", globalConfigOptions.breakingBlocksDropsItems);
+        co.dropWoolOnDeath = config.getBoolean(global + "DropWoolOnDeath", globalConfigOptions.dropWoolOnDeath);
+//        co.enableHardArenaRestore = config.getBoolean("Options.EnableHardArenaRestore", globalConfigOptions.EnableHardArenaRestore);
+        co.exactTeamMemberCount = config.getBoolean(global + "ExactTeamMemberCount", globalConfigOptions.exactTeamMemberCount);
+        co.balanceTeamsWhenPlayerLeaves = config.getBoolean(global + "BalanceTeamsWhenPlayerLeaves", globalConfigOptions.balanceTeamsWhenPlayerLeaves);
+        co.giveNewRoleItemsOnRespawn = config.getBoolean(global + "GiveNewRoleItemsOnRespawn", globalConfigOptions.giveNewRoleItemsOnRespawn);
+        co.givenWoolNumber = config.getInt(global + "GivenWoolNumber", 64) <= 0
+                ? -1
+                : config.getInt(global + "GivenWoolNumber", globalConfigOptions.givenWoolNumber);
+        co.lobbyKickTime = config.getInt(global + "LobbyKickTime", globalConfigOptions.lobbyKickTime);
+        co.maxPlayerHealth = config.getInt(global + "MaxPlayerHealth", globalConfigOptions.maxPlayerHealth);
+        co.moneyAtTheLobby = config.getInt(global + "MoneyAtTheLobby", globalConfigOptions.moneyAtTheLobby);
+        co.moneyEvery30Sec = config.getInt(global + "MoneyEvery30sec", globalConfigOptions.moneyEvery30Sec);
+        co.moneyForKill = config.getInt(global + "MoneyForKill", globalConfigOptions.moneyForKill);
+        co.moneyForPointCapture = config.getInt(global + "MoneyForPointCapture", globalConfigOptions.moneyForPointCapture);
+        co.protectionDistance = config.getInt(global + "DamageImmunityNearSpawnDistance", globalConfigOptions.protectionDistance);
+        co.ringBlock = config.getInt(global + "RingBlock", globalConfigOptions.ringBlock);
+        co.useSelectedArenaOnly = config.getBoolean(global + "UseSelectedArenaOnly", globalConfigOptions.useSelectedArenaOnly);
+
+        KillStreakMessages ksm = new KillStreakMessages();
+
+        HashMap<Integer, String> hm = new HashMap<Integer, String>();
+        for (int i = 0; i < 50; i++) {
+            if (config.getString("StreakMessage." + i) != null) {
+                hm.put(i, config.getString("StreakMessage." + i));
+            } else if (!ksm.getMessage(i).isEmpty()) {
+                hm.put(i, ksm.getMessage(i));
+                config.setProperty("StreakMessage." + i, ksm.getMessage(i));
+            }
+        }
+        co.killStreakMessages = new KillStreakMessages(hm);
+
+        if(updateConfig)
+            updateOldConfiguration(config, co);
+
+        return co;
+    }
+    public ConfigOptions getArenaConfigOptions (Configuration config)
+    {
+        ConfigOptions co = new ConfigOptions();
+
+        String pointCapture = "GlobalSettings.GameMode.PointCapture.";
+        String pointCaptureWithScore = "GlobalSettings.GameMode.PointCaptureWithScoreGeneration.";
+        String global = "GlobalSettings.";
+
+        //Game mode configuration
+        co.pointsToWin = config.getInt(pointCapture + "PointsToWin", globalConfigOptions.pointsToWin);
+        co.playTime = config.getInt(pointCapture + "PlayTime", globalConfigOptions.playTime);
+
+        // Score mod
+        co.useScoreGeneration = config.getBoolean(pointCaptureWithScore + "UseScoreGeneration", globalConfigOptions.useScoreGeneration);
+        co.scoreToWin = config.getInt(pointCaptureWithScore + "ScoreToWin", globalConfigOptions.scoreToWin);
+        co.onePointGeneratedScoreEvery30sec = config.getInt(pointCaptureWithScore + "OnePointGeneratedScoreEvery30sec", globalConfigOptions.onePointGeneratedScoreEvery30sec);
+        co.scoreAnnounceTime = config.getInt(pointCaptureWithScore + "ScoreAnnounceTime", globalConfigOptions.scoreAnnounceTime);
+
+
+        // Global configuration
+        // Kj -- documentation for the different options, including their default values, can be found under the ConfigOptions class.
+        co.allowBlockPlacement = config.getBoolean(global + "AllowBlockPlacement", globalConfigOptions.allowBlockPlacement);
+        co.allowCommands = globalConfigOptions.allowCommands;
+        co.allowLateJoin = globalConfigOptions.allowLateJoin;
+        co.autoStart = globalConfigOptions.autoStart;
+        co.breakingBlocksDropsItems = config.getBoolean(global + "BreakingBlocksDropsItems", globalConfigOptions.breakingBlocksDropsItems);
+        co.dropWoolOnDeath = config.getBoolean(global + "DropWoolOnDeath", globalConfigOptions.dropWoolOnDeath);
+//        co.enableHardArenaRestore = config.getBoolean("Options.EnableHardArenaRestore", globalConfigOptions.EnableHardArenaRestore);
+        co.exactTeamMemberCount = config.getBoolean(global + "ExactTeamMemberCount", globalConfigOptions.exactTeamMemberCount);
+        co.balanceTeamsWhenPlayerLeaves = config.getBoolean(global + "BalanceTeamsWhenPlayerLeaves", globalConfigOptions.balanceTeamsWhenPlayerLeaves);
+        co.giveNewRoleItemsOnRespawn = config.getBoolean(global + "GiveNewRoleItemsOnRespawn", globalConfigOptions.giveNewRoleItemsOnRespawn);
+        co.givenWoolNumber = config.getInt(global + "GivenWoolNumber", 64) <= 0
+                ? -1
+                : config.getInt(global + "GivenWoolNumber", globalConfigOptions.givenWoolNumber);
+        co.lobbyKickTime = globalConfigOptions.lobbyKickTime;
+        co.maxPlayerHealth = config.getInt(global + "MaxPlayerHealth", globalConfigOptions.maxPlayerHealth);
+        co.moneyAtTheLobby = config.getInt(global + "MoneyAtTheLobby", globalConfigOptions.moneyAtTheLobby);
+        co.moneyEvery30Sec = config.getInt(global + "MoneyEvery30sec", globalConfigOptions.moneyEvery30Sec);
+        co.moneyForKill = config.getInt(global + "MoneyForKill", globalConfigOptions.moneyForKill);
+        co.moneyForPointCapture = config.getInt(global + "MoneyForPointCapture", globalConfigOptions.moneyForPointCapture);
+        co.protectionDistance = config.getInt(global + "DamageImmunityNearSpawnDistance", globalConfigOptions.protectionDistance);
+        co.ringBlock = globalConfigOptions.ringBlock;
+        co.useSelectedArenaOnly = globalConfigOptions.useSelectedArenaOnly;
 
         KillStreakMessages ksm = new KillStreakMessages();
 
@@ -493,6 +576,63 @@ public class CaptureThePoints extends JavaPlugin {
 
         return co;
     }
+
+    // Updates old configuration
+    public void updateOldConfiguration(Configuration config, ConfigOptions co)
+    {
+        config.removeProperty("PointsToWin");
+        config.removeProperty("PlayTime");
+        config.removeProperty("UseScoreGeneration");
+        config.removeProperty("ScoreToWin");
+        config.removeProperty("OnePointGeneratedScoreEvery30sec");
+        config.removeProperty("ScoreAnnounceTime");
+        config.removeProperty("AllowBlockPlacement");
+        config.removeProperty("AllowCommands");
+        config.removeProperty("AllowLateJoin");
+        config.removeProperty("AutoStart");
+        config.removeProperty("BreakingBlocksDropsItems");
+        config.removeProperty("DropWoolOnDeath");
+        config.removeProperty("ExactTeamMemberCount");
+        config.removeProperty("GiveNewRoleItemsOnRespawn");
+        config.removeProperty("GivenWoolNumber");
+        config.removeProperty("LobbyKickTime");
+        config.removeProperty("MaxPlayerHealth");
+        config.removeProperty("MoneyAtTheLobby");
+        config.removeProperty("MoneyEvery30sec");
+        config.removeProperty("MoneyForKill");
+        config.removeProperty("MoneyForPointCapture");
+        config.removeProperty("DamageImmunityNearSpawnDistance");
+        config.removeProperty("RingBlock");
+        config.removeProperty("UseSelectedArenaOnly");
+        
+        config.setProperty("GlobalSettings.GameMode.PointCapture.PointsToWin", co.pointsToWin);
+        config.setProperty("GlobalSettings.GameMode.PointCapture.PlayTime", co.playTime);
+        config.setProperty("GlobalSettings.GameMode.PointCaptureWithScoreGeneration.UseScoreGeneration", co.useScoreGeneration);
+        config.setProperty("GlobalSettings.GameMode.PointCaptureWithScoreGeneration.ScoreToWin", co.scoreToWin);
+        config.setProperty("GlobalSettings.GameMode.PointCaptureWithScoreGeneration.OnePointGeneratedScoreEvery30sec", co.onePointGeneratedScoreEvery30sec);
+        config.setProperty("GlobalSettings.GameMode.PointCaptureWithScoreGeneration.ScoreAnnounceTime", co.scoreAnnounceTime);
+        config.setProperty("GlobalSettings.AllowBlockPlacement", co.allowBlockPlacement);
+        config.setProperty("GlobalSettings.AllowCommands", co.allowCommands);
+        config.setProperty("GlobalSettings.AllowLateJoin", co.allowLateJoin);
+        config.setProperty("GlobalSettings.AutoStart", co.autoStart);
+        config.setProperty("GlobalSettings.BreakingBlocksDropsItems", co.breakingBlocksDropsItems);
+        config.setProperty("GlobalSettings.DropWoolOnDeath", co.dropWoolOnDeath);
+        config.setProperty("GlobalSettings.ExactTeamMemberCount", co.exactTeamMemberCount);
+        config.setProperty("GlobalSettings.GiveNewRoleItemsOnRespawn", co.giveNewRoleItemsOnRespawn);
+        config.setProperty("GlobalSettings.GivenWoolNumber", co.givenWoolNumber);
+        config.setProperty("GlobalSettings.LobbyKickTime", co.lobbyKickTime);
+        config.setProperty("GlobalSettings.MaxPlayerHealth", co.maxPlayerHealth);
+        config.setProperty("GlobalSettings.MoneyAtTheLobby", co.moneyAtTheLobby);
+        config.setProperty("GlobalSettings.MoneyEvery30sec", co.moneyEvery30Sec);
+        config.setProperty("GlobalSettings.MoneyForKill", co.moneyForKill);
+        config.setProperty("GlobalSettings.MoneyForPointCapture", co.moneyForPointCapture);
+        config.setProperty("GlobalSettings.DamageImmunityNearSpawnDistance", co.protectionDistance);
+        config.setProperty("GlobalSettings.RingBlock", co.ringBlock);
+        config.setProperty("GlobalSettings.UseSelectedArenaOnly", co.useSelectedArenaOnly);
+        
+        config.setProperty("Version", 2);
+    }
+
 
     /** This method finds if a suitable arena exists.
      * If useSelectedArenaOnly is true, this method will always return false.
@@ -560,7 +700,6 @@ public class CaptureThePoints extends JavaPlugin {
         this.mainArena.lobby.playersinlobby.remove(player);
         this.blockListener.restoreThings(player);
         this.previousLocation.remove(player);
-        this.health.remove(player);
         this.playerData.remove(player);
 
         // Check for player replacement if there is somone waiting to join the game
@@ -580,8 +719,58 @@ public class CaptureThePoints extends JavaPlugin {
             checkForGameEndThenPlayerLeft();
         }
 
-        // If there was no replacement. Leave the game how it is.
-        
+         //If there was no replacement we should move one member to lobby
+        if(!wasReplaced && mainArena.co.exactTeamMemberCount && mainArena.co.balanceTeamsWhenPlayerLeaves && this.isGameRunning())
+        {
+            balanceTeams(originalMemberCount);
+        }
+    }
+
+
+    public void balanceTeams(int originalMemberCount)
+    {
+        for(Player play : playerData.keySet())
+        {
+            if(playerData.get(play).isInArena && playerData.get(play).team.memberCount == originalMemberCount)
+            {
+                playerData.get(play).team.memberCount--;
+                //Reseting cooldowns
+                for (HealingItems item : healingItems)
+                {
+                    if (item != null && item.cooldowns != null && item.cooldowns.size() > 0)
+                    {
+                        for (String playName : item.cooldowns.keySet())
+                        {
+                            if (playName.equalsIgnoreCase(play.getName()))
+                            {
+                                item.cooldowns.remove(playName);
+                            }
+                        }
+                    }
+                }
+
+                // Reseting player data
+                playerData.get(play).isInArena = false;
+                playerData.get(play).isInLobby = true;
+                mainArena.lobby.playersinlobby.put(play, false);
+                playerData.get(play).color = null;
+                playerData.get(play).isReady = false;
+                // Flag for teleport
+                playerData.get(play).justJoined = true;
+                playerData.get(play).lobbyJoinTime = System.currentTimeMillis();
+                playerData.get(play).role = null;
+                playerData.get(play).team = null;
+                playerData.get(play).warnedAboutActivity = false;
+
+                // Get lobby location and move player to it.
+                Location loc = new Location(getServer().getWorld(mainArena.world), mainArena.lobby.x, mainArena.lobby.y + 1, mainArena.lobby.z);
+                loc.setYaw((float) mainArena.lobby.dir);
+                loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
+                play.teleport(loc); // Teleport player to lobby
+
+                Util.sendMessageToPlayers(this, "[CTP] " + ChatColor.GREEN + play.getName() + ChatColor.WHITE + " was moved to lobby!");
+            }
+        }
     }
 
     private void loadArenas (File file) {
@@ -738,7 +927,7 @@ public class CaptureThePoints extends JavaPlugin {
                 }
             }
 
-            arena.co = getConfigOptions(arenaConf);
+            arena.co = getArenaConfigOptions(arenaConf);
             arenaConf.save();
 
             return arena;
@@ -841,7 +1030,7 @@ public class CaptureThePoints extends JavaPlugin {
         }
 
         if (playerData.isEmpty()) {
-            mainArena.lobby.playersinlobby.clear();   //Reset if someone has left
+            mainArena.lobby.playersinlobby.clear();   //Reset if first to come
         }
         // Assign player's PlayerData
         PlayerData data = new PlayerData();
@@ -854,6 +1043,7 @@ public class CaptureThePoints extends JavaPlugin {
         data.isReady = false;
         data.isInArena = false;
         data.foodLevel = player.getFoodLevel();
+        data.health = player.getHealth();
         data.lobbyJoinTime = System.currentTimeMillis();
         playerData.put(player, data);
 
@@ -867,7 +1057,6 @@ public class CaptureThePoints extends JavaPlugin {
         mainArena.lobby.playersinlobby.put(player, false); // Kj
         mainArena.lobby.playerswhowereinlobby.add(player); // Kj
 
-        health.put(player, Integer.valueOf(player.getHealth()));
         player.setHealth(mainArena.co.maxPlayerHealth);
 
 

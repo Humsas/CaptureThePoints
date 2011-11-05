@@ -13,6 +13,9 @@ public class ConfigOptions {
     
     /** Allow the game to start automatically when there are enough players /||/ Don't start game until an admin does /ctp start [Default: true] */
     public boolean autoStart = true; // Kjhf
+
+    /** Balances team after player leaves game*/
+    public boolean balanceTeamsWhenPlayerLeaves = false;
     
     /** Breaking blocks in game drops items /||/ Cancel any item drops resulting from breaking blocks in game [Default: false] */
     public boolean breakingBlocksDropsItems = false; // Kjhf

@@ -19,9 +19,9 @@ public class ReloadCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        ctp.disableCTP(true);
+        ctp.clearConfig();
         ctp.enableCTP(true);
-        sendMessage(ChatColor.GREEN + "Successfully reloaded CTP "+ctp.getDescription().getVersion()+"!");
+        sender.sendMessage("[CTP] successfully reloaded!");
         return;
     }
 }
