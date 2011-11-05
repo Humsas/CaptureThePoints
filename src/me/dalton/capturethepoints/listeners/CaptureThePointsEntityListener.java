@@ -18,51 +18,13 @@ import org.bukkit.event.entity.EntityListener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.material.Wool;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.util.config.Configuration;
 
 public class CaptureThePointsEntityListener extends EntityListener {
 
     private final CaptureThePoints ctp;
 
-    public double loadDouble(String s) {
-        Configuration config = this.ctp.load();
-        return config.getDouble(s, 0.0D);
-    }
-
-    public Integer loadInt(String s) {
-        Configuration config = this.ctp.load();
-        return Integer.valueOf(config.getInt(s, 0));
-    }
-
-    public boolean loadBoolean(String s) {
-        Configuration config = this.ctp.load();
-        return config.getBoolean(s, false);
-    }
-
-    public String loadString(String s) {
-        Configuration config = this.ctp.load();
-        return config.getString(s, "");
-    }
-
     public CaptureThePointsEntityListener(CaptureThePoints plugin) {
         this.ctp = plugin;
-    }
-
-    Plugin checkPlugin(String pluginname) {
-        return this.ctp.getServer().getPluginManager().getPlugin(pluginname);
-    }
-
-    private boolean checkForPlayerEvent(EntityDamageEvent event) {
-        if (!(event instanceof EntityDamageByEntityEvent)) {
-            return false;
-        }
-        // You now know the player getting damaged was damaged by another entity
-        if (!(((EntityDamageByEntityEvent) event).getDamager() instanceof Player)) {
-            return false;
-        }
-        // You now know the entity that is attacking is a player
-        return true;
     }
 
     @Override
@@ -182,25 +144,47 @@ public class CaptureThePointsEntityListener extends EntityListener {
 //
 //        return distance <= ctp.configOptions.protectionDistance;
 //    }
-    public boolean isProtected(Player player) {
-        // Kj -- null checks
-        if (ctp.mainArena == null || player == null) {
+    
+    private boolean checkForPlayerEvent(EntityDamageEvent event) {
+        if (!(event instanceof EntityDamageByEntityEvent)) {
             return false;
         }
-        if (ctp.playerData.get(player) == null) {
+        // You now know the player getting damaged was damaged by another entity
+        if (!(((EntityDamageByEntityEvent) event).getDamager() instanceof Player)) {
             return false;
         }
-
-        Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color);
-        Location protectionPoint = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);
-        double distance = Util.getDistance(player.getLocation(), protectionPoint); // Kj -- this method is world-friendly.
-        if (distance == Double.NaN) {
-            return false; // Kj -- it will return Double.NaN if cross-world or couldn't work out distance for whatever reason.
-        } else {
-            return distance <= ctp.mainArena.co.protectionDistance;
-        }
+        // You now know the entity that is attacking is a player
+        return true;
     }
+    
+    private boolean dropWool(Player player) {
+        if (!ctp.mainArena.co.dropWoolOnDeath) {
+            return false;
+        }
 
+        PlayerInventory inv = player.getInventory();
+        int ownedWool = 0;
+        for (ItemStack item : inv.getContents()) {
+            if (item != null && item.getTypeId() == 35) {
+                if (!((Wool) item.getData()).getColor().toString().equalsIgnoreCase(ctp.playerData.get(player).color)) {
+                    inv.remove(35);
+                    ItemStack tmp = new ItemStack(item.getType(), item.getAmount(), (short) ((Wool) item.getData()).getColor().getData());
+                    player.getWorld().dropItem(player.getLocation(), tmp);
+                } else {
+                    ownedWool += item.getAmount();
+                }
+            }
+        }
+        inv.remove(Material.WOOL);
+        if (ownedWool != 0) {
+            DyeColor color = DyeColor.valueOf(ctp.playerData.get(player).color.toUpperCase());
+            ItemStack wool = new ItemStack(35, ownedWool, color.getData());
+            player.getInventory().addItem(new ItemStack[]{wool});
+            player.updateInventory();
+        }
+        return true;
+    }
+    
     public void giveRoleItemsAfterDeath(Player player) {
         PlayerInventory inv = player.getInventory();
         for (Items item : ctp.roles.get(ctp.playerData.get(player).role)) {
@@ -278,32 +262,24 @@ public class CaptureThePointsEntityListener extends EntityListener {
 
         }
     }
-
-    private boolean dropWool(Player player) {
-        if (!ctp.mainArena.co.dropWoolOnDeath) {
+    
+    public boolean isProtected(Player player) {
+        // Kj -- null checks
+        if (ctp.mainArena == null || player == null) {
+            return false;
+        }
+        if (ctp.playerData.get(player) == null) {
             return false;
         }
 
-        PlayerInventory inv = player.getInventory();
-        int ownedWool = 0;
-        for (ItemStack item : inv.getContents()) {
-            if (item != null && item.getTypeId() == 35) {
-                if (!((Wool) item.getData()).getColor().toString().equalsIgnoreCase(ctp.playerData.get(player).color)) {
-                    inv.remove(35);
-                    ItemStack tmp = new ItemStack(item.getType(), item.getAmount(), (short) ((Wool) item.getData()).getColor().getData());
-                    player.getWorld().dropItem(player.getLocation(), tmp);
-                } else {
-                    ownedWool += item.getAmount();
-                }
-            }
+        Spawn spawn = ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color);
+        Location protectionPoint = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);
+        double distance = Util.getDistance(player.getLocation(), protectionPoint); // Kj -- this method is world-friendly.
+        if (distance == Double.NaN) {
+            return false; // Kj -- it will return Double.NaN if cross-world or couldn't work out distance for whatever reason.
+        } else {
+            return distance <= ctp.mainArena.co.protectionDistance;
         }
-        inv.remove(Material.WOOL);
-        if (ownedWool != 0) {
-            DyeColor color = DyeColor.valueOf(ctp.playerData.get(player).color.toUpperCase());
-            ItemStack wool = new ItemStack(35, ownedWool, color.getData());
-            player.getInventory().addItem(new ItemStack[]{wool});
-            player.updateInventory();
-        }
-        return true;
     }
+
 }

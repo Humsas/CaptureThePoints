@@ -47,13 +47,21 @@ public class ArenaData {
     /** The maximum number of players this arena can take. [Default: 9999] */
     public int maximumPlayers = 9999;
 
-    /** Get all Players in this arena as a list of playername strings
+    /** Get all Players in this arena, including those in lobby, as a list of playername strings
+     * @param ctp CaptureThePoints instance
+     * @return The playername list */
+    public List<String> getPlayers(CaptureThePoints ctp) {
+        List<String> players = new ArrayList<String>();
+        for (Player p : ctp.playerData.keySet()) {
+            players.add(p.getName());
+        }
+        return players;
+    }
+    
+    /** Get all Players that are playing in this arena as a list of playername strings
      * @param ctp CaptureThePoints instance
      * @return The playername list */
     public List<String> getPlayersPlaying(CaptureThePoints ctp) {
-        if (!ctp.mainArena.equals(this)) {
-            return null;
-        }
         List<String> players = new ArrayList<String>();
         for (Player p : ctp.playerData.keySet()) {
             if (ctp.playerData.get(p).team == null || ctp.playerData.get(p).color == null) {

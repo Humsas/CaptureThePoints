@@ -11,7 +11,7 @@ public class Lobby {
     /** List of Players and their ready status */
     public HashMap<Player, Boolean> playersinlobby = new HashMap<Player, Boolean>();
     
-    /** List of Players who have been in this ctp lobby. Feeds to rejoin command. */
+    /** List of Players who have been in this ctp lobby. They may still be in the Lobby. */
     public List<Player> playerswhowereinlobby = new ArrayList<Player>();
     
     /** X co-ordinate of this lobby's spawn */
@@ -46,6 +46,7 @@ public class Lobby {
             for (Boolean aBool : playersinlobby.values()) {
                 if (aBool == false) {
                     counter++;
+                    continue;
                 } else {
                     continue;
                 }
@@ -62,6 +63,7 @@ public class Lobby {
             for (Boolean aBool : playersinlobby.values()) {
                 if (aBool == true) {
                     counter++;
+                    continue;
                 } else {
                     continue;
                 }
@@ -90,7 +92,7 @@ public class Lobby {
     }
     
     /** Return number of players in lobby hashmap. */
-    public int getAmountOfPlayersInLobby() {
+    public int countAllPeople() {
         return playersinlobby.size();        
     }
     
@@ -98,5 +100,28 @@ public class Lobby {
     public void clearLobbyPlayerData() {
         this.playersinlobby.clear();
         this.playerswhowereinlobby.clear();
+    }
+    
+
+    /** Get the last person to join this Lobby who is still online.
+     * @param canBeInLobby if true, may return someone who is still in the lobby. If false, ignores those in the lobby.
+     * @return The player or null if none found. */
+    public Player getLastJoiner(boolean canBeInLobby) {
+        List<Player> players = this.playerswhowereinlobby;
+        for (int i = 1; i < players.size() ; i++) {
+            if (players.get(players.size()-i) != null) {
+                Player testplayer = players.get(players.size()-i);
+                if (canBeInLobby) {
+                    return testplayer; // Don't bother checking the lobby
+                } else {
+                    if (playersinlobby.get(testplayer) != null) {
+                        continue; // Player is in the lobby.
+                    } else {
+                        return testplayer; // Player not in the lobby.
+                    }
+                }
+            }
+        }
+        return null;
     }
 }

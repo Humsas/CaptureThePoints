@@ -127,6 +127,19 @@ public class Util {
             play.sendMessage("[CTP] " + s); // Kj
         }
     }
+    
+    /** Send message to Players that are playing CTP (specifically, have playerData) but exclude a person.
+     * @param ctp The CTP instance
+     * @param exclude The Player to exclude
+     * @param s The message to send. "[CTP] " has been included.
+     * @see PlayerData */
+    public static void sendMessageToPlayers(CaptureThePoints ctp, Player exclude, String s) {
+        for (Player play : ctp.playerData.keySet()) {
+            if (play != null && play != exclude) {
+                play.sendMessage("[CTP] " + s); // Kj
+            }
+        }
+    }
 
 //    public static int roleNumber(CaptureThePoints plugin, String role)
 //    {
