@@ -1,6 +1,6 @@
 name: CaptureThePoints
 main: me.dalton.capturethepoints.CaptureThePoints
-version: 1.3.2
+version: 1.3.4
 authors: [dalton, Humsas, kjhf]
 commands:
     ctp:
@@ -19,6 +19,9 @@ permissions:
         default: true
     ctp.join:
         description: Allows players to use join command.
+        default: true 
+    ctp.latejoin:
+        description: Allows players to use latejoin command.
         default: true 
     ctp.play:
         description: Allows players to play the game (with all the bells and whistles).

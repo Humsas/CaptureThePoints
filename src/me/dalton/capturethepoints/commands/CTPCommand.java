@@ -66,52 +66,6 @@ public abstract class CTPCommand {
     }
 
     /**  
-     * Test whether a command sender can use this CTP command.
-     * @param sender The sender issuing the command
-     * @param notOpCommand Set to true if anyone can use the command, else false if the command issuer has to be an op or CTP admin.
-     * @param permissions The permissions to check against that are associated with the command.
-     * @return True if sender has permission, else false. 
-     */
-    protected boolean canAccess(CommandSender sender, boolean notOpCommand, String[] permissions) {
-        if (sender instanceof ConsoleCommandSender) {
-            return true;
-        } else if (!(sender instanceof Player)) {
-            return false;
-        } else {
-            return canAccess((Player) sender, notOpCommand, permissions);
-        }
-    }
-
-    /**  
-     * Test whether a player can use this CTP command.
-     * @param p The player issuing the command
-     * @param notOpCommand Set to true if anyone can use the command, else false if the command issuer has to be an op or CTP admin.
-     * @param permissions The permissions to check against that are associated with the command.
-     * @return True if player has permission, else false. 
-     */
-    protected boolean canAccess(Player p, boolean notOpCommand, String[] permissions) {
-        if (permissions == null) {
-            return true;
-        }
-
-        if (CaptureThePoints.UsePermissions) {
-            for (String perm : permissions) {
-                if (CaptureThePoints.Permissions.has(p, perm)) {
-                    return true;
-                }
-            }
-        } else {
-            if (notOpCommand) {
-                return true;
-            }
-            return p.isOp();
-        }
-
-        return false;
-
-    }
-
-    /**  
      * Preliminary tests then perform the command.
      * @param sender The sender issuing the command.
      * @param parameters The command's parameters
@@ -128,7 +82,7 @@ public abstract class CTPCommand {
         }
 
         if (requiredPermissions != null) {
-            if (requiredPermissions.length != 0 && !canAccess(sender, notOpCommand, requiredPermissions)) {
+            if (requiredPermissions.length != 0 && !ctp.canAccess(sender, notOpCommand, requiredPermissions)) {
                 sendMessage(ChatColor.RED + "You need permission to use the " + ChatColor.WHITE + parameters.get(1) + ChatColor.RED + " command.");
                 return;
             }

@@ -23,7 +23,7 @@ public class ColorsCommand extends CTPCommand {
 
     @Override
     public void perform() {       
-        if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin"})) {
+        if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin"})) {
             player.sendMessage(ChatColor.RED + "Admin: " + ChatColor.BLUE +"Available team colors:"); // Kj -- typo ;)
             player.sendMessage(ChatColor.GREEN + "WHITE, LIGHTGRAY, GRAY, BLACK, RED, ORANGE, YELLOW, LIME, LIGHTBLUE, GREEN, CYAN, BLUE, PURPLE, MAGENTA, PINK, BROWN");
         }

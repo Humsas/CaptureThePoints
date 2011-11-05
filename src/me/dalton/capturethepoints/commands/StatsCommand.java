@@ -33,28 +33,27 @@ public class StatsCommand extends CTPCommand {
         player.sendMessage(cc + "  Kills: " + white + pdata.kills + " (Streak: " + pdata.killsInARow + ")");
         player.sendMessage(cc + "  Deaths: " + white + pdata.deaths + " (Streak: " + pdata.deathsInARow + ")");
         
-        double kd; // Avoid divding by 0 and rounding
+        double kd = 0.0; // Avoid divding by 0 and rounding
         if (pdata.deaths == 0) {
             kd = pdata.kills;
         } else {
-            kd = pdata.kills / pdata.deaths;
-            double result = kd * 100;
-            result = Math.round(result);
-            kd = result / 100;
+            kd = ((double)pdata.kills * 10.0D) / ((double)pdata.deaths * 10.0D);
+            kd = Math.round(kd);
+            kd /= 100.0D;
         }
         
         ChatColor goodKD = ChatColor.WHITE;
-        if (0.0 >= kd && kd < 0.5 ) {
+        if (kd < 0.5) {
             goodKD = ChatColor.RED;
-        } else if (0.5 >= kd && kd < 1.0 ) {
+        } else if (kd < 1.0) {
             goodKD = ChatColor.YELLOW;
-        } else if (1.0 >= kd && kd < 1.5 ) {
+        } else if (kd < 1.5) {
             goodKD = ChatColor.DARK_GREEN;
         } else {
             goodKD = ChatColor.GREEN;
         }
         
-        player.sendMessage(cc + "  K/D: " + goodKD + kd);
+        player.sendMessage(cc + "  K/D: " + goodKD + String.valueOf(kd));
         player.sendMessage(cc + "  Money: " + green + pdata.money);
         return;
     }

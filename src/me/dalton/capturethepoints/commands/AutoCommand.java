@@ -23,7 +23,7 @@ public class AutoCommand extends CTPCommand {
         super.senderMustBePlayer = false;
         super.minParameters = 3;
         super.maxParameters = 3;
-        super.usageTemplate = "/ctp auto <worldname>";
+        super.usageTemplate = "/ctp auto <worldname|this>";
     }
 
     @Override
@@ -47,6 +47,9 @@ public class AutoCommand extends CTPCommand {
         if (this.worldname.isEmpty()) {
             this.worldname = parameters.get(2);
         }
+        if (this.worldname.equalsIgnoreCase("this") && player != null) {
+            this.worldname = player.getWorld().getName();
+        }
 
         World world = ctp.getServer().getWorld(worldname);
         if (world == null) {
@@ -55,7 +58,12 @@ public class AutoCommand extends CTPCommand {
             return;
         }
 
-        ctp.chooseSuitableArena(world.getPlayers().size()); // Choose a suitable arena based on the number of players in the world.
+        if (ctp.hasSuitableArena(world.getPlayers().size())) {
+            ctp.chooseSuitableArena(world.getPlayers().size()); // Choose a suitable arena based on the number of players in the world.
+        } else {
+            sender.sendMessage("[CTP] You do not have an arena that will accomodate "+world.getPlayers().size()+" players. Please change your min/max player settings.");
+            return;
+        }
         
         if (ctp.isGameRunning()) {
             sender.sendMessage("[CTP] A previous Capture The Points game has been terminated.");

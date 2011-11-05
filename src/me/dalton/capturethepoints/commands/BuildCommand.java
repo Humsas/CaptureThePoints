@@ -50,48 +50,48 @@ public class BuildCommand extends CTPCommand {
                 sender.sendMessage(ChatColor.RED + "CTP Build Commands: " + ChatColor.GOLD + " Page 1/2");
                 sender.sendMessage(ChatColor.DARK_GREEN + "/ctp b help [pagenumber] " + ChatColor.WHITE + "- view this menu.");
                 
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.arenalist"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.arenalist"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b arenalist " + ChatColor.WHITE + "- show list of existing arenas");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.create"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.create"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b create <Arena name> " + ChatColor.WHITE + "- create an arena");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.delete"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.delete"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b delete <Arena name> " + ChatColor.WHITE + "- delete an existing arena");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.maximumplayers"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.maximumplayers"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b maximumplayers <number> " + ChatColor.WHITE + "- set maximum players of the arena");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.minimumplayers"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.minimumplayers"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b minimumplayers <number> " + ChatColor.WHITE + "- set minimum players of the arena");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.pointlist"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.pointlist"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b pointlist " + ChatColor.WHITE + "- shows selected arena capture points list");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.removepoint"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.removepoint"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b removepoint <Point name> " + ChatColor.WHITE + "- removes an existing capture point");
                 }
             } else if (pagenumber.equals("2")) {
                 sender.sendMessage(ChatColor.RED + "CTP Build Commands: " + ChatColor.GOLD + " Page 2/2");
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin.removespawn", "ctp.admin"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin.removespawn", "ctp.admin"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b removespawn <Team color> " + ChatColor.WHITE + "- removes spawn point of selected color");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.selectarena"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.selectarena"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b selectarena <Arena name> " + ChatColor.WHITE + "- selects arena for editing");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setarena"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setarena"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b setarena <Arena name> " + ChatColor.WHITE + "- sets main arena for playing");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setboundary"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setboundary"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b setboundary <1 | 2> " + ChatColor.WHITE + "- sets boundary (1 or 2) of the arena");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setlobby"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setlobby"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b setlobby " + ChatColor.WHITE + "- sets arena lobby");
                 }
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setpoint"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setpoint"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b setpoint <Point name> <vert | hor> " + ChatColor.WHITE + "- creates new capture point");
                 }            
-                if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin.setspawn", "ctp.admin"})) {
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin.setspawn", "ctp.admin"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b setspawn <Team color> " + ChatColor.WHITE + "- sets the place people are teleported to when they die or when they join the game");
                 }
             }
@@ -108,7 +108,7 @@ public class BuildCommand extends CTPCommand {
         }
         
         if (arg.equalsIgnoreCase("setspawn")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin.setspawn", "ctp.admin"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin.setspawn", "ctp.admin"})) {
                 if (parameters.size() < 4) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build setspawn <Team color> ");
                     return;
@@ -206,7 +206,7 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("removespawn")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin.removespawn", "ctp.admin"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin.removespawn", "ctp.admin"})) {
                 if (parameters.size() < 4) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build removespawn <Team color> ");
                     return;
@@ -246,7 +246,7 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("setpoint")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setpoint"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setpoint"})) {
                 if (parameters.size() < 5) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build setpoint <Point name> <vert | hor>");
                     return;
@@ -392,7 +392,7 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("removepoint")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.removepoint"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.removepoint"})) {
                 if (parameters.size() < 4) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build removepoint <Point name>");
                     return;
@@ -453,7 +453,7 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("create")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.create"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.create"})) {
                 if (parameters.size() < 4) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build create <Arena name>");
                     return;
@@ -490,7 +490,7 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("delete")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.delete"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.delete"})) {
                 if (parameters.size() < 4) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build delete <Arena name>");
                     return;
@@ -554,7 +554,7 @@ public class BuildCommand extends CTPCommand {
         }
         //  sets arena for editing/creating
         if (arg.equalsIgnoreCase("selectarena")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.selectarena"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.selectarena"})) {
                 if (parameters.size() < 4) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build selectarena <Arena name>");
                     return;
@@ -574,7 +574,7 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("setarena")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setarena"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setarena"})) {
                 if (parameters.size() < 4) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build setarena <Arena name>");
                     return;
@@ -625,7 +625,7 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("setlobby")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setlobby"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setlobby"})) {
                 if (ctp.editingArena == null || ctp.editingArena.name.isEmpty()) {
                     player.sendMessage(ChatColor.RED + "No arena selected!");
                     return;
@@ -663,7 +663,7 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("arenalist")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.arenalist"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.arenalist"})) {
                 String arenas = "";
                 boolean firstTime = true;
                 for (String arena : ctp.arena_list) {
@@ -683,7 +683,7 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("pointlist")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.pointlist"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.pointlist"})) {
                 if (ctp.editingArena == null || ctp.editingArena.name.isEmpty()) {
                     player.sendMessage(ChatColor.RED + "No arena selected!");
                     return;
@@ -710,7 +710,7 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("setboundary")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setboundary"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setboundary"})) {
                 if (parameters.size() < 4) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build setboundary <1 | 2>");
                     return;
@@ -772,7 +772,7 @@ public class BuildCommand extends CTPCommand {
 
         // Kj
         if (arg.equalsIgnoreCase("maximumplayers") || arg.equalsIgnoreCase("maxplayers") || arg.equalsIgnoreCase("max")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.maximumplayers"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.maximumplayers"})) {
                 if (parameters.size() < 4) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build maximumplayers <number>");
                     return;
@@ -805,7 +805,7 @@ public class BuildCommand extends CTPCommand {
         }
         // Kj
         if (arg.equalsIgnoreCase("minimumplayers") || arg.equalsIgnoreCase("minplayers") || arg.equalsIgnoreCase("min")) {
-            if (canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.minimumplayers"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.minimumplayers"})) {
                 if (parameters.size() < 4) {
                     player.sendMessage(ChatColor.WHITE + "Usage: " + ChatColor.GREEN + "/ctp build minimumplayers <number>");
                     return;
