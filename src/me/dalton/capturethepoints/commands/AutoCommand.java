@@ -29,7 +29,7 @@ public class AutoCommand extends CTPCommand {
     @Override
     public void perform() {
         if (sender instanceof Player) {
-            String error = ctp.checkMainArena(player);
+            String error = ctp.checkMainArena(player, ctp.mainArena);
             if (!error.isEmpty()) {
                 sender.sendMessage(error);
                 return;

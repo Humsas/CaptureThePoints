@@ -464,9 +464,33 @@ public class CaptureThePointsBlockListener extends BlockListener {
         return true;
     }
 
-    public void endGame (boolean noRewards) {
+    public void endGame (boolean noRewards)
+    {
         Util.sendMessageToPlayers(ctp, "A Capture The Points game has ended!");
-        ctp.clearSchedule();
+
+        // Task canceling
+        if (ctp.CTP_Scheduler.playTimer != 0) {
+            ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.playTimer);
+            ctp.CTP_Scheduler.playTimer = 0;
+        }
+        if (ctp.CTP_Scheduler.money_Score != 0) {
+            ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.money_Score);
+            ctp.CTP_Scheduler.money_Score = 0;
+        }
+        if (ctp.CTP_Scheduler.pointMessenger != 0) {
+            ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.pointMessenger);
+            ctp.CTP_Scheduler.pointMessenger = 0;
+        }
+        if (ctp.CTP_Scheduler.helmChecker != 0)
+        {
+            ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.helmChecker);
+            ctp.CTP_Scheduler.helmChecker = 0;
+        }
+        if(ctp.CTP_Scheduler.healingItemsCooldowns != 0)
+        {
+            ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.healingItemsCooldowns);
+            ctp.CTP_Scheduler.healingItemsCooldowns = 0;
+        }
         
         for (CTPPoints s : ctp.mainArena.capturePoints) {
             s.controledByTeam = null;

@@ -604,13 +604,20 @@ public class BuildCommand extends CTPCommand {
                     canLoad = false;
                 }
 
+                String mainArenaCheckError = ctp.checkMainArena(player, arena); // Kj -- Check arena, if there is an error, an error message is returned.
+                if (!mainArenaCheckError.isEmpty())
+                {
+                    player.sendMessage(mainArenaCheckError);
+                    return;
+                }
+
                 if (canLoad) {
                     Configuration config = ctp.load();
                     config.setProperty("Arena", arg2);
                     config.save();
                     ctp.mainArena = null;
                     ctp.mainArena = arena;
-                    // And to be sure that everything is fine rectp.load all config
+                    // And to be sure that everything is fine reload all config
 
                     ctp.clearConfig();
                     ctp.loadConfigFiles();

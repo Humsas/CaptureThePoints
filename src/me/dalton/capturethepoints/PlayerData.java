@@ -1,6 +1,7 @@
 package me.dalton.capturethepoints;
 
 import java.util.Set;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 /** Player Data of the people playing CTP. */
@@ -29,6 +30,8 @@ public class PlayerData {
     
     /** The number of deaths in a row this player has. */
     public int deathsInARow;
+
+    public int moveChecker;
     
     /** The number of points this player has captured. */
     public int pointCaptures;
@@ -58,7 +61,7 @@ public class PlayerData {
     public boolean isInCreativeMode = false;
     
     /** If this player has been warned to ready up or be kicked. */
-    public boolean warnedAboutActivity = false; // Kjhf 
+    public boolean warnedAboutActivity = false; // Kjhf
 
     /** Get the player associated with this PlayerData
      * @param ctp CaptureThePoints instance

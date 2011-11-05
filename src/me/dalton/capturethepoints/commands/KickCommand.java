@@ -20,13 +20,13 @@ public class KickCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        if (sender instanceof Player) {
-            String error = ctp.checkMainArena(player);
-            if (!error.isEmpty()) {
-                sender.sendMessage(error);
-                return;
-            }
-        } else {
+//        if (sender instanceof Player) {
+//            //String error = ctp.checkMainArena(player); // If player is in the game arena must be already checked
+////            if (!error.isEmpty()) {
+////                sender.sendMessage(error);
+////                return;
+////            }
+//        } else {
             if (ctp.mainArena == null) {
                 sender.sendMessage(ChatColor.RED + "Please create an arena first");
                 return;
@@ -35,7 +35,7 @@ public class KickCommand extends CTPCommand {
                 sender.sendMessage(ChatColor.RED + "Please create arena lobby");
                 return;
             }
-        }
+//        }
         Player bob = ctp.getServer().getPlayer(parameters.get(2));
         if (bob == null) {
             sender.sendMessage(ChatColor.RED+"Could not find the online player " + ChatColor.GOLD + parameters.get(2) + ChatColor.RED +".");

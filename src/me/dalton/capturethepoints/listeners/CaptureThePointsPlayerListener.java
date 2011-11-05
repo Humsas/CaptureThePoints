@@ -51,9 +51,10 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     @Override
     public void onPlayerCommandPreprocess (PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
-        String error = ctp.checkMainArena(player);
-        if (error.isEmpty()) { // Error not found, main arena exists.
-            if (!ctp.mainArena.co.allowCommands) {
+        //String error = ctp.checkMainArena(player, ctp.mainArena);  // No error checking on commands!
+        //if (error.isEmpty()) { // Error not found, main arena exists.
+            if (ctp.mainArena != null && ctp.mainArena.co != null && !ctp.mainArena.co.allowCommands)
+            {
                 String[] args = event.getMessage().split(" ");
                 if (!ctp.canAccess(player, false, new String[] { "ctp.*", "ctp.admin" }) && ctp.isGameRunning() && ctp.playerData.containsKey(player)
                         && !args[0].equalsIgnoreCase("/ctp")) {
@@ -61,7 +62,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     event.setCancelled(true);
                 }
             }
-        }
+        //}
     }
 
     @Override
@@ -208,18 +209,30 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         if (!(ctp.isGameRunning())) {
             return;
         }
-
         Location loc = event.getTo();
         // Find if player is in arena
-        if (this.ctp.playerData.get(event.getPlayer()) != null && !ctp.playerData.get(event.getPlayer()).isInLobby) {
-            if (isInside(loc.getBlockY(), 0, 999) && isInside(loc.getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(loc.getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && loc.getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
-                return;
-            } else {
-                String color = ctp.playerData.get(event.getPlayer()).color;
-                Location loc2 = new Location(ctp.getServer().getWorld(ctp.mainArena.world), ctp.mainArena.teamSpawns.get(color).x, ctp.mainArena.teamSpawns.get(color).y + 1, ctp.mainArena.teamSpawns.get(color).z);
-                loc.setYaw((float) ctp.mainArena.teamSpawns.get(color).dir);
-                loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
-                event.getPlayer().teleport(loc2);
+        if (this.ctp.playerData.get(event.getPlayer()) != null && !ctp.playerData.get(event.getPlayer()).isInLobby)
+        {
+            Player player = event.getPlayer();
+            if(ctp.playerData.get(player).moveChecker >= 10)
+            {
+                ctp.playerData.get(player).moveChecker = 0;
+                if (isInside(loc.getBlockY(), 0, 999) && isInside(loc.getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(loc.getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && loc.getWorld().getName().equalsIgnoreCase(ctp.mainArena.world))
+                {
+                    return;
+                }
+                else
+                {
+                    String color = ctp.playerData.get(player).color;
+                    Location loc2 = new Location(ctp.getServer().getWorld(ctp.mainArena.world), ctp.mainArena.teamSpawns.get(color).x, ctp.mainArena.teamSpawns.get(color).y + 1, ctp.mainArena.teamSpawns.get(color).z);
+                    loc2.setYaw((float) ctp.mainArena.teamSpawns.get(color).dir);
+                    loc2.getWorld().loadChunk(loc2.getBlockX(), loc2.getBlockZ());
+                    player.teleport(loc2);
+                }
+            }
+            else
+            {
+                ctp.playerData.get(player).moveChecker++;
             }
         }
     }

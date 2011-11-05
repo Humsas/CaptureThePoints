@@ -5,7 +5,6 @@ import java.util.List;
 import me.dalton.capturethepoints.CaptureThePoints;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 /** The backbone of commands used by CTP */

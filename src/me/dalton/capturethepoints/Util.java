@@ -302,95 +302,104 @@ public class Util {
     }
 
 // Tingiu mazint :/
-    public static void rewardPlayer(CaptureThePoints plugin, Player player) {
-        if (plugin.playerData.get(player).winner) {
-            for (int i = 0; i < plugin.rewards.winnerRewardCount; i++) {
-                int itemCount = 0;
-                int id = random(0, plugin.rewards.winnerRewards.size()); // Kj -- Took out -1
-                int amount = plugin.rewards.winnerRewards.get(id).amount;
-                if (!(Util.ARMORS_TYPE.contains(plugin.rewards.winnerRewards.get(id).item) || Util.WEAPONS_TYPE.contains(plugin.rewards.winnerRewards.get(id).item))) {
-                    for (ItemStack item : player.getInventory().getContents()) {
-                        if (item != null && item.getTypeId() == plugin.rewards.winnerRewards.get(id).item.getId()) {
-                            itemCount += item.getAmount();
+    public static void rewardPlayer(CaptureThePoints plugin, Player player) 
+    {
+        try
+        {
+            if (plugin.playerData.get(player).winner)
+            {
+                for (int i = 0; i < plugin.rewards.winnerRewardCount; i++) {
+                    int itemCount = 0;
+                    int id = random(0, plugin.rewards.winnerRewards.size()); // Kj -- Took out -1
+                    int amount = plugin.rewards.winnerRewards.get(id).amount;
+                    if (!(Util.ARMORS_TYPE.contains(plugin.rewards.winnerRewards.get(id).item) || Util.WEAPONS_TYPE.contains(plugin.rewards.winnerRewards.get(id).item))) {
+                        for (ItemStack item : player.getInventory().getContents()) {
+                            if (item != null && item.getTypeId() == plugin.rewards.winnerRewards.get(id).item.getId()) {
+                                itemCount += item.getAmount();
+                            }
                         }
                     }
-                }
-                //player.sendMessage(player.getName() + " " + itemCount);
-                if (itemCount > 0) {
-                    player.getInventory().remove(plugin.rewards.winnerRewards.get(id).item.getId());
-                }
-                amount += itemCount;
+                    //player.sendMessage(player.getName() + " " + itemCount);
+                    if (itemCount > 0) {
+                        player.getInventory().remove(plugin.rewards.winnerRewards.get(id).item.getId());
+                    }
+                    amount += itemCount;
 
-                ItemStack item = new ItemStack(plugin.rewards.winnerRewards.get(id).item, amount);
-                player.getInventory().addItem(new ItemStack[]{item});
-            }
-        } else {
-            for (int i = 0; i < plugin.rewards.otherTeamRewardCount; i++) {
-                int itemCount = 0;
-                int id = random(0, plugin.rewards.loozerRewards.size()); // Kj -- Took out -1
-                int amount = plugin.rewards.loozerRewards.get(id).amount;
-                if (!(Util.ARMORS_TYPE.contains(plugin.rewards.loozerRewards.get(id).item) || Util.WEAPONS_TYPE.contains(plugin.rewards.loozerRewards.get(id).item))) {
-                    for (ItemStack item : player.getInventory().getContents()) {
-                        if (item != null && item.getTypeId() == plugin.rewards.loozerRewards.get(id).item.getId()) {
-                            itemCount += item.getAmount();
+                    ItemStack item = new ItemStack(plugin.rewards.winnerRewards.get(id).item, amount);
+                    player.getInventory().addItem(new ItemStack[]{item});
+                }
+            } else {
+                for (int i = 0; i < plugin.rewards.otherTeamRewardCount; i++) {
+                    int itemCount = 0;
+                    int id = random(0, plugin.rewards.loozerRewards.size()); // Kj -- Took out -1
+                    int amount = plugin.rewards.loozerRewards.get(id).amount;
+                    if (!(Util.ARMORS_TYPE.contains(plugin.rewards.loozerRewards.get(id).item) || Util.WEAPONS_TYPE.contains(plugin.rewards.loozerRewards.get(id).item))) {
+                        for (ItemStack item : player.getInventory().getContents()) {
+                            if (item != null && item.getTypeId() == plugin.rewards.loozerRewards.get(id).item.getId()) {
+                                itemCount += item.getAmount();
+                            }
                         }
                     }
-                }
-                //player.sendMessage(player.getName() + " " + itemCount);
-                if (itemCount > 0) {
-                    player.getInventory().remove(plugin.rewards.loozerRewards.get(id).item.getId());
-                }
-                amount += itemCount;
+                    //player.sendMessage(player.getName() + " " + itemCount);
+                    if (itemCount > 0) {
+                        player.getInventory().remove(plugin.rewards.loozerRewards.get(id).item.getId());
+                    }
+                    amount += itemCount;
 
-                ItemStack item = new ItemStack(plugin.rewards.loozerRewards.get(id).item, amount);
-                player.getInventory().addItem(new ItemStack[]{item});
+                    ItemStack item = new ItemStack(plugin.rewards.loozerRewards.get(id).item, amount);
+                    player.getInventory().addItem(new ItemStack[]{item});
+                }
             }
-        }
-        //reward for kills
-        for (int i = 0; i < plugin.playerData.get(player).kills; i++) {
-            if (plugin.rewards.rewardsForKill.size() > 0) {
-                int itemCount = 0;
-                int id = random(0, plugin.rewards.rewardsForKill.size()); // Kj -- Took out -1
-                int amount = plugin.rewards.rewardsForKill.get(id).amount;
-                if (!(Util.ARMORS_TYPE.contains(plugin.rewards.rewardsForKill.get(id).item) || Util.WEAPONS_TYPE.contains(plugin.rewards.rewardsForKill.get(id).item))) {
-                    for (ItemStack item : player.getInventory().getContents()) {
-                        if (item != null && item.getTypeId() == plugin.rewards.rewardsForKill.get(id).item.getId()) {
-                            itemCount += item.getAmount();
+            //reward for kills
+            for (int i = 0; i < plugin.playerData.get(player).kills; i++) {
+                if (plugin.rewards.rewardsForKill.size() > 0) {
+                    int itemCount = 0;
+                    int id = random(0, plugin.rewards.rewardsForKill.size()); // Kj -- Took out -1
+                    int amount = plugin.rewards.rewardsForKill.get(id).amount;
+                    if (!(Util.ARMORS_TYPE.contains(plugin.rewards.rewardsForKill.get(id).item) || Util.WEAPONS_TYPE.contains(plugin.rewards.rewardsForKill.get(id).item))) {
+                        for (ItemStack item : player.getInventory().getContents()) {
+                            if (item != null && item.getTypeId() == plugin.rewards.rewardsForKill.get(id).item.getId()) {
+                                itemCount += item.getAmount();
+                            }
                         }
                     }
+                    //player.sendMessage(player.getName() + " " + itemCount);
+                    if (itemCount > 0) {
+                        player.getInventory().remove(plugin.rewards.rewardsForKill.get(id).item.getId());
+                    }
+                    amount += itemCount;
+                    ItemStack item = new ItemStack(plugin.rewards.rewardsForKill.get(id).item, amount);
+                    player.getInventory().addItem(new ItemStack[]{item});
                 }
-                //player.sendMessage(player.getName() + " " + itemCount);
-                if (itemCount > 0) {
-                    player.getInventory().remove(plugin.rewards.rewardsForKill.get(id).item.getId());
-                }
-                amount += itemCount;
-                ItemStack item = new ItemStack(plugin.rewards.rewardsForKill.get(id).item, amount);
-                player.getInventory().addItem(new ItemStack[]{item});
             }
-        }
-        //reward for capture
-        for (int i = 0; i < plugin.playerData.get(player).pointCaptures; i++) {
-            if (plugin.rewards.rewardsForCapture.size() > 0) {
-                int itemCount = 0;
-                int id = random(0, plugin.rewards.rewardsForCapture.size()); // Kj -- Took out -1
-                int amount = plugin.rewards.rewardsForCapture.get(id).amount;
-                if (!(Util.ARMORS_TYPE.contains(plugin.rewards.rewardsForCapture.get(id).item) || Util.WEAPONS_TYPE.contains(plugin.rewards.rewardsForCapture.get(id).item))) {
-                    for (ItemStack item : player.getInventory().getContents()) {
-                        if ((item != null) && (item.getTypeId() == plugin.rewards.rewardsForCapture.get(id).item.getId())) {
-                            itemCount += item.getAmount();
+            //reward for capture
+            for (int i = 0; i < plugin.playerData.get(player).pointCaptures; i++) {
+                if (plugin.rewards.rewardsForCapture.size() > 0) {
+                    int itemCount = 0;
+                    int id = random(0, plugin.rewards.rewardsForCapture.size()); // Kj -- Took out -1
+                    int amount = plugin.rewards.rewardsForCapture.get(id).amount;
+                    if (!(Util.ARMORS_TYPE.contains(plugin.rewards.rewardsForCapture.get(id).item) || Util.WEAPONS_TYPE.contains(plugin.rewards.rewardsForCapture.get(id).item))) {
+                        for (ItemStack item : player.getInventory().getContents()) {
+                            if ((item != null) && (item.getTypeId() == plugin.rewards.rewardsForCapture.get(id).item.getId())) {
+                                itemCount += item.getAmount();
+                            }
                         }
                     }
+                    if (itemCount > 0) {
+                        player.getInventory().remove(plugin.rewards.rewardsForCapture.get(id).item.getId());
+                    }
+                    amount += itemCount;
+                    ItemStack item = new ItemStack(plugin.rewards.rewardsForCapture.get(id).item, amount);
+                    player.getInventory().addItem(new ItemStack[]{item});
                 }
-                // player.sendMessage(player.getName() + " " + itemCount);
-                if (itemCount > 0) {
-                    player.getInventory().remove(plugin.rewards.rewardsForCapture.get(id).item.getId());
-                }
-                amount += itemCount;
-                ItemStack item = new ItemStack(plugin.rewards.rewardsForCapture.get(id).item, amount);
-                player.getInventory().addItem(new ItemStack[]{item});
             }
+            player.updateInventory();
         }
-        player.updateInventory();
+        catch(Exception e)
+        {
+            CaptureThePoints.logger.warning("[CTP] Error occured while rewarding players");
+        }
+
     }
 
     /** Generates a random number from startV to endV

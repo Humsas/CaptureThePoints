@@ -24,7 +24,7 @@ public class DebugCommand extends CTPCommand {
         sender.sendMessage("Outputting CTP info to Console.");
         CaptureThePoints.logger.info("-----------========== CTP DEBUG ==========-----------");
         CaptureThePoints.logger.info("Game running: "+ctp.isGameRunning());
-        String checkMainArena = ctp.checkMainArena(player); // Kj -- Check arena, if there is an error, an error message is returned.
+        String checkMainArena = ctp.checkMainArena(player, ctp.mainArena); // Kj -- Check arena, if there is an error, an error message is returned.
         if (!checkMainArena.isEmpty()) {
             CaptureThePoints.logger.info("Main Arena errors: "+checkMainArena);
             CaptureThePoints.logger.info("-----------========== ######### ==========-----------");

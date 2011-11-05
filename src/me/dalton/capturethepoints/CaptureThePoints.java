@@ -40,9 +40,9 @@ public class CaptureThePoints extends JavaPlugin {
     public static final String mainDir = "plugins/CaptureThePoints";
 
     /** "plugins/CaptureThePoints/CaptureSettings.yml" */
-    //public static final File myFile = new File("plugins/CaptureThePoints" + File.separator + "CaptureSettings.yml");
+    //public static final File myFile = new File(mainDir + File.separator + "CaptureSettings.yml");
     /** "plugins/CaptureThePoints/Global.yml" */
-    public static final File globalConfigFile = new File("plugins/CaptureThePoints" + File.separator + "Global.yml");
+    public static final File globalConfigFile = new File(mainDir + File.separator + "Global.yml");
     public static final Logger logger = Logger.getLogger("Minecraft");
     public static PluginDescriptionFile info = null;
     public static PluginManager pluginManager = null;
@@ -123,25 +123,27 @@ public class CaptureThePoints extends JavaPlugin {
         enableCTP(false);
     }
 
-    public void enableCTP (boolean reloading) {
-        setupPermissions();
-        pluginManager = getServer().getPluginManager();
+    public void enableCTP (boolean reloading)
+    {
+        if(!reloading)
+        {
+            setupPermissions();
+            pluginManager = getServer().getPluginManager();
 
-        // REGISTER EVENTS-----------------------------------------------------------------------------------
-        pluginManager.registerEvent(Event.Type.BLOCK_PLACE, this.blockListener, Event.Priority.Normal, this);
-        pluginManager.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Normal, this);
-        pluginManager.registerEvent(Event.Type.SIGN_CHANGE, this.blockListener, Event.Priority.Normal, this);
-        pluginManager.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Highest, this); // Because when game starts you must deal damage to enemy
-        pluginManager.registerEvent(Event.Type.PLAYER_MOVE, this.playerListener, Event.Priority.Normal, this);
-        pluginManager.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
-        pluginManager.registerEvent(Event.Type.PLAYER_TELEPORT, this.playerListener, Event.Priority.Normal, this);
-        pluginManager.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Event.Priority.Normal, this);
-        pluginManager.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Event.Priority.Normal, this);
-        pluginManager.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Event.Priority.Normal, this);
+            // REGISTER EVENTS-----------------------------------------------------------------------------------
+            pluginManager.registerEvent(Event.Type.BLOCK_PLACE, this.blockListener, Event.Priority.Normal, this);
+            pluginManager.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Normal, this);
+            pluginManager.registerEvent(Event.Type.SIGN_CHANGE, this.blockListener, Event.Priority.Normal, this);
+            pluginManager.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Highest, this); // Because when game starts you must deal damage to enemy
+            pluginManager.registerEvent(Event.Type.PLAYER_MOVE, this.playerListener, Event.Priority.Normal, this);
+            pluginManager.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
+            pluginManager.registerEvent(Event.Type.PLAYER_TELEPORT, this.playerListener, Event.Priority.Normal, this);
+            pluginManager.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Event.Priority.Normal, this);
+            pluginManager.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Event.Priority.Normal, this);
+            pluginManager.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Event.Priority.Normal, this);
 
-        PluginDescriptionFile pdfFile = getDescription();
-
-        populateCommands();
+            populateCommands();
+        }
         loadConfigFiles();
 
         //Kj: LobbyActivity timer.
@@ -181,7 +183,9 @@ public class CaptureThePoints extends JavaPlugin {
 
         }, 200L, 200L); // 10 sec
 
-        if (!reloading) {
+        if (!reloading) 
+        {
+            PluginDescriptionFile pdfFile = getDescription();
             logger.info("[CTP] " + pdfFile.getVersion() + " version is enabled.");
         }
     }
@@ -334,32 +338,33 @@ public class CaptureThePoints extends JavaPlugin {
     /** Checks whether the current mainArena is fit for purpose.
      * @param p Player doing the checking
      * @return An error message, else empty if the arena is safe. */
-    public String checkMainArena (CommandSender sender) {
-        if (arena_list == null) { // Kj -- null checks
+    public String checkMainArena (CommandSender sender, ArenaData arena)
+    {
+//        if (arena_list == null) { // Kj -- null checks
+//            return "An arena hasn't been built yet.";
+//        }
+//        if (arena_list.isEmpty()) {
+//            return "An arena hasn't been built yet.";
+//        }
+        if (arena == null) {
             return "An arena hasn't been built yet.";
         }
-        if (arena_list.isEmpty()) {
-            return "An arena hasn't been built yet.";
-        }
-        if (mainArena == null) {
-            return "An arena hasn't been built yet.";
-        }
-        if (mainArena.lobby == null) {
+        if (arena.lobby == null) {
             return "An arena hasn't been built yet. [No lobby]";
         }
-        if (getServer().getWorld(mainArena.world) == null) {
+        if (getServer().getWorld(arena.world) == null) {
             if (canAccess(sender, true, new String[] { "ctp.*", "ctp.admin" })) {
-                return "The arena config is incorrect. The world \"" + mainArena.world + "\" could not be found. Hint: your first world's name is \"" + getServer().getWorlds().get(0).getName() + "\".";
+                return "The arena config is incorrect. The world \"" + arena.world + "\" could not be found. Hint: your first world's name is \"" + getServer().getWorlds().get(0).getName() + "\".";
             } else {
                 return "Sorry, this arena has not been set up properly. Please tell an admin. [Incorrect World]";
             }
         }
         // Kj -- Test that the spawn points are within the map boundaries
-        for (Spawn aSpawn : mainArena.teamSpawns.values()) {
-            if (!playerListener.isInside((int) aSpawn.x, mainArena.x1, mainArena.x2) || !playerListener.isInside((int) aSpawn.z, mainArena.z1, mainArena.z2)) {
+        for (Spawn aSpawn : arena.teamSpawns.values()) {
+            if (!playerListener.isInside((int) aSpawn.x, arena.x1, arena.x2) || !playerListener.isInside((int) aSpawn.z, arena.z1, arena.z2)) {
                 if (canAccess(sender, true, new String[] { "ctp.*", "ctp.admin" })) {
-                    return "The spawn point \"" + aSpawn.name + "\" in the arena \"" + mainArena.name + "\" is out of the arena boundaries. "
-                            + "[Spawn is " + (int) aSpawn.x + ", " + (int) aSpawn.z + ". Boundaries are " + mainArena.x1 + "<==>" + mainArena.x2 + ", " + mainArena.z1 + "<==>" + mainArena.z2 + "].";
+                    return "The spawn point \"" + aSpawn.name + "\" in the arena \"" + arena.name + "\" is out of the arena boundaries. "
+                            + "[Spawn is " + (int) aSpawn.x + ", " + (int) aSpawn.z + ". Boundaries are " + arena.x1 + "<==>" + arena.x2 + ", " + arena.z1 + "<==>" + arena.z2 + "].";
                 } else {
                     return "Sorry, this arena has not been set up properly. Please tell an admin. [Incorrect Boundaries]";
                 }
@@ -411,7 +416,7 @@ public class CaptureThePoints extends JavaPlugin {
         if (!this.playerData.isEmpty()) {
             for (Player players : playerData.keySet()) {
                 blockListener.restoreThings(players);
-                players.sendMessage(ChatColor.RED + "[CTP] Server shutting down or reloading. The CTP game has been terminated.");  // Kj
+                players.sendMessage(ChatColor.RED + "[CTP] Reloading plugin configuration. The CTP game has been terminated.");  // Kj
             }
         }
         arena_list.clear();
@@ -432,7 +437,7 @@ public class CaptureThePoints extends JavaPlugin {
         CTP_Scheduler.money_Score = 0;
         CTP_Scheduler.playTimer = 0;
         CTP_Scheduler.pointMessenger = 0;
-        getServer().getScheduler().cancelAllTasks();        
+        getServer().getScheduler().cancelTasks(this);
     }
     
     /** Get the configOptions from this file. */
@@ -593,7 +598,8 @@ public class CaptureThePoints extends JavaPlugin {
         }
     }
 
-    public void loadConfigFiles () {
+    public void loadConfigFiles ()
+    {
         loadRoles();
         loadRewards();
         loadHealingItems();
@@ -746,20 +752,20 @@ public class CaptureThePoints extends JavaPlugin {
         Configuration config = load();
         // Healing items loading
         if (config.getString("HealingItems") == null) {
-            config.setProperty("HealingItems.BREAD.HOTHeal", "1");
-            config.setProperty("HealingItems.BREAD.HOTInterval", "1");
-            config.setProperty("HealingItems.BREAD.Duration", "5");
-            config.setProperty("HealingItems.BREAD.Cooldown", "0");
-            config.setProperty("HealingItems.BREAD.ResetCooldownOnDeath", "true");
-            config.setProperty("HealingItems.GOLDEN_APPLE.InstantHeal", "20");
-            config.setProperty("HealingItems.GOLDEN_APPLE.Duration", "5");
-            config.setProperty("HealingItems.GOLDEN_APPLE.ResetCooldownOnDeath", "true");
-            config.setProperty("HealingItems.GRILLED_PORK.HOTHeal", "1");
-            config.setProperty("HealingItems.GRILLED_PORK.HOTInterval", "3");
-            config.setProperty("HealingItems.GRILLED_PORK.Duration", "5");
-            config.setProperty("HealingItems.GRILLED_PORK.Cooldown", "10");
-            config.setProperty("HealingItems.GRILLED_PORK.InstantHeal", "5");
-            config.setProperty("HealingItems.GRILLED_PORK.ResetCooldownOnDeath", "true");
+            config.setProperty("HealingItems.BREAD.HOTHeal", 1);
+            config.setProperty("HealingItems.BREAD.HOTInterval", 1);
+            config.setProperty("HealingItems.BREAD.Duration", 5);
+            config.setProperty("HealingItems.BREAD.Cooldown", 0);
+            config.setProperty("HealingItems.BREAD.ResetCooldownOnDeath", false);
+            config.setProperty("HealingItems.GOLDEN_APPLE.InstantHeal", 20);
+            config.setProperty("HealingItems.GOLDEN_APPLE.Cooldown", 60);
+            config.setProperty("HealingItems.GOLDEN_APPLE.ResetCooldownOnDeath", true);
+            config.setProperty("HealingItems.GRILLED_PORK.HOTHeal", 1);
+            config.setProperty("HealingItems.GRILLED_PORK.HOTInterval", 3);
+            config.setProperty("HealingItems.GRILLED_PORK.Duration", 5);
+            config.setProperty("HealingItems.GRILLED_PORK.Cooldown", 10);
+            config.setProperty("HealingItems.GRILLED_PORK.InstantHeal", 5);
+            config.setProperty("HealingItems.GRILLED_PORK.ResetCooldownOnDeath", true);
         }
         int itemNR = 0;
         for (String str : config.getKeys("HealingItems")) {
@@ -819,9 +825,9 @@ public class CaptureThePoints extends JavaPlugin {
     }
 
     public void moveToLobby (Player player) {
-        String checkMainArena = checkMainArena(player); // Kj -- Check arena, if there is an error, an error message is returned.
-        if (!checkMainArena.isEmpty()) {
-            player.sendMessage(checkMainArena);
+        String mainArenaCheckError = checkMainArena(player, mainArena); // Kj -- Check arena, if there is an error, an error message is returned.
+        if (!mainArenaCheckError.isEmpty()) {
+            player.sendMessage(mainArenaCheckError);
             return;
         }
 
@@ -951,7 +957,8 @@ public class CaptureThePoints extends JavaPlugin {
         PlayerInv.setBoots(null);
     }
 
-    private void setupPermissions () {
+    private void setupPermissions ()
+    {
         Plugin test = getServer().getPluginManager().getPlugin("Permissions");
         info = getDescription();
         if (Permissions == null) {
