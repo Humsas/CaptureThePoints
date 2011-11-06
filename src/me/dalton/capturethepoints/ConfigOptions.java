@@ -1,7 +1,10 @@
 package me.dalton.capturethepoints;
 
 /** Class for the config options ctp accepts. */
-public class ConfigOptions {   
+public class ConfigOptions {
+    /** Allow breaking of blocks during a ctp game /||/ Disallow breaking of blocks during a ctp game (except for capturing points) [Default: true] */
+    public boolean allowBlockBreak = true; // Kjhf
+    
     /** Allow placement of blocks during a ctp game /||/ Disallow placement of blocks during a ctp game (except for capturing points) [Default: true] */
     public boolean allowBlockPlacement = true; // Kjhf
     
@@ -14,9 +17,6 @@ public class ConfigOptions {
     /** Allow the game to start automatically when there are enough players /||/ Don't start game until an admin does /ctp start [Default: true] */
     public boolean autoStart = true; // Kjhf
 
-    /** Balances team after player leaves game*/
-    public boolean balanceTeamsWhenPlayerLeaves = false;
-    
     /** Breaking blocks in game drops items /||/ Cancel any item drops resulting from breaking blocks in game [Default: false] */
     public boolean breakingBlocksDropsItems = false; // Kjhf
     
@@ -32,8 +32,11 @@ public class ConfigOptions {
     /** Use scoring system /||/ Use points system [Default: false] */
     public boolean useScoreGeneration = false;
     
-    /** Only choose the arena that an admin has picked (/ctp select) or one specified as main. /||/ Allow suitable arena pick. [Default: true] */
-    public boolean useSelectedArenaOnly = true; // Kjhf
+    /** Only choose the arena that an admin has picked (/ctp select) or one specified as main. /||/ Allow suitable arena pick. [Default: false] */
+    public boolean useSelectedArenaOnly = false; // Kjhf
+
+    /** Auto balance teams if teams differ by this number of people. 0 disables. [Default: 2] */
+    public int balanceTeamsWhenPlayerLeaves = 2;
     
     /** The starting wool players are given. [Default: 64] */
     public int givenWoolNumber = 64;

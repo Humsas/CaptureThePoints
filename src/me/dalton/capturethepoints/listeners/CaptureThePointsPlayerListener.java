@@ -35,7 +35,7 @@ import org.bukkit.material.Wool;
 public class CaptureThePointsPlayerListener extends PlayerListener {
     private final CaptureThePoints ctp;
 
-    private List<Player> waitingToMove = new LinkedList<Player>();
+    public List<Player> waitingToMove = new LinkedList<Player>();
 
     public CaptureThePointsPlayerListener (CaptureThePoints plugin) {
         this.ctp = plugin;
@@ -366,17 +366,24 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                         if (ctp.mainArena.co.exactTeamMemberCount) {
 
                             // Uneven number of people and balanced teams is on.  
-                            if (ctp.mainArena.getPlayersPlaying(ctp).size() % 2 != 0) {
+                            if (ctp.mainArena.getPlayersPlaying(ctp).size() % ctp.teams.size() != 0) {
                                 moveToSpawns(p);
                                 return;
 
-                                // Even number of people and balanced teams is on.  
+                            // Even number of people and balanced teams is on.  
                             } else if (lobby.playersinlobby.get(p)) {
-                                p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] There is an even number of players. Please wait or do /ctp leave."); // Kj
+                                if (waitingToMove.isEmpty()) {
+                                    waitingToMove.add(p); // Add to queue
+                                    p.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] There is an even number of players. Please wait or do /ctp leave."); // Kj
+                                } else {
+                                    // Already someone waiting, both can now join. Queue is cleared.
+                                    moveToSpawns(waitingToMove.get(0));
+                                    moveToSpawns(p);
+                                }
                                 return;
                             }
 
-                            // Exact player count off. Player can be moved.
+                        // Exact player count off. Player can be moved.
                         } else {
                             moveToSpawns(p);
                         }
@@ -597,7 +604,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         if (waitingToMove != null && !waitingToMove.isEmpty()) {
             if (waitingToMove.size() >= 1) {
                 if (waitingToMove.get(0) == player) {
-                    waitingToMove.clear(); // The queued player is joining. We can clear the waiting queue ready for next pair.
+                    clearWaitingQueue(); // The queued player is joining. We can clear the waiting queue ready for next pair.
                 }
             }
         }
@@ -788,4 +795,9 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }
     }
 
+    public void clearWaitingQueue() {
+        if (waitingToMove != null) {
+            waitingToMove.clear();
+        }
+    }
 }

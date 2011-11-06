@@ -87,6 +87,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
                 event.setCancelled(true);
                 return;
             }
+            boolean inPoint = false; // Kj -- for block breaking checker 
+            
             //in game wool check
             if (data instanceof Wool) {
                 Location loc = block.getLocation();
@@ -95,6 +97,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                     Location pointLocation = new Location(player.getWorld(), point.x, point.y, point.z);
                     double distance = pointLocation.distance(loc);
                     if (distance < 5.0D) {
+                        inPoint = true; // Kj -- for block breaking checker 
                         if (point.pointDirection == null) {
                             if (checkForFill(point, loc, ctp.playerData.get(player).color, ((Wool) data).getColor().toString(), true)) {
                                 if (ctp.playerData.get(player).color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
@@ -123,7 +126,14 @@ public class CaptureThePointsBlockListener extends BlockListener {
                     }
                 }
             }
-            ctp.arenaRestore.addBlock(block, true);
+            
+            // Kj -- block breaking checker blocks breaking of anything not in the CTPPoint if the config has set AllowBlockBreak to false.
+            if (!ctp.mainArena.co.allowBlockPlacement && !inPoint) {
+                event.setCancelled(true);
+                return;
+            }
+            ctp.arenaRestore.addBlock(block, false);
+        
 
             /* Kj -- this checks to see if the event was cancelled. If it wasn't, then it's a legit block break. 
              * If the config option is set to no items on block break, then cancel the event and set the block

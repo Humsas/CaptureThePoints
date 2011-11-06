@@ -2,6 +2,7 @@ package me.dalton.capturethepoints;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -27,7 +28,19 @@ public class Team {
     /** This Team's spawn point */
     public Spawn spawn;    
     
-    // Kjhf
+    /** Get a Team from its color 
+     * @param ctp CaptureThePoints instance
+     * @param color The team's color
+     * @return The Team corresponding to this color. */
+    public static Team getTeamFromColor(CaptureThePoints ctp, String color) {
+        for (Team aTeam : ctp.teams) {
+            if (aTeam.color.equalsIgnoreCase(color)) {
+                return aTeam;
+            }
+        }
+        return null;
+    }
+    
     /** Get all Players in this team as a list of Players
      * @param ctp CaptureThePoints instance
      * @return The Player list */
@@ -69,5 +82,25 @@ public class Team {
             }
         }
         return teamplayers;
+    }
+    
+    /** Get a Random Player in this Team
+     * @param ctp CaptureThePoints instance
+     * @return The Player */
+    public Player getRandomPlayer(CaptureThePoints ctp) {
+        List<Player> teamPlayers = getTeamPlayers(ctp);
+        Random random = new Random();
+        int nextInt = random.nextInt(teamPlayers.size());
+        return teamPlayers.get(nextInt);
+    }
+    
+    /** Check this Team for errors. Currently only checks memberCount against TeamPlayers size.
+     * @return boolean Has error? */
+    public boolean sanityCheck(CaptureThePoints ctp) {
+        if (this.getTeamPlayers(ctp) == null) {
+            return this.memberCount != 0;
+        } else {
+            return this.getTeamPlayers(ctp).size() != this.memberCount;    
+        }
     }
 }
