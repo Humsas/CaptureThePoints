@@ -14,7 +14,7 @@ public class DebugCommand extends CTPCommand {
         super.ctp = instance;
         super.aliases.add("debug");
         super.notOpCommand = false;
-        super.requiredPermissions = new String[]{"ctp.*: " + "ctp.play: " + "ctp.admin: " + "ctp.debug"};
+        super.requiredPermissions = new String[]{"ctp.*", "ctp.play", "ctp.admin", "ctp.debug"};
         super.senderMustBePlayer = false;
         super.minParameters = 2;
         super.maxParameters = 3;

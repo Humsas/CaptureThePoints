@@ -122,6 +122,17 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 } else if (!ctp.roles.containsKey(role.toLowerCase()) && !role.equalsIgnoreCase("random")) {
                     return;
                 } else {
+                    /* Sign looks like:
+                     * ########## 
+                     * #  ROLE  # <-- getLine(0)
+                     * #  PRICE # <-- getLine(1)
+                     * #        # <-- getLine(2)
+                     * #        # <-- getLine(3)
+                     * ##########
+                     *     #
+                     *     # 
+                     */
+                    
                     // Player is in Lobby choosing role.
                     if (ctp.mainArena.lobby.playersinlobby.containsKey(p)) {
 
@@ -160,13 +171,17 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 
                         // Player is in game choosing role.
                     } else if (ctp.playerData.get(p).isInArena) {
-
+                        
                         int price = 0;
-                        try {
-                            price = Integer.parseInt(sign.getLine(2)); // Line 1 on sign is price. Assign.
-                        } catch (Exception e) {
-                            price = Integer.MAX_VALUE;
-                        }
+                        String pricestr = sign.getLine(1) == null ? "" : sign.getLine(1);
+                        
+                        if (!pricestr.isEmpty()) {
+                            try {
+                                price = Integer.parseInt(pricestr); // Get price. 
+                            } catch (Exception e) {
+                                price = Integer.MAX_VALUE; // Sign's price is illegal.
+                            }
+                        }                                                    
 
                         // Kj's
                         if (role.equalsIgnoreCase("random")) {
@@ -181,21 +196,30 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                                         : roles.get(nextInt); // Change the role based on the random number. (Ternary null check)
                             }
                         }
-                        if (canPay(p, price)) {
-                            chargeAccount(p, price);
+                        
+                        if (price == 0) {
                             String oldRole = ctp.playerData.get(p).role;
                             p.sendMessage(ChatColor.LIGHT_PURPLE + "Changing your role from " + ChatColor.GOLD + oldRole.substring(0, 1).toUpperCase() + oldRole.substring(1).toLowerCase()
                                     + ChatColor.LIGHT_PURPLE + " to " + ChatColor.GOLD + role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase() + ChatColor.LIGHT_PURPLE + ".");
 
                             ctp.blockListener.assignRole(p, role.toLowerCase()); // Assign new role
-                            return;
                         } else {
-                            String message =
-                                    price != Integer.MAX_VALUE
-                                    ? "Not enough money! You have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money, but you need " + ChatColor.GREEN + price + ChatColor.WHITE + " money."
-                                    : ChatColor.RED + "This sign does not have a legal price. Please inform an admin.";
-                            p.sendMessage(message);
-                            return;
+                            if (canPay(p, price)) {
+                                chargeAccount(p, price);
+                                String oldRole = ctp.playerData.get(p).role;
+                                p.sendMessage(ChatColor.LIGHT_PURPLE + "Successfully bought new role for " + ChatColor.GREEN + price + ChatColor.LIGHT_PURPLE + ". "
+                                        + "You changed from " + ChatColor.GOLD + oldRole.substring(0, 1).toUpperCase() + oldRole.substring(1).toLowerCase()
+                                        + ChatColor.LIGHT_PURPLE + " to " + ChatColor.GOLD + role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase() + ChatColor.LIGHT_PURPLE + ".");
+                                ctp.blockListener.assignRole(p, role.toLowerCase()); // Assign new role
+                                return;
+                            } else {
+                                String message =
+                                        price != Integer.MAX_VALUE
+                                        ? "Not enough money! You have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money, but you need " + ChatColor.GREEN + price + ChatColor.WHITE + " money."
+                                        : ChatColor.RED + "This sign does not have a legal price. Please inform an admin.";
+                                p.sendMessage(message);
+                                return;
+                            }
                         }
                     }
                 }
@@ -667,12 +691,24 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     public void shop (Player p, Sign sign) {
 //        if(p.getName().equalsIgnoreCase("Humsas"))
 //            plugin.playerData.get(p).money = 100000;
+
+        /* Sign looks like:
+         * #######################
+         * #        [CTP]        # <-- getLine(0)
+         * #  MaterialInt:Amount # <-- getLine(1)
+         * #        Price        # <-- getLine(2)
+         * #      Team Color     # <-- getLine(3)
+         * #######################
+         *            #
+         *            # 
+         */
+        
         if (ctp.playerData.get(p).color == null) {
             return;
         }
 
         List<Items> list = new LinkedList<Items>();
-        list = Util.getItemListFromString(sign.getLine(1)); // Items for sale from line 2 on sign
+        list = Util.getItemListFromString(sign.getLine(1));
 
         if (list.get(0).item == null) { // Kj -- changed bracing from != null ... to == null return;
             return;
@@ -686,12 +722,16 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             return;
         }
 
+        String pricestr = sign.getLine(2) == null ? "" : sign.getLine(2);
         int price = 0;
-        try {
-            price = Integer.parseInt(sign.getLine(2));
-        } catch (Exception NumberFormatException) {
-            price = Integer.MAX_VALUE;
-        }
+
+        if (!pricestr.isEmpty()) {
+            try {
+                price = Integer.parseInt(pricestr); // Get price. 
+            } catch (Exception e) {
+                price = Integer.MAX_VALUE; // Sign's price is illegal.
+            }
+        }    
 
         if (canPay(p, price)) {
             int amount = 1;
