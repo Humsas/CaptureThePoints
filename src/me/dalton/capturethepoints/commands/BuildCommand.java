@@ -592,7 +592,7 @@ public class BuildCommand extends CTPCommand {
                     canLoad = false;
                 }
                 if (arena.teamSpawns.size() < 2) {
-                    player.sendMessage(ChatColor.RED + "Please add at least two ctp.teams spawn points");
+                    player.sendMessage(ChatColor.RED + "Please add at least two teams' spawn points");
                     canLoad = false;
                 }
                 if (arena.lobby == null) {
@@ -605,8 +605,7 @@ public class BuildCommand extends CTPCommand {
                 }
 
                 String mainArenaCheckError = ctp.checkMainArena(player, arena); // Kj -- Check arena, if there is an error, an error message is returned.
-                if (!mainArenaCheckError.isEmpty())
-                {
+                if (!mainArenaCheckError.isEmpty() && canLoad) {
                     player.sendMessage(mainArenaCheckError);
                     return;
                 }
@@ -623,6 +622,8 @@ public class BuildCommand extends CTPCommand {
                     ctp.loadConfigFiles();
 
                     player.sendMessage(ChatColor.WHITE + "Arena selected for playing: " + ChatColor.GREEN + arg2);
+                } else {
+                    player.sendMessage(ChatColor.GREEN + "If you wanted to edit this arena instead, use " +ChatColor.WHITE+ "/ctp b selectarena "+arg2);
                 }
 
                 return;

@@ -13,7 +13,7 @@ import me.dalton.capturethepoints.PlayersAndCooldowns;
 import me.dalton.capturethepoints.Spawn;
 import me.dalton.capturethepoints.Team;
 import me.dalton.capturethepoints.Util;
-import me.dalton.capturethepoints.commands.AutoCommand;
+import me.dalton.capturethepoints.commands.PJoinCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -367,9 +367,13 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                         } else {
                             if (ctp.hasSuitableArena(readypeople)) {
                                 Util.sendMessageToPlayers(ctp, ChatColor.RED + "Not enough players for a game. Attempting to change arena. [Needed " + ctp.mainArena.minimumPlayers + " players, found " + readypeople + "].");
+                                List<Player> transport = new LinkedList<Player>(lobby.playersinlobby.keySet());
                                 ctp.blockListener.endGame(true);
-                                AutoCommand ac = new AutoCommand(ctp, ctp.mainArena.world);
-                                ac.execute(ctp.getServer().getConsoleSender(), Arrays.asList("ctp", "auto", ctp.mainArena.world));
+                                ctp.chooseSuitableArena(readypeople);
+                                for (Player aPlayer : transport) {
+                                    PJoinCommand pj = new PJoinCommand(ctp); 
+                                    pj.execute(ctp.getServer().getConsoleSender(), Arrays.asList("ctp", "pjoin", aPlayer.getName()));
+                                }
                             } else {
                                 Util.sendMessageToPlayers(ctp, ChatColor.RED + "Not enough players for a game. No other suitable arenas found. [Needed " + ctp.mainArena.minimumPlayers + " players, found " + readypeople + "].");
                                 ctp.blockListener.endGame(true);

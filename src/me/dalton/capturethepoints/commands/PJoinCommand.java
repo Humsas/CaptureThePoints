@@ -2,6 +2,7 @@ package me.dalton.capturethepoints.commands;
 
 import me.dalton.capturethepoints.CaptureThePoints;
 import org.bukkit.ChatColor;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 public class PJoinCommand extends CTPCommand {
@@ -43,7 +44,10 @@ public class PJoinCommand extends CTPCommand {
             return;
         }
         if (!ctp.blockListener.isAlreadyInGame(bob)) {
-            bob.sendMessage(ChatColor.GREEN + sender.getName() + ChatColor.WHITE + " forced you to join CTP!");
+            if (!(sender instanceof ConsoleCommandSender)) {
+                // If the command issuer is not from console
+                bob.sendMessage(ChatColor.GREEN + sender.getName() + ChatColor.WHITE + " forced you to join CTP!");
+            }
             ctp.moveToLobby(bob);
         } else {
             sender.sendMessage(ChatColor.GOLD + parameters.get(2) + ChatColor.RED +" is already playing CTP!");
