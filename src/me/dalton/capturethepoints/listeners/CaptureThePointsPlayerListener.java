@@ -30,7 +30,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.material.Wool;
 
 public class CaptureThePointsPlayerListener extends PlayerListener {
     private final CaptureThePoints ctp;
@@ -618,11 +617,14 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                         if (!ctp.playerData.get(player).isInArena) {
                             return;
                         }
-                        if (inv.getHelmet() != null && (inv.getHelmet().getData() instanceof Wool)) {
+                        if (inv.getHelmet() != null && (inv.getHelmet().getType() == Material.WOOL)) {
                             return;                            
                         }
-                        
                         DyeColor color1 = DyeColor.valueOf(ctp.playerData.get(player).team.color.toUpperCase());
+                        
+                        inv.remove(Material.WOOL);
+                        ctp.entityListener.respawnPlayer(player, null);
+                        
                         ItemStack helmet = new ItemStack(Material.WOOL, 1, color1.getData());
                         player.getInventory().setHelmet(helmet);
                         player.updateInventory();

@@ -959,9 +959,12 @@ public class CaptureThePoints extends JavaPlugin {
             Configuration arenaConf = new Configuration(arenaFile);
             arenaConf.load();
             String world = arenaConf.getString("World");
-
+            
             // Kj -- check the world to see if it exists. 
-            if (getServer().getWorld(world) == null) {
+            try {
+                getServer().getWorld(world);
+                arena.world = world;
+            } catch (Exception ex) {
                 logger.warning("[CTP] ### WARNING: " + name + " has an incorrect World. The World in the config, \"" + world + "\", could not be found. ###");
                 List<String> worlds = new LinkedList<String>();
                 for (World aWorld : getServer().getWorlds()) {
@@ -973,8 +976,6 @@ public class CaptureThePoints extends JavaPlugin {
                 } else {
                     logger.info("[CTP] Could not resolve. Please fix this manually. Hint: Your installed worlds are: " + worlds);
                 }
-            } else {
-                arena.world = world;
             }
 
             arena.name = name;
@@ -1151,7 +1152,11 @@ public class CaptureThePoints extends JavaPlugin {
 
         // Some more checks
         if (player.isInsideVehicle()) {
-            player.leaveVehicle();
+            try {
+                player.leaveVehicle();
+            } catch (Exception e) {
+                // May sometimes reach this if player is riding an entity other than a Minecart
+            }
         }
         if (player.isSleeping()) {
             player.kickPlayer("Banned for life... Nah, just don't join from a bed ;)");

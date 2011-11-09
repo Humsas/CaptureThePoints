@@ -93,45 +93,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
                 if ((this.ctp.playerData.get(playa) != null) && (playa.getHealth() - event.getDamage() <= 0)) {
                     event.setCancelled(true);
                     //Send message to all players
-                    if (attacker != null) {
-                        Util.sendMessageToPlayers(ctp, ctp.playerData.get(playa).team.chatcolor + playa.getName() + ChatColor.WHITE
-                                + " was killed by " + ctp.playerData.get(attacker).team.chatcolor + attacker.getName());
-                        dropWool(playa);
-                        ctp.playerData.get(attacker).money += ctp.mainArena.co.moneyForKill;
-                        attacker.sendMessage("Money: " + ChatColor.GREEN + ctp.playerData.get(attacker).money);
-                        ctp.checkForKillMSG(attacker, false);
-                        ctp.checkForKillMSG(playa, true);
-                    }
-
-                    playa.setHealth(ctp.mainArena.co.maxPlayerHealth);
-                    playa.setFoodLevel(20);
-                    Spawn spawn = 
-                            ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).team.color) != null ?
-                            ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).team.color) :
-                            ctp.playerData.get(playa).team.spawn;
-                            
-                    if (ctp.mainArena.co.giveNewRoleItemsOnRespawn) {
-                        giveRoleItemsAfterDeath(playa);
-                    }
-
-                    // Reseting player cooldowns
-                    for (HealingItems item : ctp.healingItems) {
-                        if (item != null && item.cooldowns != null && item.cooldowns.size() > 0 && item.resetCooldownOnDeath) {
-                            for (String playName : item.cooldowns.keySet()) {
-                                if (playName.equalsIgnoreCase(playa.getName())) {
-                                    item.cooldowns.remove(playName);
-                                }
-                            }
-                        }
-                    }
-
-                    Location loc = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);
-                    loc.setYaw((float) spawn.dir);
-                    ctp.getServer().getWorld(ctp.mainArena.world).loadChunk(loc.getBlockX(), loc.getBlockZ());
-                    boolean teleport = playa.teleport(loc);
-                    if (!teleport) {
-                        playa.teleport(new Location(playa.getWorld(), spawn.x, spawn.y, spawn.z, 0.0F, (float)spawn.dir));
-                    }
+                    respawnPlayer(playa, attacker);
                 }
             }
         }
@@ -288,5 +250,52 @@ public class CaptureThePointsEntityListener extends EntityListener {
             return distance <= ctp.mainArena.co.protectionDistance;
         }
     }
+    
+    
+    public void respawnPlayer (Player player, Player attacker) {
+        if (attacker != null) {
+            Util.sendMessageToPlayers(ctp, ctp.playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE
+                    + " was killed by " + ctp.playerData.get(attacker).team.chatcolor + attacker.getName());
+            dropWool(player);
+            ctp.playerData.get(attacker).money += ctp.mainArena.co.moneyForKill;
+            attacker.sendMessage("Money: " + ChatColor.GREEN + ctp.playerData.get(attacker).money);
+            ctp.checkForKillMSG(attacker, false);
+            ctp.checkForKillMSG(player, true);
+        } else {
+            Util.sendMessageToPlayers(ctp, ctp.playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE
+                    + " was killed by " + ChatColor.LIGHT_PURPLE + "Herobrine");
+            player.sendMessage(ChatColor.RED+"Please do not remove your Helmet.");
+            ctp.checkForKillMSG(player, true);
+        }
 
+        player.setHealth(ctp.mainArena.co.maxPlayerHealth);
+        player.setFoodLevel(20);
+        Spawn spawn = 
+                ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).team.color) != null ?
+                ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).team.color) :
+                ctp.playerData.get(player).team.spawn;
+
+        if (ctp.mainArena.co.giveNewRoleItemsOnRespawn) {
+            giveRoleItemsAfterDeath(player);
+        }
+
+        // Reseting player cooldowns
+        for (HealingItems item : ctp.healingItems) {
+            if (item != null && item.cooldowns != null && item.cooldowns.size() > 0 && item.resetCooldownOnDeath) {
+                for (String playName : item.cooldowns.keySet()) {
+                    if (playName.equalsIgnoreCase(player.getName())) {
+                        item.cooldowns.remove(playName);
+                    }
+                }
+            }
+        }
+
+        Location loc = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);
+        loc.setYaw((float) spawn.dir);
+        ctp.getServer().getWorld(ctp.mainArena.world).loadChunk(loc.getBlockX(), loc.getBlockZ());
+        boolean teleport = player.teleport(loc);
+        if (!teleport) {
+            player.teleport(new Location(player.getWorld(), spawn.x, spawn.y, spawn.z, 0.0F, (float)spawn.dir));
+        }
+    }
 }

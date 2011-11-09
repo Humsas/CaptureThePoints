@@ -125,6 +125,8 @@ public class DebugCommand extends CTPCommand {
             }
         }
         
+        result.clear();
+        
         CaptureThePoints.logger.info("Number of Arenas: "+ctp.arena_list.size()+": "+ctp.arena_list);   
         CaptureThePoints.logger.info("Current Arena: \""+ctp.mainArena.name+"\" in World \""+ctp.mainArena.world+"\"");
         if (ctp.mainArena.hasLobby()) {
@@ -137,7 +139,51 @@ public class DebugCommand extends CTPCommand {
         CaptureThePoints.logger.info("    Minimum Players for this arena: "+ctp.mainArena.minimumPlayers);
         CaptureThePoints.logger.info("    Maxmimum Players for this arena: "+ctp.mainArena.maximumPlayers);
         CaptureThePoints.logger.info("    Players ready in the lobby: "+ctp.mainArena.lobby.countReadyPeople()+"/"+ctp.mainArena.lobby.countAllPeople());
-        CaptureThePoints.logger.info(ctp.roles.size() + " Roles found: "+ctp.roles.keySet().toString()); 
+        CaptureThePoints.logger.info(ctp.roles.size() + " Roles found: "+ctp.roles.keySet().toString());
+        
+        int running = 0, total = 0;
+        if (ctp.CTP_Scheduler.healingItemsCooldowns != 0) {
+            running++; total++;
+            result.add("Item Cooldowns");
+        } else {
+            total++;
+        }
+        if (ctp.CTP_Scheduler.helmChecker != 0) {
+            running++; total++;
+            result.add("Helmet Checker");
+        } else {
+            total++;
+        }
+        if (ctp.CTP_Scheduler.lobbyActivity != 0) {
+            running++; total++;
+            result.add("Lobby Activity");
+        } else {
+            total++;
+        }
+        if (ctp.CTP_Scheduler.money_Score != 0) {
+            running++; total++;
+            result.add("Money Adder");
+        } else {
+            total++;
+        }
+        if (ctp.CTP_Scheduler.playTimer != 0) {
+            running++; total++;
+            result.add("Play Timer");
+        } else {
+            total++;
+        }
+        if (ctp.CTP_Scheduler.pointMessenger != 0) {
+            running++; total++;
+            result.add("Points Messenger");
+        } else {
+            total++;
+        }
+        
+        CaptureThePoints.logger.info(running+"/"+total+" Schedulers running: ");
+        for (String schedule : result) {
+            CaptureThePoints.logger.info("    "+schedule);
+        }
+
         CaptureThePoints.logger.info("End of page 1. To view page 2 (Main Arena Config Options), type /ctp debug 2"); 
         CaptureThePoints.logger.info("-----------========== ######### ==========-----------");
     }
