@@ -73,7 +73,7 @@ public class CaptureThePoints extends JavaPlugin {
     public Map<Player, PlayerData> playerData = new ConcurrentHashMap<Player, PlayerData>();  // To avoid concurent modification exceptions    
 
     /** The Teams stored by CTP. */
-    public List<Team> teams = new LinkedList<Team>();
+    public List<Team> teams = new ArrayList<Team>();
 
     /** Player's previous Locations before they started playing CTP. */
     public final HashMap<Player, Location> previousLocation = new HashMap<Player, Location>();
@@ -239,6 +239,8 @@ public class CaptureThePoints extends JavaPlugin {
                 }
             }
         }
+        
+        // Comand not found
 
         logger.info(sender.getName() + " issued an unknown CTP command. It has " + parameters.size() + " Parameters: " + parameters + ". Displaying help to them.");
         sendHelp(sender);
@@ -293,7 +295,7 @@ public class CaptureThePoints extends JavaPlugin {
         }
 
         difference = highestmembercount - lowestmembercount;
-        if ((highestTeam != lowestTeam) && difference < balancethreshold) {
+        if ((highestTeam == lowestTeam) || difference < balancethreshold) {
             // The difference between the teams is not great enough to balance the teams as defined by balancethreshold.
             return true;
         }
@@ -328,7 +330,7 @@ public class CaptureThePoints extends JavaPlugin {
         if (newTeam == null) {
             // Moving to Lobby
             playerData.get(p).team.memberCount--;
-            playerData.get(p).color = null;
+            //playerData.get(p).color = null;
             playerData.get(p).team = null;
             playerData.get(p).isInArena = false;
             playerData.get(p).isInLobby = true;
@@ -358,8 +360,8 @@ public class CaptureThePoints extends JavaPlugin {
             
             playerData.get(p).team.memberCount--;
             playerData.get(p).team = newTeam;
-            playerData.get(p).color = newTeam.color;
-                       
+            //playerData.get(p).color = newTeam.color;
+                                   
             // Change wool colour and Helmet
             ItemStack[] contents = p.getInventory().getContents();
             int amountofwool = 0;
@@ -800,10 +802,15 @@ public class CaptureThePoints extends JavaPlugin {
     }
 
     /** This method finds if a suitable arena exists.
-     * If useSelectedArenaOnly is true, this method will always return true.
+     * If useSelectedArenaOnly is true, this method will only search the main arena.
      * @param numberofplayers The number of players that want to play.
      * @return If a suitable arena exists, else false. */
     public boolean hasSuitableArena (int numberofplayers) {
+        // No arenas built
+        if (arena_list == null || arena_list.isEmpty()) {
+            return false;
+        }
+        
         // Is the config set to allow the random choosing of arenas?
         if (!mainArena.co.useSelectedArenaOnly) {
             int size = arena_list.size();
@@ -818,7 +825,11 @@ public class CaptureThePoints extends JavaPlugin {
             }
             return false;
         } else {
-            return true;
+            if (mainArena.maximumPlayers >= numberofplayers && mainArena.minimumPlayers <= numberofplayers) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -854,9 +865,9 @@ public class CaptureThePoints extends JavaPlugin {
         }
         Util.sendMessageToPlayers(this, player, ChatColor.GREEN + player.getName() + ChatColor.WHITE + " left the CTP game!"); // Won't send to "player".
         
-        if (playerData.get(player).color != null) {
+        if (playerData.get(player).team != null) {
             for (int i = 0; i < teams.size(); i++) {
-                if (teams.get(i).color.equalsIgnoreCase(playerData.get(player).color)) {
+                if (teams.get(i) == (playerData.get(player).team)) {
                     teams.get(i).memberCount--;
                     break;
                 }

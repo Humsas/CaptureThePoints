@@ -9,8 +9,8 @@ public class PlayerData {
     /** The team this player is on. */
     public Team team; // Kjhf  
     
-    /** The teamcolor this player is on. */
-    public String color;
+    /** The teamcolor this player is on. Moved to team.color */
+    //public String color;
     
     /** The class/role this player has chosen. */
     public String role;

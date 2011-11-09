@@ -64,7 +64,7 @@ public class ArenaData {
     public List<String> getPlayersPlaying(CaptureThePoints ctp) {
         List<String> players = new ArrayList<String>();
         for (Player p : ctp.playerData.keySet()) {
-            if (ctp.playerData.get(p).team == null || ctp.playerData.get(p).color == null) {
+            if (ctp.playerData.get(p).team == null) {
                 continue; // Player is not yet in game.
             } else {
                 players.add(p.getName());

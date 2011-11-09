@@ -69,7 +69,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         if (ctp.playerData.containsKey(event.getPlayer())) {
             Player player = event.getPlayer();
             //Player in the lobby
-            if (ctp.playerData.get(player).color == null) {
+            if (ctp.playerData.get(player).team.color == null) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You cannot drop items in the lobby!");
                 return;
@@ -244,7 +244,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 if (isInside(loc.getBlockY(), 0, 999) && isInside(loc.getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(loc.getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && loc.getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
                     return;
                 } else {
-                    String color = ctp.playerData.get(player).color;
+                    String color = ctp.playerData.get(player).team.color;
                     Location loc2 = new Location(ctp.getServer().getWorld(ctp.mainArena.world), ctp.mainArena.teamSpawns.get(color).x, ctp.mainArena.teamSpawns.get(color).y + 1, ctp.mainArena.teamSpawns.get(color).z);
                     loc2.setYaw((float) ctp.mainArena.teamSpawns.get(color).dir);
                     loc2.getWorld().loadChunk(loc2.getBlockX(), loc2.getBlockZ());
@@ -434,7 +434,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     public void fixHelmet (Player p) {
         PlayerInventory inv = p.getInventory();
         p.sendMessage(ChatColor.RED + "Do not remove your helmet.");
-        DyeColor color1 = DyeColor.valueOf(ctp.playerData.get(p).color.toUpperCase());
+        DyeColor color1 = DyeColor.valueOf(ctp.playerData.get(p).team.color.toUpperCase());
         ItemStack helmet = new ItemStack(Material.WOOL, 1, (short) color1.getData());
 
         inv.remove(Material.WOOL);
@@ -514,7 +514,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                     }
 
                     for (Player player : ctp.playerData.keySet()) {
-                        if ((ctp.playerData.get(player).isInArena) && (colors.containsKey(ctp.playerData.get(player).color))) {
+                        if ((ctp.playerData.get(player).isInArena) && (colors.containsKey(ctp.playerData.get(player).team.color))) {
                             ctp.playerData.get(player).winner = true;
                         }
                     }
@@ -608,19 +608,24 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 
         }, 20L, 20L); // Every one sec
 
-
+        //Helmet Checking
         ctp.CTP_Scheduler.helmChecker = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable() {
             @Override
             public void run () {
                 if (ctp.isGameRunning()) {
                     for (Player player : ctp.playerData.keySet()) {
                         PlayerInventory inv = player.getInventory();
-                        if (!(inv.getHelmet().getData() instanceof Wool) && ctp.playerData.get(player).isInArena) {
-                            DyeColor color1 = DyeColor.valueOf(ctp.playerData.get(player).color.toUpperCase());
-                            ItemStack helmet = new ItemStack(Material.WOOL, 1, color1.getData());
-                            player.getInventory().setHelmet(helmet);
-                            player.updateInventory();
+                        if (!ctp.playerData.get(player).isInArena) {
+                            return;
                         }
+                        if (inv.getHelmet() != null && (inv.getHelmet().getData() instanceof Wool)) {
+                            return;                            
+                        }
+                        
+                        DyeColor color1 = DyeColor.valueOf(ctp.playerData.get(player).team.color.toUpperCase());
+                        ItemStack helmet = new ItemStack(Material.WOOL, 1, color1.getData());
+                        player.getInventory().setHelmet(helmet);
+                        player.updateInventory();
                     }
                 }
             }
@@ -673,11 +678,10 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 
         //Move to spawn     TODO do not move players to same point
         ctp.playerData.get(player).team = team;
-        ctp.playerData.get(player).color = color;
 
         Spawn spawn =
-                ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color) != null
-                ? ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color)
+                ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).team.color) != null
+                ? ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).team.color)
                 : team.spawn;
 
         Location loc = new Location(ctp.getServer().getWorld(ctp.mainArena.world), ctp.mainArena.teamSpawns.get(color).x, ctp.mainArena.teamSpawns.get(color).y + 1D, ctp.mainArena.teamSpawns.get(color).z); // Kj -- Y+1
@@ -707,7 +711,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
          *            # 
          */
         
-        if (ctp.playerData.get(p).color == null) {
+        if (ctp.playerData.get(p).team.color == null) {
             return;
         }
 
@@ -721,7 +725,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         String teamcolor = sign.getLine(3) == null ? "" : sign.getLine(3);
 
         // Kj -- If player does not match the teamcolour if it is specified.
-        if (!ctp.playerData.get(p).color.trim().equalsIgnoreCase(teamcolor.trim()) && !teamcolor.isEmpty()) {
+        if (!ctp.playerData.get(p).team.color.trim().equalsIgnoreCase(teamcolor.trim()) && !teamcolor.isEmpty()) {
             p.sendMessage(ChatColor.RED + "You are not on the " + teamcolor.toUpperCase() + " team.");
             return;
         }

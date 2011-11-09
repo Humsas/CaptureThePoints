@@ -52,10 +52,10 @@ public class Team {
 
         Set<Player> players = ctp.playerData.keySet();
         for (Player p : players) {
-            if (ctp.playerData.get(p).team == null || ctp.playerData.get(p).color == null) {
+            if (ctp.playerData.get(p).team == null) {
                 continue; // Player is not yet in game.
             }
-            if (ctp.playerData.get(p).team == this || ctp.playerData.get(p).color.equalsIgnoreCase(this.color)) {
+            if (ctp.playerData.get(p).team == this && ctp.playerData.get(p).team.color.equalsIgnoreCase(this.color)) {
                 teamplayers.add(p);
             }
         }
@@ -74,10 +74,10 @@ public class Team {
 
         Set<Player> players = ctp.playerData.keySet();
         for (Player p : players) {
-            if (ctp.playerData.get(p).team == null || ctp.playerData.get(p).color == null) {
+            if (ctp.playerData.get(p).team == null || ctp.playerData.get(p).team.color == null) {
                 continue; // Player is not yet in game.
             }
-            if (ctp.playerData.get(p).team == this || ctp.playerData.get(p).color.equalsIgnoreCase(this.color)) {
+            if (ctp.playerData.get(p).team == this && ctp.playerData.get(p).team.color.equalsIgnoreCase(this.color)) {
                 teamplayers.add(p.getName());
             }
         }

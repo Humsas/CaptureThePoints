@@ -77,7 +77,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
                 //disable pvp damage
                 if (attacker != null) {
                     if ((this.ctp.playerData.get(playa) != null) && (this.ctp.playerData.get(attacker) != null)) {
-                        if (this.ctp.playerData.get(playa).color.equalsIgnoreCase(this.ctp.playerData.get(attacker).color)) {
+                        if (this.ctp.playerData.get(playa).team.color.equalsIgnoreCase(this.ctp.playerData.get(attacker).team.color)) {
                             attacker.sendMessage(ctp.playerData.get(playa).team.chatcolor + playa.getName() + ChatColor.LIGHT_PURPLE + " is on your team!");
                             event.setCancelled(true);
                             return;
@@ -106,8 +106,8 @@ public class CaptureThePointsEntityListener extends EntityListener {
                     playa.setHealth(ctp.mainArena.co.maxPlayerHealth);
                     playa.setFoodLevel(20);
                     Spawn spawn = 
-                            ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color) != null ?
-                            ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).color) :
+                            ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).team.color) != null ?
+                            ctp.mainArena.teamSpawns.get(ctp.playerData.get(playa).team.color) :
                             ctp.playerData.get(playa).team.spawn;
                             
                     if (ctp.mainArena.co.giveNewRoleItemsOnRespawn) {
@@ -169,7 +169,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
         int ownedWool = 0;
         for (ItemStack item : inv.getContents()) {
             if (item != null && item.getTypeId() == 35) {
-                if (!((Wool) item.getData()).getColor().toString().equalsIgnoreCase(ctp.playerData.get(player).color)) {
+                if (!((Wool) item.getData()).getColor().toString().equalsIgnoreCase(ctp.playerData.get(player).team.color)) {
                     inv.remove(35);
                     ItemStack tmp = new ItemStack(item.getType(), item.getAmount(), (short) ((Wool) item.getData()).getColor().getData());
                     player.getWorld().dropItem(player.getLocation(), tmp);
@@ -180,7 +180,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
         }
         inv.remove(Material.WOOL);
         if (ownedWool != 0) {
-            DyeColor color = DyeColor.valueOf(ctp.playerData.get(player).color.toUpperCase());
+            DyeColor color = DyeColor.valueOf(ctp.playerData.get(player).team.color.toUpperCase());
             ItemStack wool = new ItemStack(35, ownedWool, color.getData());
             player.getInventory().addItem(new ItemStack[]{wool});
             player.updateInventory();
@@ -276,8 +276,8 @@ public class CaptureThePointsEntityListener extends EntityListener {
         }
 
         Spawn spawn = 
-            ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color) != null ?
-            ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).color) :
+            ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).team.color) != null ?
+            ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).team.color) :
             ctp.playerData.get(player).team.spawn;
                             
         Location protectionPoint = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);

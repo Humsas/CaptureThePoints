@@ -23,8 +23,8 @@ public class ConfigOptions {
     /** Drop wool if a player dies /||/ Don't drop wool if a player dies [Default: true] */
     public boolean dropWoolOnDeath = true; // Kjhf
        
-    /** Teams must be even on start (may result in one person being left at lobby) /||/ Teams can be uneven on start (everyone can play) [Default: false] */
-    public boolean exactTeamMemberCount = false;
+    /** Teams must be even on start (may result in one person being left at lobby) /||/ Teams can be uneven on start (everyone can play) [Default: true] */
+    public boolean exactTeamMemberCount = true;
     
     /** Replenish items on respawn /||/ Limited ammo and durability! [Default: true] */
     public boolean giveNewRoleItemsOnRespawn = true;

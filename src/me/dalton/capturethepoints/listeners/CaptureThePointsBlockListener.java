@@ -27,7 +27,9 @@ import org.bukkit.material.Wool;
 
 public class CaptureThePointsBlockListener extends BlockListener {
     private final CaptureThePoints ctp;
+
     public boolean capturegame = false;
+
     public boolean preGame = true;
 
     public CaptureThePointsBlockListener (CaptureThePoints ctp) {
@@ -88,7 +90,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                 return;
             }
             boolean inPoint = false; // Kj -- for block breaking checker 
-            
+
             //in game wool check
             if (data instanceof Wool) {
                 Location loc = block.getLocation();
@@ -99,8 +101,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
                     if (distance < 5.0D) {
                         inPoint = true; // Kj -- for block breaking checker 
                         if (point.pointDirection == null) {
-                            if (checkForFill(point, loc, ctp.playerData.get(player).color, ((Wool) data).getColor().toString(), true)) {
-                                if (ctp.playerData.get(player).color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
+                            if (checkForFill(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), true)) {
+                                if (ctp.playerData.get(player).team.color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
                                     event.setCancelled(true);
                                     return;
                                 }
@@ -111,8 +113,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
                                 }
                             }
                         } else {
-                            if (checkForFillVert(point, loc, ctp.playerData.get(player).color, ((Wool) data).getColor().toString(), true)) {
-                                if (ctp.playerData.get(player).color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
+                            if (checkForFillVert(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), true)) {
+                                if (ctp.playerData.get(player).team.color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
                                     event.setCancelled(true);
                                     return;
                                 }
@@ -126,14 +128,14 @@ public class CaptureThePointsBlockListener extends BlockListener {
                     }
                 }
             }
-            
+
             // Kj -- block breaking checker blocks breaking of anything not in the CTPPoint if the config has set AllowBlockBreak to false.
             if (!ctp.mainArena.co.allowBlockPlacement && !inPoint) {
                 event.setCancelled(true);
                 return;
             }
             ctp.arenaRestore.addBlock(block, false);
-        
+
 
             /* Kj -- this checks to see if the event was cancelled. If it wasn't, then it's a legit block break. 
              * If the config option is set to no items on block break, then cancel the event and set the block
@@ -184,7 +186,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
                         inPoint = true; // Kj -- for block placement checker 
 
                         // If building near the point with not your own colored wool(to prevent wool destry bug)
-                        if (!ctp.playerData.get(player).color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
+                        if (!ctp.playerData.get(player).team.color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
                             event.setCancelled(true);
                             return;
                         }
@@ -194,9 +196,9 @@ public class CaptureThePointsBlockListener extends BlockListener {
                                 event.setCancelled(true);
                                 return;
                             }
-                            if (checkForFill(point, loc, ctp.playerData.get(player).color, ((Wool) data).getColor().toString(), false)) {
+                            if (checkForFill(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), false)) {
                                 if (point.controledByTeam == null) {
-                                    point.controledByTeam = ctp.playerData.get(player).color;
+                                    point.controledByTeam = ctp.playerData.get(player).team.color;
                                     Util.sendMessageToPlayers(ctp, addPoints(((Wool) data).getColor().toString(), point.name));
                                     ctp.playerData.get(player).pointCaptures++;
                                     ctp.playerData.get(player).money += ctp.mainArena.co.moneyForPointCapture;
@@ -213,9 +215,9 @@ public class CaptureThePointsBlockListener extends BlockListener {
                                 event.setCancelled(true);
                                 return;
                             }
-                            if (checkForFillVert(point, loc, ctp.playerData.get(player).color, ((Wool) data).getColor().toString(), false)) {
+                            if (checkForFillVert(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), false)) {
                                 if (point.controledByTeam == null) {
-                                    point.controledByTeam = ctp.playerData.get(player).color;
+                                    point.controledByTeam = ctp.playerData.get(player).team.color;
                                     Util.sendMessageToPlayers(ctp, addPoints(((Wool) data).getColor().toString(), point.name));
                                     ctp.playerData.get(player).pointCaptures++;
                                     ctp.playerData.get(player).money += ctp.mainArena.co.moneyForPointCapture;
@@ -245,7 +247,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
             return;
         }
         if (isAlreadyInGame(event.getPlayer())) {
-            event.getPlayer().sendMessage(ChatColor.RED+"Cannot break sign whilst playing.");
+            event.getPlayer().sendMessage(ChatColor.RED + "Cannot break sign whilst playing.");
             event.setCancelled(true);
             return;
         }
@@ -450,7 +452,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
 
         for (Team team : winningteams) {
             for (Player player : ctp.playerData.keySet()) {
-                if ((ctp.playerData.get(player).isInArena) && (ctp.playerData.get(player).color.equalsIgnoreCase(team.color))) {
+                if ((ctp.playerData.get(player).isInArena) && (ctp.playerData.get(player).team == team)) {
                     ctp.playerData.get(player).winner = true;
                 }
             }
@@ -459,12 +461,12 @@ public class CaptureThePointsBlockListener extends BlockListener {
         Util.sendMessageToPlayers(ctp, WinMessage);
         String message = "";
         if (ctp.mainArena.co.useScoreGeneration) {
-            for (Team aTteam : ctp.teams) {
-                message = message + aTteam.chatcolor + aTteam.color.toUpperCase() + ChatColor.WHITE + " final score: " + aTteam.score + ChatColor.AQUA + " // ";
+            for (Team aTeam : ctp.teams) {
+                message = message + aTeam.chatcolor + aTeam.color.toUpperCase() + ChatColor.WHITE + " final score: " + aTeam.score + ChatColor.AQUA + " // ";
             }
         } else {
-            for (Team aTteam : ctp.teams) {
-                message = message + aTteam.chatcolor + aTteam.color.toUpperCase() + ChatColor.WHITE + " final points: " + aTteam.controledPoints + ChatColor.AQUA + " // ";
+            for (Team aTeam : ctp.teams) {
+                message = message + aTeam.chatcolor + aTeam.color.toUpperCase() + ChatColor.WHITE + " final points: " + aTeam.controledPoints + ChatColor.AQUA + " // ";
             }
         }
 
@@ -474,8 +476,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
         return true;
     }
 
-    public void endGame (boolean noRewards)
-    {
+    public void endGame (boolean noRewards) {
         Util.sendMessageToPlayers(ctp, "A Capture The Points game has ended!");
 
         // Task canceling
@@ -491,17 +492,15 @@ public class CaptureThePointsBlockListener extends BlockListener {
             ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.pointMessenger);
             ctp.CTP_Scheduler.pointMessenger = 0;
         }
-        if (ctp.CTP_Scheduler.helmChecker != 0)
-        {
+        if (ctp.CTP_Scheduler.helmChecker != 0) {
             ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.helmChecker);
             ctp.CTP_Scheduler.helmChecker = 0;
         }
-        if(ctp.CTP_Scheduler.healingItemsCooldowns != 0)
-        {
+        if (ctp.CTP_Scheduler.healingItemsCooldowns != 0) {
             ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.healingItemsCooldowns);
             ctp.CTP_Scheduler.healingItemsCooldowns = 0;
         }
-        
+
         for (CTPPoints s : ctp.mainArena.capturePoints) {
             s.controledByTeam = null;
         }

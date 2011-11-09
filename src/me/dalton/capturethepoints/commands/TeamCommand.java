@@ -34,8 +34,13 @@ public class TeamCommand extends CTPCommand {
             return;
         }
         
+        if (!ctp.blockListener.isAlreadyInGame(player) || ctp.playerData.get(player).team == null) {
+            player.sendMessage(ChatColor.RED + "You have not yet been assigned a team!");
+            return;
+        }
+        
         PlayerData data = ctp.playerData.get(player);
-        String teamcolour = data.color.trim();
+        String teamcolour = data.team.color.trim();
         
         List<String> playernames = new ArrayList<String>();
         ChatColor cc = ChatColor.GREEN;
