@@ -644,6 +644,7 @@ public class CaptureThePoints extends JavaPlugin {
         co.allowBlockBreak = config.getBoolean(global + "AllowBlockBreak", globalConfigOptions.allowBlockBreak);
         co.allowBlockPlacement = config.getBoolean(global + "AllowBlockPlacement", globalConfigOptions.allowBlockPlacement);
         co.allowCommands = config.getBoolean(global + "AllowCommands", globalConfigOptions.allowCommands);
+        co.allowDropItems = config.getBoolean(global + "AllowDropItems", globalConfigOptions.allowDropItems);
         co.allowLateJoin = config.getBoolean(global + "AllowLateJoin", globalConfigOptions.allowLateJoin);
         co.autoStart = config.getBoolean(global + "AutoStart", globalConfigOptions.autoStart);
         co.breakingBlocksDropsItems = config.getBoolean(global + "BreakingBlocksDropsItems", globalConfigOptions.breakingBlocksDropsItems);
@@ -708,6 +709,7 @@ public class CaptureThePoints extends JavaPlugin {
         co.allowBlockBreak = config.getBoolean(global + "AllowBlockBreak", globalConfigOptions.allowBlockBreak);
         co.allowBlockPlacement = config.getBoolean(global + "AllowBlockPlacement", globalConfigOptions.allowBlockPlacement);
         co.allowCommands = globalConfigOptions.allowCommands;
+        co.allowDropItems = config.getBoolean(global + "AllowDropItems", globalConfigOptions.allowDropItems);
         co.allowLateJoin = globalConfigOptions.allowLateJoin;
         co.autoStart = globalConfigOptions.autoStart;
         co.breakingBlocksDropsItems = config.getBoolean(global + "BreakingBlocksDropsItems", globalConfigOptions.breakingBlocksDropsItems);
@@ -781,6 +783,7 @@ public class CaptureThePoints extends JavaPlugin {
         config.setProperty("GlobalSettings.AllowBlockBreak", co.allowBlockBreak);
         config.setProperty("GlobalSettings.AllowBlockPlacement", co.allowBlockPlacement);
         config.setProperty("GlobalSettings.AllowCommands", co.allowCommands);
+        config.setProperty("GlobalSettings.AllowDropItems", co.allowDropItems);
         config.setProperty("GlobalSettings.AllowLateJoin", co.allowLateJoin);
         config.setProperty("GlobalSettings.AutoStart", co.autoStart);
         config.setProperty("GlobalSettings.BreakingBlocksDropsItems", co.breakingBlocksDropsItems);

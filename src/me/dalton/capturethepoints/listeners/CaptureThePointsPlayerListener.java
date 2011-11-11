@@ -73,6 +73,11 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 player.sendMessage(ChatColor.RED + "You cannot drop items in the lobby!");
                 return;
             }
+            if (!ctp.mainArena.co.allowDropItems) {
+                event.setCancelled(true);
+                player.sendMessage(ChatColor.RED + "You may not drop items.");
+                return;
+            }
             /*else { // Must be playing a game
             boolean helmetRemoved = checkHelmet(player);
             if (helmetRemoved) {

@@ -45,6 +45,7 @@ public class DebugCommand extends CTPCommand {
                 CaptureThePoints.logger.info("   AllowBlockBreak: " + co.allowBlockBreak);
                 CaptureThePoints.logger.info("   AllowBlockPlacement: " + co.allowBlockPlacement);
                 CaptureThePoints.logger.info("   AllowCommands: " + co.allowCommands);
+                CaptureThePoints.logger.info("   AllowDropItems: " + co.allowDropItems);
                 CaptureThePoints.logger.info("   AllowLateJoin: " + co.allowLateJoin);
                 CaptureThePoints.logger.info("   AutoStart: " + co.autoStart);
                 CaptureThePoints.logger.info("   BreakingBlocksDropsItems: " + co.breakingBlocksDropsItems);

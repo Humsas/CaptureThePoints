@@ -11,6 +11,9 @@ public class ConfigOptions {
     /** Allow use of commands during a ctp game /||/ Disallow use of commands during a ctp game (excludes /ctp) [Default: false] */
     public boolean allowCommands = false;
     
+    /** Allow players to drop items during a ctp game -- may be exploited /||/ Disallow players to drop items during a ctp game [Default: false] */
+    public boolean allowDropItems = false; // Kjhf
+    
     /** Allow joining a ctp game if one has already started /||/ Disallow joining a ctp game if one has already started [Default: true] */
     public boolean allowLateJoin = true; // Kjhf
     
