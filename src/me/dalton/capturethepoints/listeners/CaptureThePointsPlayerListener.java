@@ -68,7 +68,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         if (ctp.playerData.containsKey(event.getPlayer())) {
             Player player = event.getPlayer();
             //Player in the lobby
-            if (ctp.playerData.get(player).team.color == null) {
+            if (ctp.playerData.get(player).isInLobby) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You cannot drop items in the lobby!");
                 return;
@@ -245,7 +245,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             Player player = event.getPlayer();
             if (ctp.playerData.get(player).moveChecker >= 10) {
                 ctp.playerData.get(player).moveChecker = 0;
-                if (isInside(loc.getBlockY(), 0, 999) && isInside(loc.getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(loc.getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && loc.getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
+                if (isInside(loc.getBlockY(), ctp.mainArena.y1, ctp.mainArena.y2) && isInside(loc.getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(loc.getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && loc.getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
                     return;
                 } else {
                     String color = ctp.playerData.get(player).team.color;
@@ -273,7 +273,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
     public void onPlayerTeleport (PlayerTeleportEvent event) {
         if (!(ctp.isGameRunning())) {
             if (this.ctp.playerData.get(event.getPlayer()) != null && ctp.playerData.get(event.getPlayer()).isInLobby) {
-                if (isInside(event.getTo().getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(event.getTo().getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && event.getTo().getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
+                if (isInside(event.getTo().getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && isInside(event.getTo().getBlockY(), ctp.mainArena.y1, ctp.mainArena.y2) && isInside(event.getTo().getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && event.getTo().getWorld().getName().equalsIgnoreCase(ctp.mainArena.world)) {
                     ctp.playerData.get(event.getPlayer()).justJoined = false;
                     return;
                 } else {

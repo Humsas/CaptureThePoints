@@ -514,7 +514,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
         this.preGame = true;
         this.capturegame = false;
 
-        for (Player player : this.ctp.playerData.keySet()) {
+        for (Player player : this.ctp.playerData.keySet())
+        {
             restoreThings(player);
             if (!noRewards) {
                 Util.rewardPlayer(ctp, player);
@@ -523,8 +524,15 @@ public class CaptureThePointsBlockListener extends BlockListener {
         //Arena restore
         if(ctp.globalConfigOptions.enableHardArenaRestore)
         {
-            ctp.mysqlConnector.connectToMySql();
-            ctp.arenaRestore.restore(ctp.mainArena.name);
+            ctp.getServer().getScheduler().scheduleSyncDelayedTask(ctp, new Runnable()
+            {
+                @Override
+                public void run ()
+                {
+                    ctp.mysqlConnector.connectToMySql();
+                    ctp.arenaRestore.restore(ctp.mainArena.name);
+                }
+            }, 5L);  //I think one second is too much and can cause some troubles if player break another block
         }
         else
         {

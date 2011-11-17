@@ -28,6 +28,7 @@ import org.bukkit.material.Directional;
  */
 public class ArenaRestore {
 
+    public String arenaToDelete = null;
     private List<CTPBlock> destroyedBlock = new LinkedList<CTPBlock>();
     // true if destroed, false if not
     private List<Boolean> blockStatus = new LinkedList<Boolean>();
