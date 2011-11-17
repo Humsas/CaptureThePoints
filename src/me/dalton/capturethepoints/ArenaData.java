@@ -30,16 +30,20 @@ public class ArenaData {
     public ConfigOptions co;
     
     /** The first X co-ordinate representing the boundary of this arena. */
-    public int x1;
+    public int x1 = 0;
+
+    public int y1 = 0;
     
     /** The first Z co-ordinate representing the boundary of this arena. */
-    public int z1;
+    public int z1 = 0;
     
     /** The second X co-ordinate representing the boundary of this arena. */
-    public int x2;
+    public int x2 = 0;
+
+    public int y2 = 0;
     
     /** The second Z co-ordinate representing the boundary of this arena. */
-    public int z2;
+    public int z2 = 0;
     
     /** The minimum number of players this arena can take. [Default: 2] */
     public int minimumPlayers = 2;

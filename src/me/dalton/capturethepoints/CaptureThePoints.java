@@ -63,6 +63,7 @@ public class CaptureThePoints extends JavaPlugin {
     public final CaptureThePointsPlayerListener playerListener = new CaptureThePointsPlayerListener(this);
 
     public ArenaRestore arenaRestore = new ArenaRestore(this);
+    public MysqlConnector mysqlConnector = new MysqlConnector(this);
 
     public final HashMap<Player, ItemStack[]> Inventories = new HashMap<Player, ItemStack[]>();
 
@@ -109,9 +110,6 @@ public class CaptureThePoints extends JavaPlugin {
 
     /** Name of the player who needs teleporting. */
     public String playerNameForTeleport = ""; // Block destroy - teleport protection
-
-    // Arenos issaugojimui -- Arena currently being edited
-    public int x1, y1, z1, x2, y2, z2;
 
     /** Load from CaptureSettings.yml */
     public Configuration load () { //Yaml Configuration
@@ -617,6 +615,7 @@ public class CaptureThePoints extends JavaPlugin {
         String pointCapture = "";
         String pointCaptureWithScore = "";
         String global = "";
+        String mySql = "";
         boolean updateConfig = false;
 
         if (config.getProperty("Version") == null) {
@@ -627,6 +626,7 @@ public class CaptureThePoints extends JavaPlugin {
             pointCapture = "GlobalSettings.GameMode.PointCapture.";
             pointCaptureWithScore = "GlobalSettings.GameMode.PointCaptureWithScoreGeneration.";
             global = "GlobalSettings.";
+            mySql = "GlobalSettings.MySql.";
         }
         //Game mode configuration
         co.pointsToWin = config.getInt(pointCapture + "PointsToWin", globalConfigOptions.pointsToWin);
@@ -638,6 +638,12 @@ public class CaptureThePoints extends JavaPlugin {
         co.onePointGeneratedScoreEvery30sec = config.getInt(pointCaptureWithScore + "OnePointGeneratedScoreEvery30sec", globalConfigOptions.onePointGeneratedScoreEvery30sec);
         co.scoreAnnounceTime = config.getInt(pointCaptureWithScore + "ScoreAnnounceTime", globalConfigOptions.scoreAnnounceTime);
 
+        // My sql
+        co.mysqlAddress = config.getString(mySql + "Address", globalConfigOptions.mysqlAddress);
+        co.mysqlDatabase = config.getString(mySql + "Database", globalConfigOptions.mysqlDatabase);
+        co.mysqlPort = config.getInt(mySql + "Port", globalConfigOptions.mysqlPort);
+        co.mysqlUser = config.getString(mySql + "User", globalConfigOptions.mysqlUser);
+        co.mysqlPass = config.getString(mySql + "Pass", globalConfigOptions.mysqlPass);
 
         // Global configuration
         // Kj -- documentation for the different options, including their default values, can be found under the ConfigOptions class.
@@ -649,7 +655,7 @@ public class CaptureThePoints extends JavaPlugin {
         co.autoStart = config.getBoolean(global + "AutoStart", globalConfigOptions.autoStart);
         co.breakingBlocksDropsItems = config.getBoolean(global + "BreakingBlocksDropsItems", globalConfigOptions.breakingBlocksDropsItems);
         co.dropWoolOnDeath = config.getBoolean(global + "DropWoolOnDeath", globalConfigOptions.dropWoolOnDeath);
-//        co.enableHardArenaRestore = config.getBoolean("Options.EnableHardArenaRestore", globalConfigOptions.EnableHardArenaRestore);
+        co.enableHardArenaRestore = config.getBoolean(global + "EnableHardArenaRestore", globalConfigOptions.enableHardArenaRestore);
         co.exactTeamMemberCount = config.getBoolean(global + "ExactTeamMemberCount", globalConfigOptions.exactTeamMemberCount);
         co.balanceTeamsWhenPlayerLeaves = config.getInt(global + "BalanceTeamsWhenPlayerLeaves", globalConfigOptions.balanceTeamsWhenPlayerLeaves);
         co.giveNewRoleItemsOnRespawn = config.getBoolean(global + "GiveNewRoleItemsOnRespawn", globalConfigOptions.giveNewRoleItemsOnRespawn);
@@ -714,7 +720,6 @@ public class CaptureThePoints extends JavaPlugin {
         co.autoStart = globalConfigOptions.autoStart;
         co.breakingBlocksDropsItems = config.getBoolean(global + "BreakingBlocksDropsItems", globalConfigOptions.breakingBlocksDropsItems);
         co.dropWoolOnDeath = config.getBoolean(global + "DropWoolOnDeath", globalConfigOptions.dropWoolOnDeath);
-//        co.enableHardArenaRestore = config.getBoolean("Options.EnableHardArenaRestore", globalConfigOptions.EnableHardArenaRestore);
         co.exactTeamMemberCount = config.getBoolean(global + "ExactTeamMemberCount", globalConfigOptions.exactTeamMemberCount);
         co.balanceTeamsWhenPlayerLeaves = config.getInt(global + "BalanceTeamsWhenPlayerLeaves", globalConfigOptions.balanceTeamsWhenPlayerLeaves);
         co.giveNewRoleItemsOnRespawn = config.getBoolean(global + "GiveNewRoleItemsOnRespawn", globalConfigOptions.giveNewRoleItemsOnRespawn);
@@ -1035,10 +1040,12 @@ public class CaptureThePoints extends JavaPlugin {
                     }
                 }
             }
-            // boundarys
+            // Arena boundarys
             arena.x1 = arenaConf.getInt("Boundarys.X1", 0);
+            arena.y1 = arenaConf.getInt("Boundarys.Y1", 0);
             arena.z1 = arenaConf.getInt("Boundarys.Z1", 0);
             arena.x2 = arenaConf.getInt("Boundarys.X2", 0);
+            arena.y2 = arenaConf.getInt("Boundarys.Y2", 0);
             arena.z2 = arenaConf.getInt("Boundarys.Z2", 0);
 
 

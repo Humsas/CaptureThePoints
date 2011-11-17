@@ -134,7 +134,10 @@ public class CaptureThePointsBlockListener extends BlockListener {
                 event.setCancelled(true);
                 return;
             }
-            ctp.arenaRestore.addBlock(block, false);
+            if(!ctp.globalConfigOptions.enableHardArenaRestore)
+            {
+                ctp.arenaRestore.addBlock(block, false);
+            }
 
 
             /* Kj -- this checks to see if the event was cancelled. If it wasn't, then it's a legit block break. 
@@ -237,7 +240,10 @@ public class CaptureThePointsBlockListener extends BlockListener {
                 event.setCancelled(true);
                 return;
             }
-            ctp.arenaRestore.addBlock(block, false);
+            if(!ctp.globalConfigOptions.enableHardArenaRestore)
+            {
+                ctp.arenaRestore.addBlock(block, false);
+            }
         }
     }
 
@@ -514,7 +520,17 @@ public class CaptureThePointsBlockListener extends BlockListener {
                 Util.rewardPlayer(ctp, player);
             }
         }
-        ctp.arenaRestore.restoreAllBlocks();
+        //Arena restore
+        if(ctp.globalConfigOptions.enableHardArenaRestore)
+        {
+            ctp.mysqlConnector.connectToMySql();
+            ctp.arenaRestore.restore(ctp.mainArena.name);
+        }
+        else
+        {
+            ctp.arenaRestore.restoreAllBlocks();
+        }
+
         for (HealingItems item : ctp.healingItems) {
             if (!item.cooldowns.isEmpty()) {
                 item.cooldowns.clear();

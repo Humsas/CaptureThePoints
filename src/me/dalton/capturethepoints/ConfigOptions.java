@@ -88,12 +88,11 @@ public class ConfigOptions {
      * @see KillStreakMessages */
     public KillStreakMessages killStreakMessages = new KillStreakMessages();
     
-    /*
-    public boolean enableHardArenaRestore; // Write to MYSQL
-    public int mysqlPort;
-    public String mysqlAddress;
-    public String mysqlDatabase;
-    public String mysqlPass;
-    public String mysqlUser;
-     */
+    
+    public boolean enableHardArenaRestore = false; // Write to MYSQL
+    public int mysqlPort = 3306;
+    public String mysqlAddress = "localhost";
+    public String mysqlDatabase = "";
+    public String mysqlPass = "";
+    public String mysqlUser = "root";
 }

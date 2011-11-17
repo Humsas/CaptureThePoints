@@ -4,6 +4,7 @@ import java.io.File;
 import me.dalton.capturethepoints.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.config.Configuration;
 
@@ -534,6 +535,14 @@ public class BuildCommand extends CTPCommand {
                         }
                     }
                 }
+
+                //Delete mysql data
+                if(ctp.globalConfigOptions.enableHardArenaRestore)
+                {
+                    ctp.mysqlConnector.connectToMySql();
+                    ctp.arenaRestore.deleteArenaData(arg2);
+                }
+
                 arenaFile.delete();
                 ctp.arena_list.remove(arg2);
                 if (arg2.equals(ctp.mainArena.name)) {
@@ -732,6 +741,7 @@ public class BuildCommand extends CTPCommand {
                 if (arg2.equalsIgnoreCase("1")) {
                     if (ctp.editingArena.name.equalsIgnoreCase(ctp.mainArena.name)) {
                         ctp.mainArena.x1 = loc.getBlockX();
+                        ctp.mainArena.y1 = loc.getBlockY();
                         ctp.mainArena.z1 = loc.getBlockZ();
                     }
 
@@ -739,6 +749,7 @@ public class BuildCommand extends CTPCommand {
                     Configuration arenaConf = new Configuration(arenaFile);
                     arenaConf.load();
                     arenaConf.setProperty("Boundarys.X1", Integer.valueOf(loc.getBlockX()));
+                    arenaConf.setProperty("Boundarys.Y1", Integer.valueOf(loc.getBlockY()));
                     arenaConf.setProperty("Boundarys.Z1", Integer.valueOf(loc.getBlockZ()));
                     arenaConf.save();
 
@@ -746,6 +757,7 @@ public class BuildCommand extends CTPCommand {
                 } else if (arg2.equalsIgnoreCase("2")) {
                     if (ctp.editingArena.name.equalsIgnoreCase(ctp.mainArena.name)) {
                         ctp.mainArena.x2 = loc.getBlockX();
+                        ctp.mainArena.y2 = loc.getBlockY();
                         ctp.mainArena.z2 = loc.getBlockZ();
                     }
 
@@ -753,29 +765,55 @@ public class BuildCommand extends CTPCommand {
                     Configuration arenaConf = new Configuration(arenaFile);
                     arenaConf.load();
                     arenaConf.setProperty("Boundarys.X2", Integer.valueOf(loc.getBlockX()));
+                    arenaConf.setProperty("Boundarys.Y2", Integer.valueOf(loc.getBlockY()));
                     arenaConf.setProperty("Boundarys.Z2", Integer.valueOf(loc.getBlockZ()));
                     arenaConf.save();
 
                     player.sendMessage("Second boundary point set.");
                 }
 
+                if(ctp.globalConfigOptions.enableHardArenaRestore && ctp.mainArena.x2 != 0 && ctp.mainArena.y2 != 0 && ctp.mainArena.z2 != 0 && ctp.mainArena.x1 != 0 && ctp.mainArena.y1 != 0 && ctp.mainArena.z1 != 0)
+                {
+                    int xlow = ctp.mainArena.x1;
+                    int xhigh = ctp.mainArena.x2;
+                    if (ctp.mainArena.x2 < ctp.mainArena.x1)
+                    {
+                        xlow = ctp.mainArena.x2;
+                        xhigh = ctp.mainArena.x1;
+                    }
+                    int ylow = ctp.mainArena.y1;
+                    int yhigh = ctp.mainArena.y2;
+                    if (ctp.mainArena.y2 < ctp.mainArena.y1)
+                    {
+                        ylow = ctp.mainArena.y2;
+                        yhigh = ctp.mainArena.y1;
+                    }
+                    int zlow = ctp.mainArena.z1;
+                    int zhigh = ctp.mainArena.z2;
+                    if (ctp.mainArena.z2 < ctp.mainArena.z1)
+                    {
+                        zlow = ctp.mainArena.z2;
+                        zhigh = ctp.mainArena.z1;
+                    }
+                    ctp.mysqlConnector.connectToMySql();
+                    ctp.arenaRestore.checkForArena(ctp.mainArena.name, ctp.mainArena.world);
+                    World world = ctp.getServer().getWorld(ctp.mainArena.world);
+                    
+                    for (int x = xlow; x <= xhigh; x++)
+                    {
+                        for (int y = ylow; y <= yhigh; y++)
+                        {
+                            for (int z = zlow; z <= zhigh; z++)
+                            {
+                                ctp.arenaRestore.storeBlock(world.getBlockAt(x, y, z), ctp.mainArena.name);
+                            }
+                        }
+                    }
+                    player.sendMessage("Arena data saved.");
+                }
+
                 return;
             }
-        }
-
-        if (arg.equalsIgnoreCase("setpoint")) {
-            Location loc = player.getLocation();
-            if (arg.equalsIgnoreCase("1")) {
-                ctp.x1 = loc.getBlockX();
-                ctp.y1 = loc.getBlockY();
-                ctp.z1 = loc.getBlockZ();
-            } else if (arg.equalsIgnoreCase("2")) {
-                ctp.x2 = loc.getBlockX();
-                ctp.y2 = loc.getBlockY();
-                ctp.z2 = loc.getBlockZ();
-            }
-
-            return;
         }
 
         // Kj
@@ -844,39 +882,5 @@ public class BuildCommand extends CTPCommand {
             player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
             return;
         }
-        /*
-        if (arg.equalsIgnoreCase("save")) {
-        int xlow = ctp.x1;
-        int xhigh = ctp.x2;
-        if (ctp.x2 < ctp.x1) {
-        xlow = ctp.x2;
-        xhigh = ctp.x1;
-        }
-        int ylow = ctp.y1;
-        int yhigh = ctp.y2;
-        if (ctp.y2 < ctp.y1) {
-        ylow = ctp.y2;
-        yhigh = ctp.y1;
-        }
-        int zlow = ctp.z1;
-        int zhigh = ctp.z2;
-        if (ctp.z2 < ctp.z1) {
-        zlow = ctp.z2;
-        zhigh = ctp.z1;
-        }
-        for (int x = xlow; x <= xhigh; x++) {
-        for (int y = ylow; y <= yhigh; y++) {
-        for (int z = zlow; z <= zhigh; z++) {
-        }
-        }
-        }
-        return;
-        }
-         */
-
-        if (arg.equalsIgnoreCase("restore")) {
-            return;
-        }
-
     }
 }
