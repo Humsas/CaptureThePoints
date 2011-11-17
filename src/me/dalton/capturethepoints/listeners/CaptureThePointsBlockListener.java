@@ -524,7 +524,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
         //Arena restore
         if(ctp.globalConfigOptions.enableHardArenaRestore)
         {
-            ctp.getServer().getScheduler().scheduleSyncDelayedTask(ctp, new Runnable()
+            ctp.getServer().getScheduler().scheduleAsyncDelayedTask(ctp, new Runnable()
             {
                 @Override
                 public void run ()

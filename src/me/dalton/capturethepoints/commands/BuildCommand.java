@@ -540,7 +540,7 @@ public class BuildCommand extends CTPCommand {
                 ctp.arenaRestore.arenaToDelete = arg2;
                 if(ctp.globalConfigOptions.enableHardArenaRestore)
                 {
-                    ctp.getServer().getScheduler().scheduleSyncDelayedTask(ctp, new Runnable()
+                    ctp.getServer().getScheduler().scheduleAsyncDelayedTask(ctp, new Runnable()
                     {
                         @Override
                         public void run ()
@@ -582,7 +582,9 @@ public class BuildCommand extends CTPCommand {
                     player.sendMessage(ChatColor.RED + "This arena does not exist! -----> " + ChatColor.GREEN + arg2);
                     return;
                 }
+                ctp.editingArena = ctp.loadArena(arg2);
                 ctp.editingArena.name = arg2;
+
                 player.sendMessage(ChatColor.WHITE + "Arena selected for editing: " + ChatColor.GREEN + arg2);
 
                 return;
@@ -754,6 +756,10 @@ public class BuildCommand extends CTPCommand {
                         ctp.mainArena.z1 = loc.getBlockZ();
                     }
 
+                    ctp.editingArena.x1 = loc.getBlockX();
+                    ctp.editingArena.y1 = loc.getBlockY();
+                    ctp.editingArena.z1 = loc.getBlockZ();
+
                     File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
                     Configuration arenaConf = new Configuration(arenaFile);
                     arenaConf.load();
@@ -770,6 +776,10 @@ public class BuildCommand extends CTPCommand {
                         ctp.mainArena.z2 = loc.getBlockZ();
                     }
 
+                    ctp.editingArena.x2 = loc.getBlockX();
+                    ctp.editingArena.y2 = loc.getBlockY();
+                    ctp.editingArena.z2 = loc.getBlockZ();
+
                     File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
                     Configuration arenaConf = new Configuration(arenaFile);
                     arenaConf.load();
@@ -781,54 +791,54 @@ public class BuildCommand extends CTPCommand {
                     player.sendMessage("Second boundary point set.");
                 }
 
-                if(ctp.globalConfigOptions.enableHardArenaRestore && ctp.mainArena.x2 != 0 && ctp.mainArena.y2 != 0 && ctp.mainArena.z2 != 0 && ctp.mainArena.x1 != 0 && ctp.mainArena.y1 != 0 && ctp.mainArena.z1 != 0)
-                {
-                    ctp.getServer().getScheduler().scheduleSyncDelayedTask(ctp, new Runnable()
-                    {
-                        @Override
-                        public void run ()
-                        {
-                            int xlow = ctp.mainArena.x1;
-                            int xhigh = ctp.mainArena.x2;
-                            if (ctp.mainArena.x2 < ctp.mainArena.x1)
-                            {
-                                xlow = ctp.mainArena.x2;
-                                xhigh = ctp.mainArena.x1;
-                            }
-                            int ylow = ctp.mainArena.y1;
-                            int yhigh = ctp.mainArena.y2;
-                            if (ctp.mainArena.y2 < ctp.mainArena.y1)
-                            {
-                                ylow = ctp.mainArena.y2;
-                                yhigh = ctp.mainArena.y1;
-                            }
-                            int zlow = ctp.mainArena.z1;
-                            int zhigh = ctp.mainArena.z2;
-                            if (ctp.mainArena.z2 < ctp.mainArena.z1)
-                            {
-                                zlow = ctp.mainArena.z2;
-                                zhigh = ctp.mainArena.z1;
-                            }
-                            ctp.mysqlConnector.connectToMySql();
-
-                            ctp.arenaRestore.checkForArena(ctp.mainArena.name, ctp.mainArena.world);
-                            World world = ctp.getServer().getWorld(ctp.mainArena.world);
-
-                            for (int x = xlow; x <= xhigh; x++)
-                            {
-                                for (int y = ylow; y <= yhigh; y++)
-                                {
-                                    for (int z = zlow; z <= zhigh; z++)
-                                    {
-                                        ctp.arenaRestore.storeBlock(world.getBlockAt(x, y, z), ctp.mainArena.name);
-                                    }
-                                }
-                            }
-                            player.sendMessage("Arena data saved.");
-                        }
-                    }, 5L);
-
-                }
+//                if(ctp.globalConfigOptions.enableHardArenaRestore && ctp.editingArena.x2 != 0 && ctp.editingArena.y2 != 0 && ctp.editingArena.z2 != 0 && ctp.editingArena.x1 != 0 && ctp.editingArena.y1 != 0 && ctp.editingArena.z1 != 0)
+//                {
+//                    ctp.getServer().getScheduler().scheduleAsyncDelayedTask(ctp, new Runnable()
+//                    {
+//                        @Override
+//                        public void run ()
+//                        {
+//                            int xlow = ctp.editingArena.x1;
+//                            int xhigh = ctp.editingArena.x2;
+//                            if (ctp.editingArena.x2 < ctp.editingArena.x1)
+//                            {
+//                                xlow = ctp.editingArena.x2;
+//                                xhigh = ctp.editingArena.x1;
+//                            }
+//                            int ylow = ctp.editingArena.y1;
+//                            int yhigh = ctp.editingArena.y2;
+//                            if (ctp.editingArena.y2 < ctp.editingArena.y1)
+//                            {
+//                                ylow = ctp.editingArena.y2;
+//                                yhigh = ctp.editingArena.y1;
+//                            }
+//                            int zlow = ctp.editingArena.z1;
+//                            int zhigh = ctp.editingArena.z2;
+//                            if (ctp.editingArena.z2 < ctp.editingArena.z1)
+//                            {
+//                                zlow = ctp.editingArena.z2;
+//                                zhigh = ctp.editingArena.z1;
+//                            }
+//                            ctp.mysqlConnector.connectToMySql();
+//
+//                            ctp.arenaRestore.checkForArena(ctp.editingArena.name, ctp.editingArena.world);
+//                            World world = ctp.getServer().getWorld(ctp.editingArena.world);
+//
+//                            for (int x = xlow; x <= xhigh; x++)
+//                            {
+//                                for (int y = ylow; y <= yhigh; y++)
+//                                {
+//                                    for (int z = zlow; z <= zhigh; z++)
+//                                    {
+//                                        ctp.arenaRestore.storeBlock(world.getBlockAt(x, y, z), ctp.editingArena.name);
+//                                    }
+//                                }
+//                            }
+//                            player.sendMessage("Arena data saved.");
+//                        }
+//                    }, 5L);
+//
+//                }
 
                 return;
             }
@@ -905,38 +915,38 @@ public class BuildCommand extends CTPCommand {
         {
             if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.save"}))
             {
-                if(ctp.globalConfigOptions.enableHardArenaRestore && ctp.mainArena.x2 != 0 && ctp.mainArena.y2 != 0 && ctp.mainArena.z2 != 0 && ctp.mainArena.x1 != 0 && ctp.mainArena.y1 != 0 && ctp.mainArena.z1 != 0)
+                if(ctp.globalConfigOptions.enableHardArenaRestore && ctp.editingArena.x2 != 0 && ctp.editingArena.y2 != 0 && ctp.editingArena.z2 != 0 && ctp.editingArena.x1 != 0 && ctp.editingArena.y1 != 0 && ctp.editingArena.z1 != 0)
                 {
-                    ctp.getServer().getScheduler().scheduleSyncDelayedTask(ctp, new Runnable()
+                    ctp.getServer().getScheduler().scheduleAsyncDelayedTask(ctp, new Runnable()
                     {
                         @Override
                         public void run ()
                         {
-                            int xlow = ctp.mainArena.x1;
-                            int xhigh = ctp.mainArena.x2;
-                            if (ctp.mainArena.x2 < ctp.mainArena.x1)
+                            int xlow = ctp.editingArena.x1;
+                            int xhigh = ctp.editingArena.x2;
+                            if (ctp.editingArena.x2 < ctp.editingArena.x1)
                             {
-                                xlow = ctp.mainArena.x2;
-                                xhigh = ctp.mainArena.x1;
+                                xlow = ctp.editingArena.x2;
+                                xhigh = ctp.editingArena.x1;
                             }
-                            int ylow = ctp.mainArena.y1;
-                            int yhigh = ctp.mainArena.y2;
-                            if (ctp.mainArena.y2 < ctp.mainArena.y1)
+                            int ylow = ctp.editingArena.y1;
+                            int yhigh = ctp.editingArena.y2;
+                            if (ctp.editingArena.y2 < ctp.editingArena.y1)
                             {
-                                ylow = ctp.mainArena.y2;
-                                yhigh = ctp.mainArena.y1;
+                                ylow = ctp.editingArena.y2;
+                                yhigh = ctp.editingArena.y1;
                             }
-                            int zlow = ctp.mainArena.z1;
-                            int zhigh = ctp.mainArena.z2;
-                            if (ctp.mainArena.z2 < ctp.mainArena.z1)
+                            int zlow = ctp.editingArena.z1;
+                            int zhigh = ctp.editingArena.z2;
+                            if (ctp.editingArena.z2 < ctp.editingArena.z1)
                             {
-                                zlow = ctp.mainArena.z2;
-                                zhigh = ctp.mainArena.z1;
+                                zlow = ctp.editingArena.z2;
+                                zhigh = ctp.editingArena.z1;
                             }
                             ctp.mysqlConnector.connectToMySql();
 
-                            ctp.arenaRestore.checkForArena(ctp.mainArena.name, ctp.mainArena.world);
-                            World world = ctp.getServer().getWorld(ctp.mainArena.world);
+                            ctp.arenaRestore.checkForArena(ctp.editingArena.name, ctp.editingArena.world);
+                            World world = ctp.getServer().getWorld(ctp.editingArena.world);
 
                             for (int x = xlow; x <= xhigh; x++)
                             {
@@ -944,7 +954,7 @@ public class BuildCommand extends CTPCommand {
                                 {
                                     for (int z = zlow; z <= zhigh; z++)
                                     {
-                                        ctp.arenaRestore.storeBlock(world.getBlockAt(x, y, z), ctp.mainArena.name);
+                                        ctp.arenaRestore.storeBlock(world.getBlockAt(x, y, z), ctp.editingArena.name);
                                     }
                                 }
                             }
