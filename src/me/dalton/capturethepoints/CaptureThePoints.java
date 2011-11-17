@@ -152,6 +152,8 @@ public class CaptureThePoints extends JavaPlugin {
             populateCommands();
         }
         loadConfigFiles();
+        // Checks for mysql
+        mysqlConnector.checkMysqlData();
 
         //Kj: LobbyActivity timer.
         CTP_Scheduler.lobbyActivity = this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {

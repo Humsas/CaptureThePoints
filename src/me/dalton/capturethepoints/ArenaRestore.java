@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -83,7 +84,7 @@ public class ArenaRestore {
 
     public void checkForArena(String arenaName, String world)
     {
-        ResultSet lala = ctp.mysqlConnector.getData("SELECT * FROM Arena where arena_name = '"+ arenaName +"'");
+        ResultSet lala = ctp.mysqlConnector.getData("SELECT * FROM Arena WHERE name = '"+ arenaName +"'");
         try
         {
             if (lala.next())   // We found an egzisting arena
@@ -116,6 +117,7 @@ public class ArenaRestore {
                 ctp.mysqlConnector.modifyData("DELETE FROM Note_block WHERE block_ID = " + rs.getInt("id"));
             }
             ctp.mysqlConnector.modifyData("DELETE FROM Simple_block where arena_name = '" + arenaName + "'");
+            ctp.mysqlConnector.modifyData("DELETE FROM Arena where name = '" + arenaName + "'");
         }
         catch (SQLException ex)
         {
@@ -232,7 +234,7 @@ public class ArenaRestore {
     {
         try
         {
-            ResultSet rs1 = ctp.mysqlConnector.getData("SELECT * FROM Arena where arena_name = '"+ arenaName +"'");
+            ResultSet rs1 = ctp.mysqlConnector.getData("SELECT * FROM Arena WHERE name = '"+ arenaName +"'");
             if(rs1.next())
             {
                 ResultSet lala = ctp.mysqlConnector.getData("SELECT * FROM Simple_block where arena_name = '" + arenaName + "'");
@@ -341,11 +343,11 @@ public class ArenaRestore {
                         }
                     }
                 }
-
             }
             else
             {
-                System.out.println("ERROR [CTP] Arena data in MySql did not found. Please reselect arena boundaries!");
+                System.out.println("[CTP] ERROR Arena data in MySql did not found. Please reselect arena boundaries!");
+                ctp.getServer().broadcastMessage(ChatColor.RED + "[CTP] ERROR Arena data in MySql did not found. Please reselect arena boundaries!");
             }
         }
         catch (SQLException ex)
