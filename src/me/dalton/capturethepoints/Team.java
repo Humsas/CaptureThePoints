@@ -33,7 +33,7 @@ public class Team {
      * @param color The team's color
      * @return The Team corresponding to this color. */
     public static Team getTeamFromColor(CaptureThePoints ctp, String color) {
-        for (Team aTeam : ctp.teams) {
+        for (Team aTeam : ctp.mainArena.teams) {
             if (aTeam.color.equalsIgnoreCase(color)) {
                 return aTeam;
             }
@@ -45,7 +45,7 @@ public class Team {
      * @param ctp CaptureThePoints instance
      * @return The Player list */
     public List<Player> getTeamPlayers(CaptureThePoints ctp) {
-        if (!ctp.teams.contains(this)) {
+        if (!ctp.mainArena.teams.contains(this)) {
             return null;
         }
         List<Player> teamplayers = new ArrayList<Player>();
@@ -67,7 +67,7 @@ public class Team {
      * @param ctp CaptureThePoints instance
      * @return The playername list */
     public List<String> getTeamPlayerNames(CaptureThePoints ctp) {
-        if (!ctp.teams.contains(this)) {
+        if (!ctp.mainArena.teams.contains(this)) {
             return null;
         }
         List<String> teamplayers = new ArrayList<String>();

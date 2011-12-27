@@ -467,7 +467,8 @@ public class Util {
      * @param loc2 The second Location
      * @return Returns a double of the distance between them. Returns NaN if the Locations are not on the same World or distance is too great.
      */
-     public static double getDistance(Location loc1, Location loc2) { // Kjhf's
+     public static double getDistance(Location loc1, Location loc2)  // Kjhf's
+     {
         if (loc1 != null && loc2 != null && loc1.getWorld() == loc2.getWorld()) {
             return loc1.distance(loc2);
         }

@@ -1,7 +1,8 @@
 package me.dalton.capturethepoints;
 
 /** The schedulers used by CTP */
-public class CTPScheduler {
+public class CTPScheduler
+{
     
   /** The timer used to give players money every x seconds */
   public int money_Score;
@@ -20,4 +21,7 @@ public class CTPScheduler {
   
   /** The timer used to check healing items' cooldowns. */
   public int healingItemsCooldowns;
+
+  public int arenaRestore;
+  public int arenaRestoreSec;
 }

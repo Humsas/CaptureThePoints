@@ -85,7 +85,8 @@ public class ArenaRestore {
 
     public void checkForArena(String arenaName, String world)
     {
-        ResultSet lala = ctp.mysqlConnector.getData("SELECT * FROM Arena WHERE name = '"+ arenaName +"'");
+        // lets find arena name
+        ResultSet lala = ctp.mysqlConnector.getData("SELECT * FROM Arena WHERE name LIKE '"+ arenaName +".%'");
         try
         {
             if (lala.next())   // We found an egzisting arena
@@ -95,8 +96,9 @@ public class ArenaRestore {
             }
             else
             {
-                ctp.mysqlConnector.modifyData("INSERT INTO `Arena` (`name`, `world`, `x1`, `y1`, `z1`, `x2`, `y2`, `z2`) VALUES ( '" + arenaName + "','" + world +
-                        "'," + ctp.mainArena.x1 + "," + ctp.mainArena.y1 + "," + ctp.mainArena.z1 + "," + ctp.mainArena.x2 + "," + ctp.mainArena.y2 + "," + ctp.mainArena.z2 + ");");
+                String arenaCodedName = arenaName + "." + ctp.mainArena.x1 + "." + ctp.mainArena.y1 + "." + ctp.mainArena.z1 + "." + ctp.mainArena.x2 +
+                        "." + ctp.mainArena.y2 + "." + ctp.mainArena.z2;
+                ctp.mysqlConnector.modifyData("INSERT INTO `Arena` (`name`, `world`) VALUES ( '" + arenaCodedName + "','" + world + "');");
             }
         }
         catch (SQLException ex)
@@ -107,7 +109,7 @@ public class ArenaRestore {
 
     public void deleteArenaData(String arenaName)
     {
-        try 
+        try
         {
             ResultSet rs = ctp.mysqlConnector.getData("SELECT id FROM Simple_block where arena_name = '" + arenaName + "'");
             while (rs.next())
@@ -126,11 +128,11 @@ public class ArenaRestore {
         }
     }
 
-    public void storeBlock(Block block, String arenaName)
+    public void storeBlock(Block block, Spawn firstPoint, Spawn secondPoint, String arenaName)
     {
         int type = block.getTypeId();
         int data = block.getData();
-        Location loc = block.getLocation();
+//        Location loc = block.getLocation();
 
         switch (type)
         {
@@ -139,8 +141,8 @@ public class ArenaRestore {
             {
                 Sign sign = (Sign) block.getState();
                 String dir = ((Directional) block.getType().getNewData(block.getData())).getFacing().toString();
-                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," +loc.getBlockX() + "," +
-                        loc.getBlockY() + "," + loc.getBlockZ() + ",'" + arenaName + "'," + type + ",'" + dir + "');");
+                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `z2`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," + (int)firstPoint.x + "," +
+                        (int)firstPoint.y + "," + (int)firstPoint.z + "," + (int)secondPoint.z + ",'" + arenaName + "'," + type + ",'" + dir + "');");
                 int id = ctp.mysqlConnector.getLastInsertedId();
                 ctp.mysqlConnector.modifyData("INSERT INTO `Sign` (`block_ID`, `first_line`, `second_line`, `third_line`, `fourth_line`) VALUES ( " + id + ",'" + sign.getLine(0) + "','" +
                         sign.getLine(1) + "','" + sign.getLine(2) + "','" + sign.getLine(3) + "');");
@@ -150,8 +152,8 @@ public class ArenaRestore {
             case BlockID.CHEST:
             {
                 Chest chest = (Chest) block.getState();
-                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," +loc.getBlockX() + "," +
-                        loc.getBlockY() + "," + loc.getBlockZ() + ",'" + arenaName + "'," + type + ",'NO');");
+                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `z2`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," + (int)firstPoint.x + "," +
+                        (int)firstPoint.y + "," + (int)firstPoint.z + "," + (int)secondPoint.z + ",'" + arenaName + "'," + type + ",'NO');");
                 int id = ctp.mysqlConnector.getLastInsertedId();
 
                 storeInventory(id, chest.getInventory());
@@ -163,8 +165,8 @@ public class ArenaRestore {
             {
                 Furnace furnace = (Furnace) block.getState();
                 String dir = ((Directional) block.getType().getNewData(block.getData())).getFacing().toString();
-                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," +loc.getBlockX() + "," +
-                        loc.getBlockY() + "," + loc.getBlockZ() + ",'" + arenaName + "'," + type + ",'" + dir + "');");
+                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `z2`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," + (int)firstPoint.x + "," +
+                        (int)firstPoint.y + "," + (int)firstPoint.z + "," + (int)secondPoint.z + ",'" + arenaName + "'," + type + ",'" + dir + "');");
                 int id = ctp.mysqlConnector.getLastInsertedId();
 
                 storeInventory(id, furnace.getInventory());
@@ -175,8 +177,8 @@ public class ArenaRestore {
             {
                 Dispenser dispenser = (Dispenser) block.getState();
                 String dir = ((Directional) block.getType().getNewData(block.getData())).getFacing().toString();
-                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," +loc.getBlockX() + "," +
-                        loc.getBlockY() + "," + loc.getBlockZ() + ",'" + arenaName + "'," + type + ",'" + dir + "');");
+                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `z2`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," + (int)firstPoint.x + "," +
+                        (int)firstPoint.y + "," + (int)firstPoint.z + "," + (int)secondPoint.z + ",'" + arenaName + "'," + type + ",'" + dir + "');");
                 int id = ctp.mysqlConnector.getLastInsertedId();
 
                 storeInventory(id, dispenser.getInventory());
@@ -186,8 +188,8 @@ public class ArenaRestore {
             case BlockID.MOB_SPAWNER:
             {
                 CreatureSpawner mobSpawner = (CreatureSpawner) block.getState();
-                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," +loc.getBlockX() + "," +
-                        loc.getBlockY() + "," + loc.getBlockZ() + ",'" + arenaName + "'," + type + ",'NO');");
+                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `z2`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," + (int)firstPoint.x + "," +
+                        (int)firstPoint.y + "," + (int)firstPoint.z + "," + (int)secondPoint.z + ",'" + arenaName + "'," + type + ",'NO');");
                 int id = ctp.mysqlConnector.getLastInsertedId();
                 ctp.mysqlConnector.modifyData("INSERT INTO `Spawner_block` (`block_ID`, `creature_type`, `delay`) VALUES ( " + id + ",'" + mobSpawner.getCreatureTypeId() + "'," + mobSpawner.getDelay() + ");");
                 break;
@@ -196,8 +198,8 @@ public class ArenaRestore {
             case BlockID.NOTE_BLOCK:
             {
                 NoteBlock noteBlock = (NoteBlock) block.getState();
-                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," +loc.getBlockX() + "," +
-                        loc.getBlockY() + "," + loc.getBlockZ() + ",'" + arenaName + "'," + type + ",'NO');");
+                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `z2`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," + (int)firstPoint.x + "," +
+                        (int)firstPoint.y + "," + (int)firstPoint.z + "," + (int)secondPoint.z + ",'" + arenaName + "'," + type + ",'NO');");
                 int id = ctp.mysqlConnector.getLastInsertedId();
 
                 ctp.mysqlConnector.modifyData("INSERT INTO `Note_block` (`block_ID`, `note_type`) VALUES ( " + id + "," + noteBlock.getRawNote() + ");");
@@ -212,8 +214,8 @@ public class ArenaRestore {
                 {
                     dir = ((Directional) block.getType().getNewData(block.getData())).getFacing().toString();
                 }
-                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," +loc.getBlockX() + "," +
-                        loc.getBlockY() + "," + loc.getBlockZ() + ",'" + arenaName + "'," + type + ",'" + dir + "');");
+                ctp.mysqlConnector.modifyData("INSERT INTO `Simple_block` (`data`, `x`, `y`, `z`, `z2`, `arena_name`, `block_type`, `direction`) VALUES ( " + data + "," + (int)firstPoint.x + "," +
+                        (int)firstPoint.y + "," + (int)firstPoint.z + "," + (int)secondPoint.z + ",'" + arenaName + "'," + type + ",'" + dir + "');");
                 break;
             }
         }
@@ -224,38 +226,58 @@ public class ArenaRestore {
         for(int i = 0; i < inv.getSize(); i++)
         {
             ItemStack item = inv.getItem(i);
-            if(item != null)
+            if(item != null && item.getTypeId() != 0)
                 ctp.mysqlConnector.modifyData("INSERT INTO `Item` (`type`, `block_ID`, `durability`, `amount`, `place_in_inv`, `data`) VALUES ( " + item.getTypeId() + "," + id + "," +
                         item.getDurability() + "," + item.getAmount() + "," + i + "," + item.getData().getData() + ");");
         }
     }
 
 
-    public void restore(String arenaName)
+    public void restore(String arenaName, int timesRestored, boolean restorePuttableItems)
     {
         try
         {
-            ResultSet rs1 = ctp.mysqlConnector.getData("SELECT * FROM Arena WHERE name = '"+ arenaName +"'");
-            if(rs1.next())
+            // Find if arena exists in database
+            ResultSet rs1 = ctp.mysqlConnector.getData("SELECT * FROM Arena WHERE name like '"+ arenaName +"%'");
+            rs1.next();
+            
+            int restoreCount = 2500;
+
+            String signz = "";
+            if(restorePuttableItems)
+                signz = "IN";
+            else
+                signz = "NOT IN";
+                
+            ResultSet blocksRez = ctp.mysqlConnector.getData("SELECT * FROM (((Simple_block LEFT JOIN Sign on Sign.block_ID = id) LEFT JOIN note_block on note_block.block_ID = id)"+
+                    " LEFT JOIN spawner_block on spawner_block.block_ID = id) where arena_name = '" + arenaName + "' and `block_type`" + signz + "(6, 8, 9, 10, 11, 27, 28, 31, 32," +
+                    "50, 51, 55, 59, 63, 64, 65, 66, 68, 69, 70, 71, 72, 75, 76, 77, 78, 81, 83, 90, 92, 93, 94, 96, 104, 105, 111, 115, 117, 342, 343, 328, 333) LIMIT " + timesRestored * restoreCount + ", " + restoreCount);
+
+            while(blocksRez.next())
             {
-                ResultSet lala = ctp.mysqlConnector.getData("SELECT * FROM Simple_block where arena_name = '" + arenaName + "'");
-
-                while(lala.next())
+                for(int z = blocksRez.getInt("z"); z <= blocksRez.getInt("z2"); z++)
                 {
-                    int id = lala.getInt("id");
-                    int data = lala.getInt("data");
-                    Location loc = new Location(ctp.getServer().getWorld(rs1.getString("world")), lala.getInt("x"), lala.getInt("y"), lala.getInt("z"));
-                    int type = lala.getInt("block_type");
+                    int id = blocksRez.getInt("id");
+                    int data = blocksRez.getInt("data");
+                    Location loc = new Location(ctp.getServer().getWorld(rs1.getString("world")), blocksRez.getInt("x"), blocksRez.getInt("y"), z);
+                    int type = blocksRez.getInt("block_type");
 
-                    String dir = lala.getString("direction");
+                    String dir = blocksRez.getString("direction");
                     Block block = loc.getBlock();
 
                     // Set main block info
                     block.setTypeId(type);
                     block.setData((byte)data);
-                    if(!dir.equalsIgnoreCase("NO"))
+                    if(!dir.equalsIgnoreCase("NO") && id != 50)
                     {
-                        ((Directional) block.getType().getNewData(block.getData())).setFacingDirection(BlockFace.valueOf(dir));
+                        try
+                        {
+                            ((Directional) block.getType().getNewData(block.getData())).setFacingDirection(BlockFace.valueOf(dir));
+                        }
+                        catch(Exception e)
+                        {
+                            //System.out.println("Failed to change Direction!");
+                        }
                     }
 
                     // restore block
@@ -264,16 +286,20 @@ public class ArenaRestore {
                         case BlockID.WALL_SIGN:
                         case BlockID.SIGN_POST:
                         {
-                            ResultSet rs = ctp.mysqlConnector.getData("SELECT * FROM Sign where Sign.block_ID = " + id);
                             Sign sign = (Sign) block.getState();
+                            String line1 = blocksRez.getString("first_line");
+                            String line2 = blocksRez.getString("second_line");
+                            String line3 = blocksRez.getString("third_line");
+                            String line4 = blocksRez.getString("fourth_line");
 
-                            while (rs.next())
-                            {
-                                sign.setLine(0, rs.getString("first_line"));
-                                sign.setLine(1, rs.getString("second_line"));
-                                sign.setLine(2, rs.getString("third_line"));
-                                sign.setLine(3, rs.getString("fourth_line"));
-                            }
+                            if(line1 != null && !line1.equalsIgnoreCase("NULL"))
+                                sign.setLine(0, line1);
+                            if(line2 != null && !line2.equalsIgnoreCase("NULL"))
+                                sign.setLine(1, line2);
+                            if(line3 != null && !line3.equalsIgnoreCase("NULL"))
+                                sign.setLine(2, line3);
+                            if(line4 != null && !line4.equalsIgnoreCase("NULL"))
+                                sign.setLine(3, line4);
                             break;
                         }
 
@@ -323,38 +349,140 @@ public class ArenaRestore {
                         case BlockID.MOB_SPAWNER:
                         {
                             CreatureSpawner mobSpawner = (CreatureSpawner) block.getState();
-                            ResultSet rs = ctp.mysqlConnector.getData("SELECT * FROM Spawner_block where Spawner_block.block_ID = " + id);
-                            while (rs.next())
-                            {
-                                mobSpawner.setCreatureTypeId(rs.getString("creature_type"));
-                                mobSpawner.setDelay(rs.getInt("delay"));
-                            }
+
+                            mobSpawner.setCreatureTypeId(blocksRez.getString("creature_type"));
+                            mobSpawner.setDelay(blocksRez.getInt("delay"));
+
                             break;
                         }
 
                         case BlockID.NOTE_BLOCK:
                         {
                             NoteBlock noteBlock = (NoteBlock) block.getState();
-                            ResultSet rs = ctp.mysqlConnector.getData("SELECT * FROM Note_block where Note_block.block_ID = " + id);
-                            while (rs.next())
-                            {
-                                noteBlock.setRawNote((byte)rs.getInt("note_type"));
-                            }
+                            noteBlock.setRawNote((byte)blocksRez.getInt("note_type"));
                             break;
                         }
                     }
-                }
-            }
-            else
-            {
-                System.out.println("[CTP] ERROR Arena data in MySql did not found. Please reselect arena boundaries!");
-                ctp.getServer().broadcastMessage(ChatColor.RED + "[CTP] ERROR Arena data in MySql did not found. Please reselect arena boundaries!");
+                } // End of for Z cycle
             }
         }
         catch (SQLException ex)
         {
             Logger.getLogger(ArenaRestore.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+
+    public void restoreMySQLBlocks()
+    {
+        try
+        {
+            ResultSet rs1 = ctp.mysqlConnector.getData("SELECT * FROM Arena WHERE name like '"+ ctp.mainArena.name +"%'");
+
+            if (rs1.next())
+            {
+                ResultSet blockCountRez = ctp.mysqlConnector.getData("SELECT COUNT(*) FROM (((Simple_block LEFT JOIN Sign on Sign.block_ID = id) LEFT JOIN note_block on note_block.block_ID = id)"+
+                        " LEFT JOIN spawner_block on spawner_block.block_ID = id) where arena_name = '" + ctp.mainArena.name + "' and `block_type` NOT IN(6, 8, 9, 10, 11, 27, 28, 31, 32," +
+                        "50, 51, 55, 59, 63, 64, 65, 66, 68, 69, 70, 71, 72, 75, 76, 77, 78, 81, 83, 90, 92, 93, 94, 96, 104, 105, 111, 115, 117, 342, 343, 328, 333)");
+
+                int count = 0;
+                if(blockCountRez.next())
+                {
+                    count = blockCountRez.getInt("count(*)");
+                }
+
+                ctp.arenaRestoreTimesRestored = 0;
+                ctp.arenaRestoreMaxRestoreTimes = 0;
+                int restoreCount = 2500;
+                ctp.arenaRestoreMaxRestoreTimes = count / restoreCount;
+                if((count % restoreCount) != 0)
+                    ctp.arenaRestoreMaxRestoreTimes++;
+
+                // For second time :/
+                blockCountRez = ctp.mysqlConnector.getData("SELECT COUNT(*) FROM (((Simple_block LEFT JOIN Sign on Sign.block_ID = id) LEFT JOIN note_block on note_block.block_ID = id)"+
+                        " LEFT JOIN spawner_block on spawner_block.block_ID = id) where arena_name = '" + ctp.mainArena.name + "' and `block_type` IN(6, 8, 9, 10, 11, 27, 28, 31, 32," +
+                        "50, 51, 55, 59, 63, 64, 65, 66, 68, 69, 70, 71, 72, 75, 76, 77, 78, 81, 83, 90, 92, 93, 94, 96, 104, 105, 111, 115, 117, 342, 343, 328, 333)");
+
+                count = 0;
+                if(blockCountRez.next())
+                {
+                    count = blockCountRez.getInt("count(*)");
+                }
+
+                ctp.arenaRestoreTimesRestoredSec = 0;
+                ctp.arenaRestoreMaxRestoreTimesSec = 0;
+
+                ctp.arenaRestoreMaxRestoreTimesSec = count / restoreCount;
+                if((count % restoreCount) != 0)
+                    ctp.arenaRestoreMaxRestoreTimesSec++;
+            }
+            else
+            {
+                return;
+            }
+        }
+        catch (SQLException ex)
+        {
+            Logger.getLogger(ArenaRestore.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        ctp.CTP_Scheduler.arenaRestore = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable()
+        {
+            @Override
+            public void run ()
+            {
+                ctp.mysqlConnector.connectToMySql();
+                ctp.arenaRestore.restore(ctp.mainArena.name, ctp.arenaRestoreTimesRestored, false);
+                ctp.arenaRestoreTimesRestored++;
+
+                if(ctp.arenaRestoreTimesRestored == ctp.arenaRestoreMaxRestoreTimes)
+                {
+                    ctp.arenaRestoreTimesRestored = 0;
+                    ctp.arenaRestoreMaxRestoreTimes = 0;
+                    ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.arenaRestore);
+                    ctp.CTP_Scheduler.arenaRestore = 0;
+
+                    // For second time
+                    ctp.CTP_Scheduler.arenaRestoreSec  = ctp.getServer().getScheduler().scheduleSyncRepeatingTask(ctp, new Runnable()
+                    {
+                        @Override
+                        public void run ()
+                        {
+                            ctp.mysqlConnector.connectToMySql();
+                            ctp.arenaRestore.restore(ctp.mainArena.name, ctp.arenaRestoreTimesRestoredSec, true);
+                            ctp.arenaRestoreTimesRestoredSec++;
+
+                            if(ctp.arenaRestoreTimesRestoredSec == ctp.arenaRestoreMaxRestoreTimesSec)
+                            {
+                                ctp.arenaRestoreTimesRestoredSec = 0;
+                                ctp.arenaRestoreMaxRestoreTimesSec = 0;
+                                ctp.getServer().getScheduler().cancelTask(ctp.CTP_Scheduler.arenaRestoreSec);
+                                ctp.CTP_Scheduler.arenaRestoreSec = 0;
+                            }
+                        }
+                    }, 1L, 10L);
+                }
+            }
+        }, 1L, 10L);
+    }
+
+
+    // Returns if blocks can be stacked in one entry at database.
+    public boolean canStackBlocksToMySQL(int id, int blockToRestore, boolean first, int data, int newBlockData)
+    {
+        if(id != blockToRestore && !first)
+            return false;
+        if(data != newBlockData && !first)  // If block data is not equal
+            return false;
+
+        int[] unstackableBlocks = { 23, 29, 33, 34, 52, 54, 61, 62, 63, 64, 68, 71, 84, 93, 94, 95, 323, 324, 342, 343, 356 };
+        for(int i = 0; i < unstackableBlocks.length; i++)
+        {
+            if(unstackableBlocks[i] == id)
+                return false;
+        }
+
+        return true;
     }
 
 }

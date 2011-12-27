@@ -1,6 +1,7 @@
 package me.dalton.capturethepoints.listeners;
 
 import java.util.HashMap;
+import java.util.List;
 import me.dalton.capturethepoints.CaptureThePoints;
 import me.dalton.capturethepoints.HealingItems;
 import me.dalton.capturethepoints.Items;
@@ -10,10 +11,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityListener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -25,6 +28,24 @@ public class CaptureThePointsEntityListener extends EntityListener {
 
     public CaptureThePointsEntityListener(CaptureThePoints plugin) {
         this.ctp = plugin;
+    }
+
+
+    @Override
+    public void onEntityExplode(EntityExplodeEvent event)
+    {
+        if (!ctp.isGameRunning())
+            return;
+        if(ctp.mainArena.co.enableHardArenaRestore)
+            return;
+
+        if (ctp.playerListener.isInside(event.getLocation().getBlockX(), ctp.mainArena.x1, ctp.mainArena.x2) && ctp.playerListener.isInside(event.getLocation().getBlockY(), ctp.mainArena.y1, ctp.mainArena.y2) && ctp.playerListener.isInside(event.getLocation().getBlockZ(), ctp.mainArena.z1, ctp.mainArena.z2) && event.getLocation().getWorld().getName().equalsIgnoreCase(ctp.mainArena.world))
+        {
+            List<Block> explodedBlocks = event.blockList();
+
+            for (Block block : explodedBlocks)
+                ctp.arenaRestore.addBlock(block, true);
+        }
     }
 
     @Override
@@ -237,10 +258,21 @@ public class CaptureThePointsEntityListener extends EntityListener {
             return false;
         }
 
-        Spawn spawn = 
-            ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).team.color) != null ?
-            ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).team.color) :
-            ctp.playerData.get(player).team.spawn;
+        Spawn spawn = new Spawn();
+
+        try
+        {
+            spawn =
+                ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).team.color) != null ?
+                ctp.mainArena.teamSpawns.get(ctp.playerData.get(player).team.color) :
+                ctp.playerData.get(player).team.spawn;
+        }
+        catch(Exception e)
+        {
+            System.out.println("[ERROR][CTP] Team spawn could not be found!  Team color: " + ctp.playerData.get(player).team.color
+                    + " Player Name: " + player.getName());
+            return false;
+        }
                             
         Location protectionPoint = new Location(ctp.getServer().getWorld(ctp.mainArena.world), spawn.x, spawn.y, spawn.z);
         double distance = Util.getDistance(player.getLocation(), protectionPoint); // Kj -- this method is world-friendly.

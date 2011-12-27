@@ -24,7 +24,7 @@ public class TeamCommand extends CTPCommand {
 
     @Override
     public void perform() {
-        if (ctp.teams.size() <= 0) {
+        if (ctp.mainArena.teams.size() <= 0) {
             player.sendMessage(ChatColor.RED + "There are no teams - has a game been started?");
             return;
         }
@@ -44,7 +44,7 @@ public class TeamCommand extends CTPCommand {
         
         List<String> playernames = new ArrayList<String>();
         ChatColor cc = ChatColor.GREEN;
-        for (Team aTeam : ctp.teams) {
+        for (Team aTeam : ctp.mainArena.teams) {
             if (teamcolour.equalsIgnoreCase(aTeam.color)) {
                 cc = aTeam.chatcolor;
                 playernames = aTeam.getTeamPlayerNames(ctp);

@@ -28,16 +28,19 @@ public class ColorsCommand extends CTPCommand {
             player.sendMessage(ChatColor.GREEN + "WHITE, LIGHTGRAY, GRAY, BLACK, RED, ORANGE, YELLOW, LIME, LIGHTBLUE, GREEN, CYAN, BLUE, PURPLE, MAGENTA, PINK, BROWN");
         }
         
-        if (ctp.teams.size() > 0) {
+        if (ctp.mainArena.teams.size() > 0)
+        {
             String theteams = "";
-            for (int i = 0; i < ctp.teams.size(); i++) {
-                theteams = theteams + ctp.teams.get(i).chatcolor + ctp.teams.get(i).color + ChatColor.WHITE + ", "; // Kj -- added colour, changed team to team color (its name)
+            for (int i = 0; i < ctp.mainArena.teams.size(); i++)
+            {
+                theteams = theteams + ctp.mainArena.teams.get(i).chatcolor + ctp.mainArena.teams.get(i).color + ChatColor.WHITE + ", "; // Kj -- added colour, changed team to team color (its name)
             }
             player.sendMessage("Teams: " + ChatColor.GREEN + theteams.toLowerCase().substring(0, theteams.length() - 2)); // minus ", " from end
 
             String playernames = "";
             ChatColor cc = ChatColor.GREEN;
-            for (Team aTeam : ctp.teams) {
+            for (Team aTeam : ctp.mainArena.teams)
+            {
                 cc = aTeam.chatcolor;
                 playernames += cc;
                 playernames += aTeam.getTeamPlayerNames(ctp);

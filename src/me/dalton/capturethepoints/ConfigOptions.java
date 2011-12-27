@@ -82,6 +82,9 @@ public class ConfigOptions {
     
     /** The score a team much reach to win [Default: 15] */
     public int scoreToWin = 15;
+
+    /** Multiples gained score after all posible points are captured by that team **/
+    public int scoreMyltiplier = 2;
     
     /** The KillStreak messages generated, starting from 2 kills in a row. <br>
      * [Default: "%player strikes again!", "%player is on a killing spree!", "%player is on a rampage!", "%player is unstoppable!", "%player is GOD-LIKE!"] 

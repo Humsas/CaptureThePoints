@@ -17,6 +17,9 @@ public class ArenaData {
     /** The teamspawns this arena has (Hashmap of Teamcolor, Spawn). 
      * @see Spawn */
     public HashMap<String, Spawn> teamSpawns = new HashMap<String, Spawn>();
+
+    /** The Teams stored by CTP. */
+    public List<Team> teams = new ArrayList<Team>();
     
     /** The capture points this arena has. 
      * @see CTPPoints */

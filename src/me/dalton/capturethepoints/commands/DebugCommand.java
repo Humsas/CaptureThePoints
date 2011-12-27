@@ -106,7 +106,7 @@ public class DebugCommand extends CTPCommand {
             result.add("There is a discrepancy between playerData ready and the player's ready status in the lobby.");
         }
         
-        for (Team aTeam : ctp.teams) {
+        for (Team aTeam : ctp.mainArena.teams) {
             boolean insane = aTeam.sanityCheck(ctp);
             if (insane) {
                 int players = aTeam.getTeamPlayers(ctp) == null ? 0 : aTeam.getTeamPlayers(ctp).size(); 

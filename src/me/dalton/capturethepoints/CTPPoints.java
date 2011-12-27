@@ -1,5 +1,8 @@
  package me.dalton.capturethepoints;
- 
+
+import java.util.ArrayList;
+import java.util.List;
+
  /** A Capture Point in a CTP arena */
  public class CTPPoints {
      
@@ -24,5 +27,8 @@
    /** Which Team controls this Point 
     * @see Team */
    public String controledByTeam = null;
+
+   /** Teams who are not allowed to capture this point**/
+   public List<String> notAllowedToCaptureTeams = new ArrayList<String>();
  }
 

@@ -73,9 +73,6 @@ public class CaptureThePoints extends JavaPlugin {
     /** The PlayerData stored by CTP. (HashMap: Player, and their data) */
     public Map<Player, PlayerData> playerData = new ConcurrentHashMap<Player, PlayerData>();  // To avoid concurent modification exceptions    
 
-    /** The Teams stored by CTP. */
-    public List<Team> teams = new ArrayList<Team>();
-
     /** Player's previous Locations before they started playing CTP. */
     public final HashMap<Player, Location> previousLocation = new HashMap<Player, Location>();
 
@@ -92,6 +89,10 @@ public class CaptureThePoints extends JavaPlugin {
     /** The selected arena for playing. */
     public ArenaData mainArena = new ArenaData();
 
+    /** All arenas boundaries (HashMap: Arena's name, and its boundaries)**/
+    //public List<ArenaBoundarys> arenasBoundaries = new LinkedList<ArenaBoundarys>();
+    public HashMap<String, ArenaBoundaries> arenasBoundaries = new HashMap<String, ArenaBoundaries>();
+
     /** The arena currently being edited. */
     public ArenaData editingArena = new ArenaData();
 
@@ -107,6 +108,11 @@ public class CaptureThePoints extends JavaPlugin {
 
     /** The timers used by CTP. */
     public CTPScheduler CTP_Scheduler = new CTPScheduler();
+
+    public int arenaRestoreTimesRestored = 0;
+    public int arenaRestoreMaxRestoreTimes = 0;
+    public int arenaRestoreTimesRestoredSec = 0;   //For second time
+    public int arenaRestoreMaxRestoreTimesSec = 0;
 
     /** Name of the player who needs teleporting. */
     public String playerNameForTeleport = ""; // Block destroy - teleport protection
@@ -142,6 +148,8 @@ public class CaptureThePoints extends JavaPlugin {
             pluginManager.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Normal, this);
             pluginManager.registerEvent(Event.Type.SIGN_CHANGE, this.blockListener, Event.Priority.Normal, this);
             pluginManager.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Highest, this); // Because when game starts you must deal damage to enemy
+            pluginManager.registerEvent(Event.Type.ENTITY_EXPLODE, this.entityListener, Event.Priority.Normal, this);
+
             pluginManager.registerEvent(Event.Type.PLAYER_MOVE, this.playerListener, Event.Priority.Normal, this);
             pluginManager.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
             pluginManager.registerEvent(Event.Type.PLAYER_TELEPORT, this.playerListener, Event.Priority.Normal, this);
@@ -152,8 +160,10 @@ public class CaptureThePoints extends JavaPlugin {
             populateCommands();
         }
         loadConfigFiles();
+
         // Checks for mysql
-        mysqlConnector.checkMysqlData();
+        if(this.globalConfigOptions.enableHardArenaRestore)
+            mysqlConnector.checkMysqlData();
 
         //Kj: LobbyActivity timer.
         CTP_Scheduler.lobbyActivity = this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
@@ -270,7 +280,7 @@ public class CaptureThePoints extends JavaPlugin {
         
         int difference = 0;
 
-        for (Team aTeam : teams) {
+        for (Team aTeam : mainArena.teams) {
             if (lowestmembercount == -1) {
                 lowestmembercount = aTeam.memberCount;
                 lowestTeam = aTeam;
@@ -300,7 +310,7 @@ public class CaptureThePoints extends JavaPlugin {
             return true;
         }
 
-        if (difference % teams.size() == 0) {
+        if (difference % mainArena.teams.size() == 0) {
             // The teams balance evenly.
             balancePlayer(highestTeam.getRandomPlayer(this), lowestTeam); // Move one player from the team with the higher number of players to the lower.
         } else {
@@ -455,12 +465,12 @@ public class CaptureThePoints extends JavaPlugin {
         if (this.playerData.size() < 2 && !isPreGame()) {
             //maybe dc or something. it should be moved to cheking to see players who left the game
             boolean zeroPlayers = true;
-            for (int i = 0; i < teams.size(); i++) {
-                if (teams.get(i).memberCount == 1) {
+            for (int i = 0; i < mainArena.teams.size(); i++) {
+                if (mainArena.teams.get(i).memberCount == 1) {
                     zeroPlayers = false;
                     Util.sendMessageToPlayers(this, "The game has stopped because there are too few players. "
-                            + teams.get(i).chatcolor + teams.get(i).color.toUpperCase() + ChatColor.WHITE + " wins! (With a final score of "
-                            + teams.get(i).score + ")");
+                            + mainArena.teams.get(i).chatcolor + mainArena.teams.get(i).color.toUpperCase() + ChatColor.WHITE + " wins! (With a final score of "
+                            + mainArena.teams.get(i).score + ")");
                     blockListener.endGame(true);
                     break;
                 }
@@ -592,7 +602,6 @@ public class CaptureThePoints extends JavaPlugin {
         rewards = null;
         mainArena = null;
         editingArena = null;
-        teams.clear();
         roles.clear();
     }
 
@@ -636,6 +645,12 @@ public class CaptureThePoints extends JavaPlugin {
 
         // Score mod
         co.useScoreGeneration = config.getBoolean(pointCaptureWithScore + "UseScoreGeneration", globalConfigOptions.useScoreGeneration);
+        co.scoreMyltiplier = config.getInt(pointCaptureWithScore + "ScoreMultiplier", globalConfigOptions.scoreMyltiplier);
+        if(co.scoreMyltiplier < 1)
+        {
+            co.scoreMyltiplier = 2;
+            config.setProperty(pointCaptureWithScore + "ScoreMultiplier", co.scoreMyltiplier);
+        }
         co.scoreToWin = config.getInt(pointCaptureWithScore + "ScoreToWin", globalConfigOptions.scoreToWin);
         co.onePointGeneratedScoreEvery30sec = config.getInt(pointCaptureWithScore + "OnePointGeneratedScoreEvery30sec", globalConfigOptions.onePointGeneratedScoreEvery30sec);
         co.scoreAnnounceTime = config.getInt(pointCaptureWithScore + "ScoreAnnounceTime", globalConfigOptions.scoreAnnounceTime);
@@ -707,6 +722,12 @@ public class CaptureThePoints extends JavaPlugin {
 
         // Score mod
         co.useScoreGeneration = config.getBoolean(pointCaptureWithScore + "UseScoreGeneration", globalConfigOptions.useScoreGeneration);
+        co.scoreMyltiplier = config.getInt(pointCaptureWithScore + "ScoreMultiplier", globalConfigOptions.scoreMyltiplier);
+        if(co.scoreMyltiplier < 1)
+        {
+            co.scoreMyltiplier = 2;
+            config.setProperty(pointCaptureWithScore + "ScoreMultiplier", co.scoreMyltiplier);
+        }
         co.scoreToWin = config.getInt(pointCaptureWithScore + "ScoreToWin", globalConfigOptions.scoreToWin);
         co.onePointGeneratedScoreEvery30sec = config.getInt(pointCaptureWithScore + "OnePointGeneratedScoreEvery30sec", globalConfigOptions.onePointGeneratedScoreEvery30sec);
         co.scoreAnnounceTime = config.getInt(pointCaptureWithScore + "ScoreAnnounceTime", globalConfigOptions.scoreAnnounceTime);
@@ -876,9 +897,9 @@ public class CaptureThePoints extends JavaPlugin {
         Util.sendMessageToPlayers(this, player, ChatColor.GREEN + player.getName() + ChatColor.WHITE + " left the CTP game!"); // Won't send to "player".
         
         if (playerData.get(player).team != null) {
-            for (int i = 0; i < teams.size(); i++) {
-                if (teams.get(i) == (playerData.get(player).team)) {
-                    teams.get(i).memberCount--;
+            for (int i = 0; i < mainArena.teams.size(); i++) {
+                if (mainArena.teams.get(i) == (playerData.get(player).team)) {
+                    mainArena.teams.get(i).memberCount--;
                     break;
                 }
             }
@@ -913,15 +934,21 @@ public class CaptureThePoints extends JavaPlugin {
         }
     }
 
-    private void loadArenas (File file) {
-        if (file.isDirectory()) {
+    private void loadArenas (File file)
+    {
+        if (file.isDirectory())
+        {
             String[] internalNames = file.list();
-            for (String name : internalNames) {
+            for (String name : internalNames)
+            {
                 loadArenas(new File(file.getAbsolutePath() + File.separator + name));
             }
-        } else {
+        } 
+        else
+        {
             String fileName = file.getName().split("\\.")[0];
-            if (!arena_list.contains(fileName)) {
+            if (!arena_list.contains(fileName))
+            {
                 arena_list.add(fileName);
             }
         }
@@ -936,6 +963,23 @@ public class CaptureThePoints extends JavaPlugin {
         File file = new File(mainDir + File.separator + "Arenas");
         loadArenas(file);
 
+        // Load arenas boundaries
+        for(int i = 0; i < arena_list.size(); i++)
+        {
+            ArenaData tmp = loadArena(arena_list.get(i));
+            ArenaBoundaries tmpBound = new ArenaBoundaries();
+            //tmpBound.arenaName = tmp.name;
+            tmpBound.world = tmp.world;
+            tmpBound.x1 = tmp.x1;
+            tmpBound.x2 = tmp.x2;
+            tmpBound.y1 = tmp.y1;
+            tmpBound.y2 = tmp.y2;
+            tmpBound.z1 = tmp.z1;
+            tmpBound.z2 = tmp.z2;
+
+            arenasBoundaries.put(tmp.name, tmpBound);
+        }
+
         Configuration globalConfig = load();
         globalConfigOptions = getConfigOptions(globalConfig);
 
@@ -946,11 +990,11 @@ public class CaptureThePoints extends JavaPlugin {
             mainArena = loadArena(arenaName);
         }
         editingArena = mainArena;
-        if (mainArena == null) {
+        if (mainArena == null)
+        {
             globalConfig.removeProperty("Arena");
+            globalConfig.save();
         }
-
-        globalConfig.save();
 
         CTP_Scheduler.money_Score = 0;
         CTP_Scheduler.playTimer = 0;
@@ -991,15 +1035,38 @@ public class CaptureThePoints extends JavaPlugin {
             arena.name = name;
             arena.maximumPlayers = arenaConf.getInt("MaximumPlayers", 9999); // Kj
             arena.minimumPlayers = arenaConf.getInt("MinimumPlayers", 2); // Kj
-            if (arenaConf.getString("Points") != null) {
-                for (String str : arenaConf.getKeys("Points")) {
+            if (arenaConf.getString("Points") != null)
+            {
+                for (String str : arenaConf.getKeys("Points"))
+                {
                     CTPPoints tmps = new CTPPoints();
                     tmps.name = str;
                     str = "Points." + str;
                     tmps.x = arenaConf.getInt(str + ".X", 0);
                     tmps.y = arenaConf.getInt(str + ".Y", 0);
                     tmps.z = arenaConf.getInt(str + ".Z", 0);
-                    if (arenaConf.getString(str + ".Dir") != null) {
+
+                    // Load teams that are not allowed to capture
+                    String teamColors = arenaConf.getString(str + ".NotAllowedToCaptureTeams");
+                    if(teamColors == null)
+                    {
+                        tmps.notAllowedToCaptureTeams = null;
+                    }
+                    else
+                    {
+                        // Trim commas and whitespace, and split items by commas
+                        teamColors = teamColors.toLowerCase();
+                        teamColors = teamColors.trim();
+                        if (teamColors.endsWith(","))
+                        {
+                            teamColors = teamColors.substring(0, teamColors.length() - 1);
+                        }
+                        String[] tc = teamColors.split(",");
+                        tmps.notAllowedToCaptureTeams.addAll(Arrays.asList(tc));
+                    }
+
+                    if (arenaConf.getString(str + ".Dir") != null)
+                    {
                         tmps.pointDirection = arenaConf.getString(str + ".Dir");
                     }
                     arena.capturePoints.add(tmps);
@@ -1026,19 +1093,21 @@ public class CaptureThePoints extends JavaPlugin {
                         team.chatcolor = ChatColor.GREEN;
                     }
 
-                    // Kj -- copied previous team check here to double check if teams are being duped.
                     // Check if this spawn is already in the list
                     boolean hasTeam = false;
 
-                    for (Team aTeam : teams) {
-                        if (aTeam.color.equalsIgnoreCase(spawn.name)) {
+                    for (Team aTeam : arena.teams) {
+                        if (aTeam.color.equalsIgnoreCase(spawn.name))
+                        {
                             hasTeam = true;
+                            break;
                             //ctp.teams.remove(aTeam);
                         }
                     }
 
-                    if (!hasTeam) {
-                        teams.add(team);
+                    if (!hasTeam)
+                    {
+                        arena.teams.add(team);
                     }
                 }
             }

@@ -53,12 +53,12 @@ public class MysqlConnector
             }
             catch (Exception e)
             {
-                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS " + ctp.globalConfigOptions.mysqlDatabase + ".Arena ( `name` TEXT NOT NULL , `world` TEXT NOT NULL, `x1` INT NOT NULL, `y1` INT NOT NULL, `z1` INT NOT NULL, `x2` INT NOT NULL, `y2` INT NOT NULL, `z2` INT NOT NULL ) ENGINE=MyISAM DEFAULT CHARSET=latin1");
-                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS " + ctp.globalConfigOptions.mysqlDatabase + ".Simple_block ( `data` INT NOT NULL , `x` INT NOT NULL , `y` INT NOT NULL , `z` INT NOT NULL , `arena_name` TEXT NOT NULL , `block_type` INT NOT NULL , `id` INT NOT NULL AUTO_INCREMENT, `direction` TEXT NOT NULL , PRIMARY KEY ( `id` )) ENGINE=MyISAM DEFAULT CHARSET=latin1");
-                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS " + ctp.globalConfigOptions.mysqlDatabase + ".Note_block ( `block_ID` INT NOT NULL , `note_type` INT NOT NULL ) ENGINE=MyISAM DEFAULT CHARSET=latin1");
-                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS " + ctp.globalConfigOptions.mysqlDatabase + ".Spawner_block (  `block_ID` INT NOT NULL , `creature_type` TEXT NOT NULL , `delay` INT NOT NULL ) ENGINE=MyISAM DEFAULT CHARSET=latin1");
-                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS " + ctp.globalConfigOptions.mysqlDatabase + ".Item (  `type` INT NOT NULL , `block_ID` INT NOT NULL , `durability` INT NOT NULL, `amount` INT NOT NULL, `place_in_inv` INT NOT NULL, `data` INT NOT NULL ) ENGINE=MyISAM DEFAULT CHARSET=latin1");
-                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS " + ctp.globalConfigOptions.mysqlDatabase + ".Sign (  `block_ID` INT NOT NULL , `first_line` TEXT NOT NULL , `second_line` TEXT NOT NULL, `third_line` TEXT NOT NULL, `fourth_line` TEXT NOT NULL ) ENGINE=MyISAM DEFAULT CHARSET=latin1");
+                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS `" + ctp.globalConfigOptions.mysqlDatabase + "`.`Arena` ( `name` TEXT NOT NULL , `world` TEXT NOT NULL) ENGINE=MyISAM DEFAULT CHARSET=latin1");
+                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS `" + ctp.globalConfigOptions.mysqlDatabase + "`.`Simple_block` ( `data` INT NOT NULL , `x` INT NOT NULL , `y` INT NOT NULL , `z` INT NOT NULL, `z2` INT NOT NULL, `arena_name` TEXT NOT NULL , `block_type` INT NOT NULL , `id` INT NOT NULL AUTO_INCREMENT, `direction` TEXT NOT NULL , PRIMARY KEY ( `id` )) ENGINE=MyISAM DEFAULT CHARSET=latin1");
+                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS `" + ctp.globalConfigOptions.mysqlDatabase + "`.`Note_block` ( `block_ID` INT NOT NULL , `note_type` INT NOT NULL ) ENGINE=MyISAM DEFAULT CHARSET=latin1");
+                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS `" + ctp.globalConfigOptions.mysqlDatabase + "`.`Spawner_block` (  `block_ID` INT NOT NULL , `creature_type` TEXT NOT NULL , `delay` INT NOT NULL ) ENGINE=MyISAM DEFAULT CHARSET=latin1");
+                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS `" + ctp.globalConfigOptions.mysqlDatabase + "`.`Item` (  `type` INT NOT NULL , `block_ID` INT NOT NULL , `durability` INT NOT NULL, `amount` INT NOT NULL, `place_in_inv` INT NOT NULL, `data` INT NOT NULL ) ENGINE=MyISAM DEFAULT CHARSET=latin1");
+                stmt.executeUpdate("CREATE TABLE  IF NOT EXISTS `" + ctp.globalConfigOptions.mysqlDatabase + "`.`Sign` (  `block_ID` INT NOT NULL , `first_line` TEXT NOT NULL , `second_line` TEXT NOT NULL, `third_line` TEXT NOT NULL, `fourth_line` TEXT NOT NULL ) ENGINE=MyISAM DEFAULT CHARSET=latin1");
 
                 //stmt.executeUpdate("ALTER TABLE `Note_block` ADD `block_ID` INT NOT NULL ,ADD `note_type` INT NOT NULL");
             }
