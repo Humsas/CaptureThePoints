@@ -458,7 +458,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             point1 = second;
         }
 
-        return (point1 < loc) && (loc < point2);
+        return (point1 <= loc) && (loc <= point2);
     }
 
     public void moveToSpawns () {
@@ -550,7 +550,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                             int maxPossiblePointsToCapture = 0;
                             for (CTPPoints point : ctp.mainArena.capturePoints)
                             {
-                                if(point.notAllowedToCaptureTeams == null || !point.notAllowedToCaptureTeams.contains(team.color))
+                                if(point.notAllowedToCaptureTeams == null || !Util.containsTeam(point.notAllowedToCaptureTeams, team.color))
                                     maxPossiblePointsToCapture++;
                             }
 
@@ -764,30 +764,28 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             }
         }    
 
-        if (canPay(p, price)) {
+        if (canPay(p, price))
+        {
             int amount = 1;
-            if (list.get(0).item == Material.ARROW) {
+            if (list.get(0).item == Material.ARROW)
+            {
                 amount = 64;
             }
 
-            if (list.get(0).type == -1) {
+            if (list.get(0).type == -1)
+            {
                 ItemStack stack = new ItemStack(list.get(0).item, amount);
                 p.getInventory().addItem(stack);
-                //p.getInventory().addItem(new ItemStack[]{stack});
-            } else {
-                byte offset = 0;
-                if (list.get(0).item == Material.INK_SACK) {
-                    offset = 15;
-                }
-                DyeColor dye = DyeColor.getByData((byte) Math.abs(offset - list.get(0).type));
-                ItemStack stack = new ItemStack(list.get(0).item, list.get(0).amount, (short) (byte) Math.abs(offset - dye.getData()));
+            } 
+            else
+            {
+                ItemStack stack = new ItemStack(list.get(0).item);
+                stack.setAmount(list.get(0).amount);
+                stack.setDurability(list.get(0).type);
                 p.getInventory().addItem(stack);
-                //p.getInventory().addItem(new ItemStack[]{tmp});
             }
 
             chargeAccount(p, price);
-            //ItemStack i = new ItemStack(mat.getId(), kiekis);
-            //p.getInventory().addItem(i);
 
             p.sendMessage("You bought " + ChatColor.AQUA + list.get(0).amount + " " + list.get(0).item.toString().toLowerCase() + ChatColor.WHITE + " for " + ChatColor.GREEN + price + ChatColor.WHITE + " money.");
             p.sendMessage("You now have " + ChatColor.GREEN + ctp.playerData.get(p).money + ChatColor.WHITE + " money.");

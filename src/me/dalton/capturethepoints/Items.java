@@ -12,5 +12,5 @@ public class Items {
     public int amount;
     
     /** The items data type */
-    public int type = -1;
+    public short type = -1;
 }

@@ -12,6 +12,7 @@ public class LeaveCommand extends CTPCommand {
         super.aliases.add("exit");
         super.aliases.add("part");
         super.aliases.add("quit");
+        super.aliases.add("l");
         super.notOpCommand = true;
         super.requiredPermissions = new String[]{"ctp.*", "ctp.play", "ctp.admin"};
         super.senderMustBePlayer = true;

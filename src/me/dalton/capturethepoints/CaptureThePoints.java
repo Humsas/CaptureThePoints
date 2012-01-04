@@ -934,7 +934,7 @@ public class CaptureThePoints extends JavaPlugin {
         }
     }
 
-    private void loadArenas (File file)
+    public void loadArenas (File file)
     {
         if (file.isDirectory())
         {
@@ -1057,11 +1057,14 @@ public class CaptureThePoints extends JavaPlugin {
                         // Trim commas and whitespace, and split items by commas
                         teamColors = teamColors.toLowerCase();
                         teamColors = teamColors.trim();
+                        teamColors = teamColors.replaceAll(" ", "");
+
                         if (teamColors.endsWith(","))
                         {
                             teamColors = teamColors.substring(0, teamColors.length() - 1);
                         }
                         String[] tc = teamColors.split(",");
+
                         tmps.notAllowedToCaptureTeams.addAll(Arrays.asList(tc));
                     }
 

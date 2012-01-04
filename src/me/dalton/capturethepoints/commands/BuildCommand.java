@@ -27,7 +27,7 @@ public class BuildCommand extends CTPCommand {
         super.requiredPermissions = new String[]{"ctp.*", "ctp.admin",
             "ctp.admin.setpoint", "ctp.admin.removepoint", "ctp.admin.create", "ctp.admin.delete", "ctp.admin.selectarena",
             "ctp.admin.setarena", "ctp.admin.setlobby", "ctp.admin.arenalist", "ctp.admin.pointlist", "ctp.admin.setboundary",
-            "ctp.admin.maximumplayers", "ctp.admin.minimumplayers"};
+            "ctp.admin.maximumplayers", "ctp.admin.minimumplayers" , "ctp.admin.save", "ctp.admin.restore"};
         super.senderMustBePlayer = true;
         super.minParameters = 2;
         super.maxParameters = 99;    // Lol cant make in the other way
@@ -46,15 +46,23 @@ public class BuildCommand extends CTPCommand {
             arg = "help";
             arg2 = "1";
         }
-        if (arg.equals("2")) { // ctp build 2
+        else if(arg.equals("2"))  // ctp build 2
+        {
             arg = "help";
             arg2 = "2";
         }
+        else if(arg.equals("3"))
+        {
+            arg = "help";
+            arg2 = "3";
+        }
 
-        if (arg.equalsIgnoreCase("help")) {
+        if (arg.equalsIgnoreCase("help"))
+        {
             String pagenumber = arg2;
-            if (pagenumber.isEmpty() || pagenumber.equals("1")) {
-                sender.sendMessage(ChatColor.RED + "CTP Build Commands: " + ChatColor.GOLD + " Page 1/2");
+            if (pagenumber.isEmpty() || pagenumber.equals("1"))
+            {
+                sender.sendMessage(ChatColor.RED + "CTP Build Commands: " + ChatColor.GOLD + " Page 1/3");
                 sender.sendMessage(ChatColor.DARK_GREEN + "/ctp b help [pagenumber] " + ChatColor.WHITE + "- view this menu.");
 
                 if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.arenalist"})) {
@@ -78,8 +86,10 @@ public class BuildCommand extends CTPCommand {
                 if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.removepoint"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b removepoint <Point name> " + ChatColor.WHITE + "- removes an existing capture point");
                 }
-            } else if (pagenumber.equals("2")) {
-                sender.sendMessage(ChatColor.RED + "CTP Build Commands: " + ChatColor.GOLD + " Page 2/2");
+            } 
+            else if (pagenumber.equals("2"))
+            {
+                sender.sendMessage(ChatColor.RED + "CTP Build Commands: " + ChatColor.GOLD + " Page 2/3");
                 if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin.removespawn", "ctp.admin"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b removespawn <Team color> " + ChatColor.WHITE + "- removes spawn point of selected color");
                 }
@@ -96,11 +106,22 @@ public class BuildCommand extends CTPCommand {
                     player.sendMessage(ChatColor.GREEN + "/ctp b setlobby " + ChatColor.WHITE + "- sets arena lobby");
                 }
                 if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.setpoint"})) {
-                    player.sendMessage(ChatColor.GREEN + "/ctp b setpoint <Point name> <vert | hor> " + ChatColor.WHITE + "- creates new capture point");
+                    player.sendMessage(ChatColor.GREEN + "/ctp b setpoint <Point name> <vert | hor> [teams which can't capture]" + ChatColor.WHITE + "- creates new capture point");
                 }
                 if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin.setspawn", "ctp.admin"})) {
                     player.sendMessage(ChatColor.GREEN + "/ctp b setspawn <Team color> " + ChatColor.WHITE + "- sets the place people are teleported to when they die or when they join the game");
                 }
+            }
+            else if(pagenumber.equals("3"))
+            {
+                sender.sendMessage(ChatColor.RED + "CTP Build Commands: " + ChatColor.GOLD + " Page 3/3");
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin.save", "ctp.admin"})) {
+                    player.sendMessage(ChatColor.GREEN + "/ctp b save " + ChatColor.WHITE + "- saves selected for editing arena data to mySQL database");
+                }
+                if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin.restore", "ctp.admin"})) {
+                    player.sendMessage(ChatColor.GREEN + "/ctp b restore " + ChatColor.WHITE + "- restores arena from mySQL database");
+                }
+                player.sendMessage(ChatColor.GREEN + "/ctp b findchests <arena name>" + ChatColor.WHITE + "- shows all chests in arena");
             }
             return;
         }
@@ -687,14 +708,17 @@ public class BuildCommand extends CTPCommand {
                     player.sendMessage(ChatColor.RED + "No arena selected!");
                     return;
                 }
-                File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
+                File arenaFile = new File(ctp.mainDir + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
 
                 Configuration arenaConf = new Configuration(arenaFile);
                 arenaConf.load();
                 String aWorld = arenaConf.getString("World");
-                if (aWorld == null) {
+                if (aWorld == null)
+                {
                     arenaConf.setProperty("World", player.getWorld().getName());
-                } else if (!aWorld.equals(player.getWorld().getName())) {
+                } 
+                else if (!aWorld.equals(player.getWorld().getName()))
+                {
                     player.sendMessage(ChatColor.RED + "Please build arena lobby in same world as its spawns and capture points!");
                     return;
                 }
@@ -706,6 +730,11 @@ public class BuildCommand extends CTPCommand {
                         player.getLocation().getYaw());
 
                 ctp.editingArena.lobby = lobby;
+
+                if(ctp.editingArena.name.equalsIgnoreCase(ctp.mainArena.name))
+                {
+                    ctp.mainArena.lobby = lobby;
+                }
 
                 arenaConf.setProperty("Lobby.X", Double.valueOf(lobby.x));
                 arenaConf.setProperty("Lobby.Y", Double.valueOf(lobby.y));
@@ -720,14 +749,24 @@ public class BuildCommand extends CTPCommand {
         }
 
         if (arg.equalsIgnoreCase("arenalist")) {
-            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.arenalist"})) {
+            if (ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin", "ctp.admin.arenalist"})) 
+            {
+                // Reload arena list (matbe there is a new arena there)
+
+                File file = new File(ctp.mainDir + File.separator + "Arenas");
+                ctp.loadArenas(file);
+                
                 String arenas = "";
                 boolean firstTime = true;
-                for (String arena : ctp.arena_list) {
-                    if (firstTime) {
+                for (String arena : ctp.arena_list)
+                {
+                    if (firstTime)
+                    {
                         arenas = arena;
                         firstTime = false;
-                    } else {
+                    } 
+                    else
+                    {
                         arenas = arena + ", " + arenas;
                     }
                 }
@@ -1061,7 +1100,7 @@ public class BuildCommand extends CTPCommand {
 
         if (arg.equalsIgnoreCase("restore"))
         {
-            if(!ctp.mainArena.co.enableHardArenaRestore)
+            if(!ctp.globalConfigOptions.enableHardArenaRestore)
             {
                 player.sendMessage(ChatColor.RED + "Hard arena restore is not enabled.");
                 return;
@@ -1079,7 +1118,17 @@ public class BuildCommand extends CTPCommand {
 
         if (arg.equalsIgnoreCase("findchests"))
         {
-            String arenaName = arg2;
+            if (!ctp.canAccess(player, false, new String[]{"ctp.*", "ctp.admin"}))
+            {
+                player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+                return;
+            }
+
+            String arenaName;
+            if(arg2 == null || arg2 == "")
+                arenaName = ctp.mainArena.name;
+
+            arenaName = arg2;
             ctp.mysqlConnector.connectToMySql();
 
             ResultSet rezult = ctp.mysqlConnector.getData("SELECT * FROM Simple_block WHERE Simple_block.arena_name = '" + arenaName + "' AND Simple_block.`block_type` = " + BlockID.CHEST);

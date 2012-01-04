@@ -267,6 +267,7 @@ public class Util {
             // Grab the amount.
             Items i = new Items();
             i.amount = 1;
+            i.type = -1;
 
             if (parts.length == 1) {
                 if (Util.isItInteger(parts[0])) {
@@ -285,7 +286,7 @@ public class Util {
             } else if (parts.length == 3 && parts[2].matches("(-)?[0-9]+")) // For dyes
             {
                 i.amount = Integer.parseInt(parts[2]);
-                i.type = Integer.parseInt(parts[1]);
+                i.type = Short.parseShort(parts[1]);
                 if (Util.isItInteger(parts[0])) {
                     i.item = Material.getMaterial(Integer.parseInt(parts[0]));
                 } else {
@@ -473,5 +474,16 @@ public class Util {
             return loc1.distance(loc2);
         }
         return Double.NaN;
+    }
+
+    // Checks if there is a team color in a list
+    public static boolean containsTeam(List<String> teams, String color)
+    {
+        for(String teamColor : teams)
+        {
+            if(teamColor.equalsIgnoreCase(color))
+                return true;
+        }
+        return false;
     }
 }

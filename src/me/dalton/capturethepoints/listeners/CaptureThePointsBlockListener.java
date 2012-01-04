@@ -44,19 +44,22 @@ public class CaptureThePointsBlockListener extends BlockListener {
         Block block = event.getBlock();
 
         // If it tries to break in lobby
-        if (ctp.playerData.containsKey(player) && ctp.playerData.get(player).isInLobby) {
+        if (ctp.playerData.containsKey(player) && ctp.playerData.get(player).isInLobby)
+        {
             // breaks block beneath player(it causes teleport event if you cancel action)
             int playerLocX = player.getLocation().getBlockX();
             int playerLocY = player.getLocation().getBlockY() - 1;
             int playerLocZ = player.getLocation().getBlockZ();
 
-            if (playerLocX == block.getX() && playerLocY == block.getY() && playerLocZ == block.getZ()) {
+            if (playerLocX == block.getX() && playerLocY == block.getY() && playerLocZ == block.getZ())
+            {
                 // allow teleport
                 ctp.playerData.get(player).justJoined = true;
                 ctp.playerNameForTeleport = player.getName();
 
                 // player can not drop down so we need to reset teleport flag
-                ctp.getServer().getScheduler().scheduleSyncDelayedTask(ctp, new Runnable() {
+                ctp.getServer().getScheduler().scheduleSyncDelayedTask(ctp, new Runnable()
+                {
                     @Override
                     public void run ()
                     {
@@ -100,16 +103,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
 
         BlockState state = block.getState();
         MaterialData data = state.getData();
-        if (isAlreadyInGame(player)) {
-
-            // Kj -- helmet checker
-            /*boolean helmetRemoved = ctp.playerListener.checkHelmet(player);
-            if (helmetRemoved) {
-            ctp.playerListener.fixHelmet(player);
-            event.setCancelled(true);
-            return;
-            }*/
-
+        if (isAlreadyInGame(player))
+        {
             // check for sign destroy
             if (state instanceof Sign) {
                 event.setCancelled(true);
@@ -118,7 +113,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
             boolean inPoint = false; // Kj -- for block breaking checker
 
             //in game wool check
-            if (data instanceof Wool) {
+            if (data instanceof Wool)
+            {
                 Location loc = block.getLocation();
 
                 for (CTPPoints point : ctp.mainArena.capturePoints) { // Kj -- s -> point
@@ -127,28 +123,39 @@ public class CaptureThePointsBlockListener extends BlockListener {
                     if (distance < 5.0D) 
                     {
                         // Check if player team can capture point
-                        if(point.notAllowedToCaptureTeams != null && point.notAllowedToCaptureTeams.contains(ctp.playerData.get(player).team.color.toLowerCase()))
+                        if(point.notAllowedToCaptureTeams != null && Util.containsTeam(point.notAllowedToCaptureTeams, ctp.playerData.get(player).team.color))
                         {
                             player.sendMessage("[CTP]" + ChatColor.RED + " Your team can't capture this point.");
                             event.setCancelled(true);
                             return;
                         }
 
-                        inPoint = true; // Kj -- for block breaking checker
-                        if (point.pointDirection == null) {
-                            if (checkForFill(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), true)) {
-                                if (ctp.playerData.get(player).team.color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
+                        if(isInsidePoint(point, loc) || (point.pointDirection != null && isInsidePointVert(point, loc)))
+                        {
+                            inPoint = true; // Kj -- for block placement checker
+                        }
+
+                        if (point.pointDirection == null)
+                        {
+                            if (checkForFill(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), true))
+                            {
+                                if (ctp.playerData.get(player).team.color.equalsIgnoreCase(((Wool) data).getColor().toString()))
+                                {
                                     event.setCancelled(true);
                                     return;
                                 }
-                                if (point.controledByTeam != null) {
+                                if (point.controledByTeam != null)
+                                {
                                     point.controledByTeam = null;
                                     Util.sendMessageToPlayers(ctp, subtractPoints(((Wool) data).getColor().toString(), point.name));
                                     break;
                                 }
                             }
-                        } else {
-                            if (checkForFillVert(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), true)) {
+                        } 
+                        else
+                        {
+                            if (checkForFillVert(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), true)) 
+                            {
                                 if (ctp.playerData.get(player).team.color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
                                     event.setCancelled(true);
                                     return;
@@ -165,7 +172,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
             }
 
             // Kj -- block breaking checker blocks breaking of anything not in the CTPPoint if the config has set AllowBlockBreak to false.
-            if (!ctp.mainArena.co.allowBlockPlacement && !inPoint) {
+            if (!ctp.mainArena.co.allowBlockBreak && !inPoint)
+            {
                 event.setCancelled(true);
                 return;
             }
@@ -247,28 +255,37 @@ public class CaptureThePointsBlockListener extends BlockListener {
                     if (distance < 5)  // Found nearest point ( points can't be closer than 5 blocks)
                     {
                         // Check if player team can capture point
-                        if(point.notAllowedToCaptureTeams != null && point.notAllowedToCaptureTeams.contains(ctp.playerData.get(player).team.color.toLowerCase()))
+                        if(point.notAllowedToCaptureTeams != null && Util.containsTeam(point.notAllowedToCaptureTeams, ctp.playerData.get(player).team.color))
                         {
                             player.sendMessage("[CTP]" + ChatColor.RED + " Your team can't capture this point.");
                             event.setCancelled(true);
                             return;
                         }
-                        
-                        inPoint = true; // Kj -- for block placement checker
 
                         // If building near the point with not your own colored wool(to prevent wool destry bug)
                         if (!ctp.playerData.get(player).team.color.equalsIgnoreCase(((Wool) data).getColor().toString())) {
                             event.setCancelled(true);
                             return;
                         }
-                        if (point.pointDirection == null) {
+
+                        if(isInsidePoint(point, loc) || (point.pointDirection != null && isInsidePointVert(point, loc)))
+                        {
+                            inPoint = true; // Kj -- for block placement checker
+                        }
+                        
+                        if (point.pointDirection == null)
+                        {
                             //Check if wool is placed on top of point
-                            if (checkForWoolOnTopHorizontal(loc, point)) {
+                            if (checkForWoolOnTopHorizontal(loc, point))
+                            {
                                 event.setCancelled(true);
                                 return;
                             }
-                            if (checkForFill(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), false)) {
-                                if (point.controledByTeam == null) {
+
+                            if (checkForFill(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), false)) 
+                            {
+                                if (point.controledByTeam == null)
+                                {
                                     point.controledByTeam = ctp.playerData.get(player).team.color;
                                     Util.sendMessageToPlayers(ctp, addPoints(((Wool) data).getColor().toString(), point.name));
                                     ctp.playerData.get(player).pointCaptures++;
@@ -280,13 +297,18 @@ public class CaptureThePointsBlockListener extends BlockListener {
                                     break;
                                 }
                             }
-                        } else {
+                        } 
+                        else
+                        {
                             //Check if wool is placed on top of point
-                            if (checkForWoolOnTopVertical(loc, point)) {
+                            if (checkForWoolOnTopVertical(loc, point))
+                            {
                                 event.setCancelled(true);
                                 return;
                             }
-                            if (checkForFillVert(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), false)) {
+
+                            if (checkForFillVert(point, loc, ctp.playerData.get(player).team.color, ((Wool) data).getColor().toString(), false)) 
+                            {
                                 if (point.controledByTeam == null) {
                                     point.controledByTeam = ctp.playerData.get(player).team.color;
                                     Util.sendMessageToPlayers(ctp, addPoints(((Wool) data).getColor().toString(), point.name));
@@ -356,21 +378,23 @@ public class CaptureThePointsBlockListener extends BlockListener {
 
         ctp.playerData.get(p).role = role;
 
-        for (Items item : ctp.roles.get(role.toLowerCase())) {
-            if (Util.ARMORS_TYPE.contains(item.item) && (!Util.HELMETS_TYPE.contains(item.item))) {
+        for (Items item : ctp.roles.get(role.toLowerCase()))
+        {
+            if (Util.ARMORS_TYPE.contains(item.item) && (!Util.HELMETS_TYPE.contains(item.item)))
+            {
                 ItemStack i = new ItemStack(item.item, 1);
                 Util.equipArmorPiece(i, inv);
-            } else {
-                byte offset = 0;
-                if (item.item == Material.INK_SACK) {
-                    offset = 15;
-                }
-                DyeColor dye = DyeColor.getByData((byte) Math.abs(offset - item.type));
+            } 
+            else
+            {
                 ItemStack stack;
                 // If something is wrong in config file
                 try
                 {
-                    stack = new ItemStack(item.item, item.amount, (short) (byte) Math.abs(offset - dye.getData()));
+                    stack = new ItemStack(item.item);
+                    stack.setAmount(item.amount);
+                    if(item.type != -1)
+                        stack.setDurability(item.type);
                 }
                 catch(Exception e)
                 {
@@ -594,7 +618,8 @@ public class CaptureThePointsBlockListener extends BlockListener {
         for (Player player : this.ctp.playerData.keySet())
         {
             restoreThings(player);
-            if (!noRewards) {
+            if (!noRewards)
+            {
                 Util.rewardPlayer(ctp, player);
             }
         }
@@ -602,15 +627,6 @@ public class CaptureThePointsBlockListener extends BlockListener {
         if(ctp.globalConfigOptions.enableHardArenaRestore)
         {
             ctp.arenaRestore.restoreMySQLBlocks();
-//            ctp.getServer().getScheduler().scheduleAsyncDelayedTask(ctp, new Runnable()
-//            {
-//                @Override
-//                public void run ()
-//                {
-//                    //ctp.mysqlConnector.connectToMySql();
-//                    //ctp.arenaRestore.restore(ctp.mainArena.name);
-//                }
-//            }, 5L);  //I think one second is too much and can cause some troubles if player break another block
         }
         else
         {
@@ -716,6 +732,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
         } else {
             p.setHealth(ctp.playerData.get(p).health);
         }
+       
     }
 
     public String subtractPoints (String aTeam, String lostpoint) { // Kj -- remade.
