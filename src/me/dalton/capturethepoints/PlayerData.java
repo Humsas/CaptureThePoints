@@ -1,5 +1,7 @@
 package me.dalton.capturethepoints;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import org.bukkit.entity.Player;
 
@@ -45,6 +47,8 @@ public class PlayerData {
     
     /** The ready state of this player. */
     public boolean isReady = false;
+
+    //public boolean isRespawningAfterTrueDeath = false;
     
     /** The win state of this player. */
     public boolean winner = false;
@@ -63,6 +67,8 @@ public class PlayerData {
     
     /** If this player has been warned to ready up or be kicked. */
     public boolean warnedAboutActivity = false; // Kjhf
+
+    public List<CTPPotionEffect> potionEffects = new ArrayList<CTPPotionEffect>();
 
     /** Get the player associated with this PlayerData
      * @param ctp CaptureThePoints instance

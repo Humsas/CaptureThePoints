@@ -22,7 +22,10 @@ public class ConfigOptions {
 
     /** Breaking blocks in game drops items /||/ Cancel any item drops resulting from breaking blocks in game [Default: false] */
     public boolean breakingBlocksDropsItems = false; // Kjhf
-    
+
+    /** Dissables kill mesages in the chat for less spam /||/ Kills messages are written to chat [Default: false] */
+    public boolean disableKillMessages = false;
+
     /** Drop wool if a player dies /||/ Don't drop wool if a player dies [Default: true] */
     public boolean dropWoolOnDeath = true; // Kjhf
        
@@ -40,6 +43,8 @@ public class ConfigOptions {
 
     /** Auto balance teams if teams differ by this number of people. 0 disables. [Default: 2] */
     public int balanceTeamsWhenPlayerLeaves = 2;
+
+    public int economyMoneyCostForJoiningArena = 0;
     
     /** The starting wool players are given. [Default: 64] */
     public int givenWoolNumber = 64;

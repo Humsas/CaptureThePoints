@@ -1,7 +1,6 @@
 package me.dalton.capturethepoints;
 
 import java.sql.*;
-import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -104,7 +103,6 @@ public class MysqlConnector
             stmt = con.createStatement();
 
             stmt.executeUpdate(statement);
-
         }
         catch (SQLException ex)
         {

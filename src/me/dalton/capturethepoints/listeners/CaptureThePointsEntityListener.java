@@ -2,11 +2,13 @@ package me.dalton.capturethepoints.listeners;
 
 import java.util.HashMap;
 import java.util.List;
+import me.dalton.capturethepoints.CTPPotionEffect;
 import me.dalton.capturethepoints.CaptureThePoints;
 import me.dalton.capturethepoints.HealingItems;
 import me.dalton.capturethepoints.Items;
 import me.dalton.capturethepoints.Spawn;
 import me.dalton.capturethepoints.Util;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -14,8 +16,10 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityListener;
 import org.bukkit.inventory.ItemStack;
@@ -49,11 +53,43 @@ public class CaptureThePointsEntityListener extends EntityListener {
     }
 
     @Override
+    public void onEntityDeath(EntityDeathEvent event)
+    {
+        if (!(event.getEntity() instanceof Player))
+            return;
+        if((this.ctp.playerData.get((Player) event.getEntity()) == null))
+            return;
+        if(!ctp.isGameRunning() && this.ctp.playerData.get((Player) event.getEntity()).isInLobby)
+        {
+//            Player player = (Player) event.getEntity();
+            event.setDroppedExp(0);
+            event.getDrops().clear();
+
+//            this.ctp.playerData.get((Player) event.getEntity()).isRespawningAfterTrueDeath = true;
+//            ctp.playerData.get(player).isInArena = false;
+//            ctp.playerData.get(player).isInLobby = false;
+//            ctp.mainArena.lobby.playersinlobby.remove(player);
+//            ctp.leaveGame(player);
+//            player.sendMessage(ChatColor.LIGHT_PURPLE + "[CTP] You left the CTP game.");
+            return;
+        }
+
+        event.setDroppedExp(0);
+        event.getDrops().clear();
+//        this.ctp.playerData.get((Player) event.getEntity()).isRespawningAfterTrueDeath = true;
+
+//        Player player = (Player) event.getEntity();
+//        respawnPlayer(player, null);
+    }
+    
+
+    @Override
     public void onEntityDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player)) {
             // Kj -- Didn't involve a player. So we don't care.
             return;
         }
+
         //Only check if game is running
         if (ctp.isGameRunning()) {
             Player attacker = null;
@@ -81,7 +117,8 @@ public class CaptureThePointsEntityListener extends EntityListener {
                 }*/
 
                 // lobby damage check
-                if (attacker != null && this.ctp.playerData.get(attacker) != null && this.ctp.playerData.get(playa).isInLobby) {
+                if (this.ctp.playerData.get(playa).isInLobby || (attacker != null && this.ctp.playerData.get(attacker) != null && this.ctp.playerData.get(attacker).isInLobby))
+                {
                     event.setCancelled(true);
                     return;
                 }
@@ -114,6 +151,9 @@ public class CaptureThePointsEntityListener extends EntityListener {
                         }
                     }
                 }
+//		EntityDamageEvent ede = new EntityDamageEvent((Player)target, EntityDamageEvent.DamageCause.CUSTOM, dmg);
+//		Bukkit.getPluginManager().callEvent(ede);
+//		if (ede.isCancelled()) return;
 
                 //Player has "died"
                 if ((this.ctp.playerData.get(playa) != null) && (playa.getHealth() - event.getDamage() <= 0))
@@ -179,11 +219,42 @@ public class CaptureThePointsEntityListener extends EntityListener {
     public void giveRoleItemsAfterDeath(Player player)
     {
         PlayerInventory inv = player.getInventory();
+        inv.remove(374); // Removes bottles
         for (Items item : ctp.roles.get(ctp.playerData.get(player).role))
         {
+            if(item.item.equals(Material.AIR))
+                continue;
+
             if (inv.contains(item.item))
             {
-                if (!Util.ARMORS_TYPE.contains(item.item)/* && (!Util.WEAPONS_TYPE.contains(item.getType()))*/)
+                if(item.item.getId() == 373)    // Potions
+                {
+                    ItemStack stack = new ItemStack(item.item);
+                    stack.setAmount(item.amount);
+                    stack.setDurability(item.type);
+
+                    HashMap<Integer, ? extends ItemStack> slots = inv.all(item.item);
+                    int amount = 0;
+                    for (int slotNum : slots.keySet())
+                    {
+                        if(slots.get(slotNum).getDurability() == item.type)
+                            amount += slots.get(slotNum).getAmount();
+                    }
+
+                    if (amount < item.amount)
+                    {
+                        //Removing old potions
+                        for (int slotNum : slots.keySet())
+                        {
+                            if(slots.get(slotNum).getDurability() == item.type)
+                                inv.setItem(slotNum, null);
+                        }
+
+                        //inv.remove(stack);
+                        inv.addItem(stack);
+                    }
+                }
+                else if (!Util.ARMORS_TYPE.contains(item.item)/* && (!Util.WEAPONS_TYPE.contains(item.getType()))*/)
                 {
                     HashMap<Integer, ? extends ItemStack> slots = inv.all(item.item);
                     int amount = 0;
@@ -205,64 +276,78 @@ public class CaptureThePointsEntityListener extends EntityListener {
                         stack.setAmount(item.amount);
                         if(item.type != -1)
                             stack.setDurability(item.type);
-
+                        // Add enchantments
+                        for(int j = 0; j < item.enchantments.size(); j++)
+                        {
+                            stack.addEnchantment(item.enchantments.get(j), item.enchLevels.get(j));
+                        }
+                        
                         inv.addItem(stack);
                     }
-                } //Its armor
-//                else
-//                {
-//                    //Check if its equiped
-//                    if(Util.BOOTS_TYPE.contains(item.item))
-//                    {
-//                        //inv.remove(item.item);
-//                        if(inv.getBoots().getType() == item.item)
-//                            inv.setBoots(new ItemStack(item.item, 1));
-//                        else
-//                            inv.addItem(new ItemStack[] { new ItemStack(item.item, item.amount) });
-//
-//                    }
-//                    else if(Util.CHESTPLATES_TYPE.contains(item.item))
-//                    {
-//                        //inv.remove(item.item);
-//                        if(inv.getChestplate().getType() == item.item)
-//                            inv.setChestplate(new ItemStack(item.item, 1));
-//                        else
-//                            inv.addItem(new ItemStack[] { new ItemStack(item.item, item.amount) });
-//                    }
-//                    else if(Util.LEGGINGS_TYPE.contains(item.item))
-//                    {
-//                        if(inv.getLeggings().getType() == item.item)
-//                            inv.setLeggings(new ItemStack(item.item, 1));
-//                        else
-//                            inv.addItem(new ItemStack[] { new ItemStack(item.item, item.amount) });
-//                    }
-//                }
-            } else {
-                if (!Util.ARMORS_TYPE.contains(item.item)) {
-                    inv.addItem(new ItemStack[]{new ItemStack(item.item, item.amount)});
-                } else {// find if there is somethig equiped
-                    if (Util.BOOTS_TYPE.contains(item.item)) {
-                        if (inv.getBoots().getType() == item.item) {
-                            inv.setBoots(new ItemStack(item.item, 1));
-                        } else {
-                            inv.addItem(new ItemStack[]{new ItemStack(item.item, item.amount)});
+                }
+            }
+            else
+            {
+                if (!Util.ARMORS_TYPE.contains(item.item))
+                {
+                    ItemStack stack = new ItemStack(item.item);
+                    stack.setAmount(item.amount);
+                    if(item.type != -1)
+                        stack.setDurability(item.type);
+                    // Add enchantments
+                    for(int j = 0; j < item.enchantments.size(); j++)
+                    {
+                        stack.addEnchantment(item.enchantments.get(j), item.enchLevels.get(j));
+                    }
+                    
+                    inv.addItem(stack);
+                } 
+                else
+                {// find if there is somethig equiped
+                    ItemStack stack = new ItemStack(item.item, item.amount);
+
+                    // Add enchantments
+                    for(int j = 0; j < item.enchantments.size(); j++)
+                    {
+                        stack.addEnchantment(item.enchantments.get(j), item.enchLevels.get(j));
+                    }
+                    
+
+                    if (Util.BOOTS_TYPE.contains(item.item))
+                    {
+                        if (inv.getBoots().getType() == item.item)
+                        {
+                            inv.setBoots(stack);
+                        } 
+                        else
+                        {
+                            inv.addItem(stack);
                         }
-                    } else if (Util.LEGGINGS_TYPE.contains(item.item)) {
-                        if (inv.getLeggings().getType() == item.item) {
-                            inv.setLeggings(new ItemStack(item.item, 1));
-                        } else {
-                            inv.addItem(new ItemStack[]{new ItemStack(item.item, item.amount)});
+                    } 
+                    else if (Util.LEGGINGS_TYPE.contains(item.item))
+                    {
+                        if (inv.getLeggings().getType() == item.item)
+                        {
+                            inv.setLeggings(stack);
+                        } 
+                        else
+                        {
+                            inv.addItem(stack);
                         }
-                    } else if (Util.CHESTPLATES_TYPE.contains(item.item)) {
-                        if (inv.getChestplate().getType() == item.item) {
-                            inv.setChestplate(new ItemStack(item.item, 1));
-                        } else {
-                            inv.addItem(new ItemStack[]{new ItemStack(item.item, item.amount)});
+                    } 
+                    else if (Util.CHESTPLATES_TYPE.contains(item.item))
+                    {
+                        if (inv.getChestplate().getType() == item.item)
+                        {
+                            inv.setChestplate(stack);
+                        } 
+                        else
+                        {
+                            inv.addItem(stack);
                         }
                     }
                 }
             }
-
         }
     }
     
@@ -309,8 +394,12 @@ public class CaptureThePointsEntityListener extends EntityListener {
     {
         if (attacker != null)
         {
-            Util.sendMessageToPlayers(ctp, ctp.playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE
-                    + " was killed by " + ctp.playerData.get(attacker).team.chatcolor + attacker.getName());
+            if(!ctp.globalConfigOptions.disableKillMessages)
+            {
+                System.out.println("" + ctp.globalConfigOptions.disableKillMessages);
+                Util.sendMessageToPlayers(ctp, ctp.playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE
+                        + " was killed by " + ctp.playerData.get(attacker).team.chatcolor + attacker.getName());
+            }
             dropWool(player);
             ctp.playerData.get(attacker).money += ctp.mainArena.co.moneyForKill;
             attacker.sendMessage("Money: " + ChatColor.GREEN + ctp.playerData.get(attacker).money);
@@ -319,12 +408,14 @@ public class CaptureThePointsEntityListener extends EntityListener {
         } 
         else
         {
-            Util.sendMessageToPlayers(ctp, ctp.playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE
-                    + " was killed by " + ChatColor.LIGHT_PURPLE + "Herobrine");
+            if(!ctp.globalConfigOptions.disableKillMessages)
+                Util.sendMessageToPlayers(ctp, ctp.playerData.get(player).team.chatcolor + player.getName() + ChatColor.WHITE
+                        + " was killed by " + ChatColor.LIGHT_PURPLE + "Herobrine");
             player.sendMessage(ChatColor.RED + "Please do not remove your Helmet.");
             ctp.checkForKillMSG(player, true);
         }
 
+        CTPPotionEffect.removeAllEffects(player);
         player.setHealth(ctp.mainArena.co.maxPlayerHealth);
         player.setFoodLevel(20);
         Spawn spawn = 

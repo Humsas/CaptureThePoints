@@ -15,6 +15,8 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import me.dalton.capturethepoints.commands.*;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
@@ -31,11 +33,14 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.config.Configuration;
 
-public class CaptureThePoints extends JavaPlugin {
+public class CaptureThePoints extends JavaPlugin
+{
     public static PermissionHandler Permissions;
+    public static Economy economyHandler = null;
 
     public static boolean UsePermissions;
 
@@ -139,8 +144,10 @@ public class CaptureThePoints extends JavaPlugin {
     }
 
     public void enableCTP (boolean reloading) {
-        if (!reloading) {
+        if (!reloading)
+        {
             setupPermissions();
+            setupEconomy();
             pluginManager = getServer().getPluginManager();
 
             // REGISTER EVENTS-----------------------------------------------------------------------------------
@@ -148,8 +155,10 @@ public class CaptureThePoints extends JavaPlugin {
             pluginManager.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Normal, this);
             pluginManager.registerEvent(Event.Type.SIGN_CHANGE, this.blockListener, Event.Priority.Normal, this);
             pluginManager.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Highest, this); // Because when game starts you must deal damage to enemy
+            pluginManager.registerEvent(Event.Type.ENTITY_DEATH, this.entityListener, Event.Priority.Highest, this);
             pluginManager.registerEvent(Event.Type.ENTITY_EXPLODE, this.entityListener, Event.Priority.Normal, this);
 
+            pluginManager.registerEvent(Event.Type.PLAYER_RESPAWN, this.playerListener, Event.Priority.Highest, this);
             pluginManager.registerEvent(Event.Type.PLAYER_MOVE, this.playerListener, Event.Priority.Normal, this);
             pluginManager.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
             pluginManager.registerEvent(Event.Type.PLAYER_TELEPORT, this.playerListener, Event.Priority.Normal, this);
@@ -266,12 +275,12 @@ public class CaptureThePoints extends JavaPlugin {
     /** Attempt to balance the teams.
      * @param loop Times this has recursed (prevents overruns).
      * @return Whether the teams are balanced. */
-    public boolean balanceTeams(int loop) {
+    public boolean balanceTeams(int loop, int balanceThreshold) {
         if (loop > 5) {
             logger.warning("balanceTeams hit over 5 recursions. Aborting.");
             return false;
         }
-        int balancethreshold = mainArena.co.balanceTeamsWhenPlayerLeaves; // Get the balance threshold from config. We know this is over 0 already.
+        //int balancethreshold = mainArena.co.balanceTeamsWhenPlayerLeaves; // Get the balance threshold from config. We know this is over 0 already.
         
         Team lowestTeam = null; // Team with the lower number of players
         int lowestmembercount = -1;
@@ -305,7 +314,7 @@ public class CaptureThePoints extends JavaPlugin {
         }
 
         difference = highestmembercount - lowestmembercount;
-        if ((highestTeam == lowestTeam) || difference < balancethreshold) {
+        if ((highestTeam == lowestTeam) || difference < balanceThreshold) {
             // The difference between the teams is not great enough to balance the teams as defined by balancethreshold.
             return true;
         }
@@ -318,7 +327,7 @@ public class CaptureThePoints extends JavaPlugin {
             balancePlayer(highestTeam.getRandomPlayer(this), null); // Move one player from the team with the higher number of players to lobby.
         }
         loop++;
-        boolean balanced = balanceTeams(loop); // Check Teams again to check if balanced.
+        boolean balanced = balanceTeams(loop, balanceThreshold); // Check Teams again to check if balanced.
         return balanced;
     }
 
@@ -412,7 +421,7 @@ public class CaptureThePoints extends JavaPlugin {
             }
             Util.sendMessageToPlayers(this, 
                     newTeam.chatcolor + p.getName() + ChatColor.WHITE + " changed teams from " 
-                    + oldcc + oldteam + " to "+ newTeam.chatcolor + newTeam.color + "! [Team-balancing]");
+                    + oldcc + oldteam + ChatColor.WHITE + " to "+ newTeam.chatcolor + newTeam.color + ChatColor.WHITE + "! [Team-balancing]");
             newTeam.memberCount++;
         }
     }
@@ -621,24 +630,26 @@ public class CaptureThePoints extends JavaPlugin {
     }
 
     /** Get the configOptions from the config file. */
-    public ConfigOptions getConfigOptions (Configuration config) {
+    public ConfigOptions getConfigOptions (Configuration config) 
+    {
+        config.setProperty("Version", 2);
         ConfigOptions co = new ConfigOptions();
         String pointCapture = "";
         String pointCaptureWithScore = "";
         String global = "";
         String mySql = "";
-        boolean updateConfig = false;
-
-        if (config.getProperty("Version") == null) {
-            // old configuration
-            updateConfig = true;
-        } else {
+//        boolean updateConfig = false;
+//
+//        if (config.getProperty("Version") == null) {
+//            // old configuration
+//            updateConfig = true;
+//        } else {
             //version 2
             pointCapture = "GlobalSettings.GameMode.PointCapture.";
             pointCaptureWithScore = "GlobalSettings.GameMode.PointCaptureWithScoreGeneration.";
             global = "GlobalSettings.";
             mySql = "GlobalSettings.MySql.";
-        }
+//        }
         //Game mode configuration
         co.pointsToWin = config.getInt(pointCapture + "PointsToWin", globalConfigOptions.pointsToWin);
         co.playTime = config.getInt(pointCapture + "PlayTime", globalConfigOptions.playTime);
@@ -671,8 +682,10 @@ public class CaptureThePoints extends JavaPlugin {
         co.allowLateJoin = config.getBoolean(global + "AllowLateJoin", globalConfigOptions.allowLateJoin);
         co.autoStart = config.getBoolean(global + "AutoStart", globalConfigOptions.autoStart);
         co.breakingBlocksDropsItems = config.getBoolean(global + "BreakingBlocksDropsItems", globalConfigOptions.breakingBlocksDropsItems);
+        co.disableKillMessages = config.getBoolean(global + "DisableKillMessages", globalConfigOptions.disableKillMessages);
         co.dropWoolOnDeath = config.getBoolean(global + "DropWoolOnDeath", globalConfigOptions.dropWoolOnDeath);
         co.enableHardArenaRestore = config.getBoolean(global + "EnableHardArenaRestore", globalConfigOptions.enableHardArenaRestore);
+        co.economyMoneyCostForJoiningArena = config.getInt(global + "EconomyMoneyCostForJoiningArena", globalConfigOptions.economyMoneyCostForJoiningArena);
         co.exactTeamMemberCount = config.getBoolean(global + "ExactTeamMemberCount", globalConfigOptions.exactTeamMemberCount);
         co.balanceTeamsWhenPlayerLeaves = config.getInt(global + "BalanceTeamsWhenPlayerLeaves", globalConfigOptions.balanceTeamsWhenPlayerLeaves);
         co.giveNewRoleItemsOnRespawn = config.getBoolean(global + "GiveNewRoleItemsOnRespawn", globalConfigOptions.giveNewRoleItemsOnRespawn);
@@ -702,9 +715,9 @@ public class CaptureThePoints extends JavaPlugin {
         }
         co.killStreakMessages = new KillStreakMessages(hm);
 
-        if (updateConfig) {
-            updateOldConfiguration(config, co);
-        }
+//        if (updateConfig) {
+//            updateOldConfiguration(config, co);
+//        }
 
         return co;
     }
@@ -744,6 +757,7 @@ public class CaptureThePoints extends JavaPlugin {
         co.breakingBlocksDropsItems = config.getBoolean(global + "BreakingBlocksDropsItems", globalConfigOptions.breakingBlocksDropsItems);
         co.dropWoolOnDeath = config.getBoolean(global + "DropWoolOnDeath", globalConfigOptions.dropWoolOnDeath);
         co.exactTeamMemberCount = config.getBoolean(global + "ExactTeamMemberCount", globalConfigOptions.exactTeamMemberCount);
+        co.economyMoneyCostForJoiningArena = config.getInt(global + "EconomyMoneyCostForJoiningArena", globalConfigOptions.economyMoneyCostForJoiningArena);
         co.balanceTeamsWhenPlayerLeaves = config.getInt(global + "BalanceTeamsWhenPlayerLeaves", globalConfigOptions.balanceTeamsWhenPlayerLeaves);
         co.giveNewRoleItemsOnRespawn = config.getBoolean(global + "GiveNewRoleItemsOnRespawn", globalConfigOptions.giveNewRoleItemsOnRespawn);
         co.givenWoolNumber = config.getInt(global + "GivenWoolNumber", 64) <= 0
@@ -879,8 +893,13 @@ public class CaptureThePoints extends JavaPlugin {
         }
         
         if (playerListener.waitingToMove != null && !playerListener.waitingToMove.isEmpty()) {
-            if (player == playerListener.waitingToMove.get(0)) {
+            if (player == playerListener.waitingToMove.get(0) && playerListener.waitingToMove.size() == 1)
+            {
                 playerListener.clearWaitingQueue(); // The player who left was someone in the lobby waiting to join. We need to remove them from the queue
+            }
+            else
+            {
+                playerListener.waitingToMove.remove(player);
             }
         }
 
@@ -911,9 +930,12 @@ public class CaptureThePoints extends JavaPlugin {
 
         // Check for player replacement if there is somone waiting to join the game
         boolean wasReplaced = false;
-        if (mainArena.co.exactTeamMemberCount && isGameRunning()) {
-            for (Player play : playerData.keySet()) {
-                if (playerData.get(play).isInLobby && playerData.get(play).isReady) {
+        if (mainArena.co.exactTeamMemberCount && isGameRunning())
+        {
+            for (Player play : playerData.keySet())
+            {
+                if (playerData.get(play).isInLobby && playerData.get(play).isReady)
+                {
                     this.playerListener.moveToSpawns(play);
                     wasReplaced = true;
                     break;
@@ -929,7 +951,7 @@ public class CaptureThePoints extends JavaPlugin {
         //If there was no replacement we should move one member to lobby
         if (!wasReplaced && mainArena.co.exactTeamMemberCount && this.isGameRunning()) {
             if (mainArena.co.balanceTeamsWhenPlayerLeaves > 0) {
-                balanceTeams(0);
+                balanceTeams(0, mainArena.co.balanceTeamsWhenPlayerLeaves);
             }
         }
     }
@@ -1191,7 +1213,8 @@ public class CaptureThePoints extends JavaPlugin {
         config.save();
     }
 
-    public void loadRoles () {
+    public void loadRoles ()
+    {
         Configuration config = load();
         if (config.getKeys("Roles") == null) {
             config.setProperty("Roles.Tank.Items", "268, 297:16, DIAMOND_CHESTPLATE, 308, 309, SHEARS, CAKE");
@@ -1199,7 +1222,8 @@ public class CaptureThePoints extends JavaPlugin {
             config.setProperty("Roles.Ranger.Items", "268, 297:6, 261, 262:256, 299, 300, 301");
             config.setProperty("Roles.Berserker.Items", "267, GOLDEN_APPLE:2");
         }
-        for (String str : config.getKeys("Roles")) {
+        for (String str : config.getKeys("Roles"))
+        {
             String text = config.getString("Roles." + str + ".Items");
 
             roles.put(str.toLowerCase(), Util.getItemListFromString(text));
@@ -1207,9 +1231,11 @@ public class CaptureThePoints extends JavaPlugin {
         config.save();
     }
 
-    public void loadRewards () {
+    public void loadRewards ()
+    {
         Configuration config = load();
-        if (config.getKeys("Rewards") == null) {
+        if (config.getKeys("Rewards") == null)
+        {
             config.setProperty("Rewards.WinnerTeam.ItemCount", "2");
             config.setProperty("Rewards.WinnerTeam.Items", "DIAMOND_LEGGINGS, DIAMOND_HELMET, DIAMOND_CHESTPLATE, DIAMOND_BOOTS, DIAMOND_AXE, DIAMOND_HOE, DIAMOND_PICKAXE, DIAMOND_SPADE, DIAMOND_SWORD");
             config.setProperty("Rewards.OtherTeams.ItemCount", "1");
@@ -1218,6 +1244,7 @@ public class CaptureThePoints extends JavaPlugin {
             config.setProperty("Rewards.ForCapturingThePoint", "CLAY_BRICK, SNOW_BALL:2, SLIME_BALL, IRON_INGOT");
         }
         rewards = new CTPRewards();
+        rewards.expRewardForKillingEnemy = config.getInt("Rewards.ExpRewardForKillingOneEnemy", 0);
         rewards.winnerRewardCount = config.getInt("Rewards.WinnerTeam.ItemCount", 2);
         rewards.winnerRewards = Util.getItemListFromString(config.getString("Rewards.WinnerTeam.Items"));
         rewards.otherTeamRewardCount = config.getInt("Rewards.OtherTeams.ItemCount", 1);
@@ -1250,6 +1277,21 @@ public class CaptureThePoints extends JavaPlugin {
         if (playerData.isEmpty()) {
             mainArena.lobby.playersinlobby.clear();   //Reset if first to come
         }
+
+        if(economyHandler != null && this.mainArena.co.economyMoneyCostForJoiningArena != 0)
+        {
+            EconomyResponse r = economyHandler.bankWithdraw(player.getName(), mainArena.co.economyMoneyCostForJoiningArena);
+            if(r.transactionSuccess())
+            {
+                player.sendMessage("[CTP] You were charged " + ChatColor.GREEN + r.amount + ChatColor.WHITE + " for entering " + ChatColor.GREEN + mainArena.name + ChatColor.WHITE + " arena.");
+            }
+            else
+            {
+                player.sendMessage("[CTP] You dont have enought money to join arena!");
+                return;
+            }
+        }
+        
         // Assign player's PlayerData
         PlayerData data = new PlayerData();
         data.deaths = 0;
@@ -1263,6 +1305,11 @@ public class CaptureThePoints extends JavaPlugin {
         data.foodLevel = player.getFoodLevel();
         data.health = player.getHealth();
         data.lobbyJoinTime = System.currentTimeMillis();
+        
+        // Store and remove potion effects on player
+        data.potionEffects = CTPPotionEffect.storePlayerPotionEffects(player);
+        CTPPotionEffect.removeAllEffects(player);
+        
         playerData.put(player, data);
 
         // Save player's previous state 
@@ -1276,7 +1323,6 @@ public class CaptureThePoints extends JavaPlugin {
         mainArena.lobby.playerswhowereinlobby.add(player); // Kj
 
         player.setHealth(mainArena.co.maxPlayerHealth);
-
 
         Double X = Double.valueOf(player.getLocation().getX());
         Double y = Double.valueOf(player.getLocation().getY());
@@ -1364,7 +1410,8 @@ public class CaptureThePoints extends JavaPlugin {
         PlayerInv.setBoots(null);
     }
 
-    private void setupPermissions () {
+    private void setupPermissions ()
+    {
         Plugin test = getServer().getPluginManager().getPlugin("Permissions");
         info = getDescription();
         if (Permissions == null) {
@@ -1377,6 +1424,21 @@ public class CaptureThePoints extends JavaPlugin {
                 UsePermissions = false;
             }
         }
+    }
+
+    private boolean setupEconomy()
+    {
+        if (getServer().getPluginManager().getPlugin("Vault") == null)
+        {
+            logger.info("[CTP] Vault plugin not detected, disabling economy support.");
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        economyHandler = rsp.getProvider();
+        if(economyHandler != null)
+            logger.info("[CTP] Vault plugin found, economy support enabled.");
+
+        return economyHandler != null;
     }
 
 }

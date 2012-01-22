@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 import me.dalton.capturethepoints.ArenaBoundaries;
 import me.dalton.capturethepoints.CTPPoints;
+import me.dalton.capturethepoints.CTPPotionEffect;
 import me.dalton.capturethepoints.CaptureThePoints;
 import me.dalton.capturethepoints.HealingItems;
 import me.dalton.capturethepoints.Items;
@@ -383,6 +384,12 @@ public class CaptureThePointsBlockListener extends BlockListener {
             if (Util.ARMORS_TYPE.contains(item.item) && (!Util.HELMETS_TYPE.contains(item.item)))
             {
                 ItemStack i = new ItemStack(item.item, 1);
+                
+                // Add enchantments
+                for(int j = 0; j < item.enchantments.size(); j++)
+                {
+                    i.addEnchantment(item.enchantments.get(j), item.enchLevels.get(j));
+                }
                 Util.equipArmorPiece(i, inv);
             } 
             else
@@ -391,10 +398,20 @@ public class CaptureThePointsBlockListener extends BlockListener {
                 // If something is wrong in config file
                 try
                 {
+                    // If exp or economy money - do not allow to pass(only for rewards)
+                    if(item.item.equals(Material.AIR))
+                        continue;
+
                     stack = new ItemStack(item.item);
                     stack.setAmount(item.amount);
                     if(item.type != -1)
                         stack.setDurability(item.type);
+
+                    // Add enchantments
+                    for(int j = 0; j < item.enchantments.size(); j++)
+                    {
+                        stack.addEnchantment(item.enchantments.get(j), item.enchLevels.get(j));
+                    }
                 }
                 catch(Exception e)
                 {
@@ -721,6 +738,9 @@ public class CaptureThePointsBlockListener extends BlockListener {
         if (ctp.playerData.get(p) == null) {
             return;
         }
+
+        CTPPotionEffect.removeAllEffects(p);
+        CTPPotionEffect.restorePotionEffects(p, ctp.playerData.get(p).potionEffects);
 
         p.setFoodLevel(ctp.playerData.get(p).foodLevel);
         if (ctp.playerData.get(p).isInCreativeMode) {
