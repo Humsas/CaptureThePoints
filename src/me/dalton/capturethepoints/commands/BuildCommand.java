@@ -1,6 +1,7 @@
 package me.dalton.capturethepoints.commands;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,7 +13,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
-import org.bukkit.util.config.Configuration;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 public class BuildCommand extends CTPCommand {
 
@@ -148,8 +150,7 @@ public class BuildCommand extends CTPCommand {
                 Location loc = player.getLocation();
 
                 File arenaFile = new File(CaptureThePoints.mainDir + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
-                Configuration arenaConf = new Configuration(arenaFile);
-                arenaConf.load();
+                FileConfiguration arenaConf = YamlConfiguration.loadConfiguration(arenaFile);
 
                 if ((arenaConf.getString("World") != null) && (!arenaConf.getString("World").equals(player.getWorld().getName()))) {
                     player.sendMessage(ChatColor.RED + "Please build all arena team spawns in the same world ---->" + ChatColor.GREEN + arenaConf.getString("World"));
@@ -180,17 +181,28 @@ public class BuildCommand extends CTPCommand {
                     spawn.dir = loc.getYaw();
 
                     String aWorld = arenaConf.getString("World");
-                    if (aWorld == null) {
-                        arenaConf.setProperty("World", player.getWorld().getName());
-                    } else if (!aWorld.equals(player.getWorld().getName())) {
+                    if (aWorld == null)
+                    {
+                        arenaConf.addDefault("World", player.getWorld().getName());
+                    } 
+                    else if (!aWorld.equals(player.getWorld().getName()))
+                    {
                         player.sendMessage(ChatColor.RED + "Please build arena lobby in same world as its spawns and capture points!");
                         return;
                     }
-                    arenaConf.setProperty("Team-Spawns." + arg2 + ".X", Double.valueOf(loc.getX()));
-                    arenaConf.setProperty("Team-Spawns." + arg2 + ".Y", Double.valueOf(loc.getY()));
-                    arenaConf.setProperty("Team-Spawns." + arg2 + ".Z", Double.valueOf(loc.getZ()));
-                    arenaConf.setProperty("Team-Spawns." + arg2 + ".Dir", Double.valueOf(spawn.dir));
-                    arenaConf.save();
+                    arenaConf.addDefault("Team-Spawns." + arg2 + ".X", Double.valueOf(loc.getX()));
+                    arenaConf.addDefault("Team-Spawns." + arg2 + ".Y", Double.valueOf(loc.getY()));
+                    arenaConf.addDefault("Team-Spawns." + arg2 + ".Z", Double.valueOf(loc.getZ()));
+                    arenaConf.addDefault("Team-Spawns." + arg2 + ".Dir", Double.valueOf(spawn.dir));
+                    try
+                    {
+                        arenaConf.options().copyDefaults(true);
+                        arenaConf.save(arenaFile);
+                    }
+                    catch (IOException ex)
+                    {
+                        Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 
                     if (ctp.mainArena.world == null) {
                         //ctp.mainArena = new ArenaData();
@@ -247,14 +259,20 @@ public class BuildCommand extends CTPCommand {
                 }
 
                 File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
-                Configuration arenaConf = new Configuration(arenaFile);
-                arenaConf.load();
+                FileConfiguration arenaConf = YamlConfiguration.loadConfiguration(arenaFile);
+
                 if (arenaConf.getString("Team-Spawns." + arg2 + ".X") == null) {
                     player.sendMessage(ChatColor.RED + "This arena spawn does not exist! -----> " + ChatColor.GREEN + arg2);
                     return;
                 }
-                arenaConf.removeProperty("Team-Spawns." + arg2);
-                arenaConf.save();
+                arenaConf.set("Team-Spawns." + arg2, null);
+                try {
+                    arenaConf.options().copyDefaults(true);
+                    arenaConf.save(arenaFile);
+                } catch (IOException ex) {
+                    Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
                 if (ctp.editingArena.name.equalsIgnoreCase(ctp.mainArena.name)) {
                     ctp.mainArena.teamSpawns.remove(arg2);
                 }
@@ -302,8 +320,8 @@ public class BuildCommand extends CTPCommand {
                 tmps.z = (start_z = loc.getBlockZ());
 
                 File arenaFile = new File(ctp.mainDir + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
-                Configuration arenaConf = new Configuration(arenaFile);
-                arenaConf.load();
+                FileConfiguration arenaConf = YamlConfiguration.loadConfiguration(arenaFile);
+
                 if ((arenaConf.getString("World") != null) && (!arenaConf.getString("World").equals(player.getWorld().getName()))) {
                     player.sendMessage(ChatColor.RED + "Please build all arena points in same world ----> " + ChatColor.GREEN + arenaConf.getString("World"));
                     return;
@@ -345,7 +363,7 @@ public class BuildCommand extends CTPCommand {
                             player.getWorld().getBlockAt(start_x, start_y + 1, start_z).setTypeId(0);
                             player.getWorld().getBlockAt(start_x, start_y, start_z + 1).setTypeId(0);
                             player.getWorld().getBlockAt(start_x, start_y + 1, start_z + 1).setTypeId(0);
-                            arenaConf.setProperty("Points." + arg2 + ".Dir", "NORTH");
+                            arenaConf.addDefault("Points." + arg2 + ".Dir", "NORTH");
                             tmps.pointDirection = "NORTH";
                             break;
                         case EAST:
@@ -354,7 +372,7 @@ public class BuildCommand extends CTPCommand {
                             player.getWorld().getBlockAt(start_x, start_y + 1, start_z).setTypeId(0);
                             player.getWorld().getBlockAt(start_x + 1, start_y, start_z).setTypeId(0);
                             player.getWorld().getBlockAt(start_x + 1, start_y + 1, start_z).setTypeId(0);
-                            arenaConf.setProperty("Points." + arg2 + ".Dir", "EAST");
+                            arenaConf.addDefault("Points." + arg2 + ".Dir", "EAST");
                             tmps.pointDirection = "EAST";
                             break;
                         case SOUTH:
@@ -363,7 +381,7 @@ public class BuildCommand extends CTPCommand {
                             player.getWorld().getBlockAt(start_x, start_y + 1, start_z).setTypeId(0);
                             player.getWorld().getBlockAt(start_x, start_y, start_z + 1).setTypeId(0);
                             player.getWorld().getBlockAt(start_x, start_y + 1, start_z + 1).setTypeId(0);
-                            arenaConf.setProperty("Points." + arg2 + ".Dir", "SOUTH");
+                            arenaConf.addDefault("Points." + arg2 + ".Dir", "SOUTH");
                             tmps.pointDirection = "SOUTH";
                             break;
                         case WEST:
@@ -372,7 +390,7 @@ public class BuildCommand extends CTPCommand {
                             player.getWorld().getBlockAt(start_x, start_y + 1, start_z).setTypeId(0);
                             player.getWorld().getBlockAt(start_x + 1, start_y, start_z).setTypeId(0);
                             player.getWorld().getBlockAt(start_x + 1, start_y + 1, start_z).setTypeId(0);
-                            arenaConf.setProperty("Points." + arg2 + ".Dir", "WEST");
+                            arenaConf.addDefault("Points." + arg2 + ".Dir", "WEST");
                             tmps.pointDirection = "WEST";
                     }
                 }
@@ -394,7 +412,7 @@ public class BuildCommand extends CTPCommand {
 
                 String aWorld = arenaConf.getString("World");
                 if (aWorld == null) {
-                    arenaConf.setProperty("World", player.getWorld().getName());
+                    arenaConf.addDefault("World", player.getWorld().getName());
                 } else if (!aWorld.equals(player.getWorld().getName())) {
                     player.sendMessage(ChatColor.RED + "Please build arena lobby in same world as its spawns and capture points!");
                     return;
@@ -411,17 +429,22 @@ public class BuildCommand extends CTPCommand {
                         colors = colors + parameters.get(i) + ", ";
                     }
                     colors = colors.substring(0, colors.length() - 2);
-                    arenaConf.setProperty("Points." + arg2 + ".NotAllowedToCaptureTeams", colors);
+                    arenaConf.addDefault("Points." + arg2 + ".NotAllowedToCaptureTeams", colors);
                 }
                 else
                 {
                     tmps.notAllowedToCaptureTeams = null;
                 }
 
-                arenaConf.setProperty("Points." + arg2 + ".X", Double.valueOf(tmps.x));
-                arenaConf.setProperty("Points." + arg2 + ".Y", Double.valueOf(tmps.y));
-                arenaConf.setProperty("Points." + arg2 + ".Z", Double.valueOf(tmps.z));
-                arenaConf.save();
+                arenaConf.addDefault("Points." + arg2 + ".X", Double.valueOf(tmps.x));
+                arenaConf.addDefault("Points." + arg2 + ".Y", Double.valueOf(tmps.y));
+                arenaConf.addDefault("Points." + arg2 + ".Z", Double.valueOf(tmps.z));
+                try {
+                    arenaConf.options().copyDefaults(true);
+                    arenaConf.save(arenaFile);
+                } catch (IOException ex) {
+                    Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
                 if (ctp.mainArena.world == null) {
                     ctp.mainArena.world = player.getWorld().getName();
@@ -452,14 +475,15 @@ public class BuildCommand extends CTPCommand {
                 }
 
                 File arenaFile = new File(ctp.mainDir + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
-                Configuration arenaConf = new Configuration(arenaFile);
-                arenaConf.load();
+                FileConfiguration arenaConf = YamlConfiguration.loadConfiguration(arenaFile);
+
                 if (arenaConf.getString("Points." + arg2 + ".X") == null) {
                     player.sendMessage(ChatColor.RED + "This arena point does not exist! -----> " + ChatColor.GREEN + arg2);
                     return;
                 }
-                if ((arenaConf.getKeys("Points").size() == 1) && (arenaConf.getKeys("Team-Spawns") == null)) {
-                    arenaConf.removeProperty("World");
+                if ((arenaConf.getConfigurationSection("Points").getKeys(false).size() == 1) && (!arenaConf.contains("Team-Spawns")))
+                {
+                    arenaConf.set("World", null);
                 }
                 int start_x = arenaConf.getInt("Points." + arg2 + ".X", 0);
                 int start_y = arenaConf.getInt("Points." + arg2 + ".Y", 0);
@@ -490,8 +514,13 @@ public class BuildCommand extends CTPCommand {
                     Util.removeVertPoint(player, direction, start_x, start_y, start_z, ctp.globalConfigOptions.ringBlock);
                 }
 
-                arenaConf.removeProperty("Points." + arg2);
-                arenaConf.save();
+                arenaConf.set("Points." + arg2, null);
+                try {
+                    arenaConf.options().copyDefaults(true);
+                    arenaConf.save(arenaFile);
+                } catch (IOException ex) {
+                    Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 player.sendMessage(ChatColor.WHITE + "You removed capture point -----> " + ChatColor.GREEN + arg2);
 
                 return;
@@ -511,17 +540,19 @@ public class BuildCommand extends CTPCommand {
                     player.sendMessage(ChatColor.RED + "This arena already exists! -----> " + ChatColor.GREEN + arg2); // Kj -- typo
                     return;
                 }
-                File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + arg2 + ".yml");
-                Configuration arenaConf = new Configuration(arenaFile);
-                arenaConf.save();
                 ctp.editingArena.name = arg2;
-                Configuration config = ctp.load();
+                FileConfiguration config = ctp.load();
                 //Seting main arena if this is first arena
 
-                String arena = (String) config.getProperty("Arena");
-                if (arena == null) {
-                    config.setProperty("Arena", arg2);
-                    config.save();
+                if (!config.contains("Arena"))
+                {
+                    config.addDefault("Arena", arg2);
+                    try {
+                        config.options().copyDefaults(true);
+                        config.save(ctp.globalConfigFile);
+                    } catch (IOException ex) {
+                        Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 
                     ctp.mainArena = new ArenaData();
                     ctp.mainArena.name = arg2;
@@ -555,12 +586,12 @@ public class BuildCommand extends CTPCommand {
                 File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + arg2 + ".yml");
 
                 //Remove blocks
-                Configuration arenaConf = new Configuration(arenaFile);
-                arenaConf.load();
-                Configuration config = ctp.load();
+                FileConfiguration arenaConf = YamlConfiguration.loadConfiguration(arenaFile);
+                FileConfiguration config = ctp.load();
 
                 if (arenaConf.getString("Points") != null) {
-                    for (String str : arenaConf.getKeys("Points")) {
+                    for (String str : arenaConf.getConfigurationSection("Points").getKeys(false))
+                    {
                         str = "Points." + str;
                         int start_x = arenaConf.getInt(str + ".X", 0);
                         int start_y = arenaConf.getInt(str + ".Y", 0);
@@ -607,8 +638,13 @@ public class BuildCommand extends CTPCommand {
                     ctp.mainArena.teams.clear();
                     ctp.mainArena = null;
 
-                    config.removeProperty("Arena");
-                    config.save();
+                    config.set("Arena", null);
+                    try {
+                        config.options().copyDefaults(true);
+                        config.save(ctp.globalConfigFile);
+                    } catch (IOException ex) {
+                        Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
                 if (arg2.equals(ctp.editingArena.name)) {
                     ctp.editingArena = null;
@@ -681,9 +717,14 @@ public class BuildCommand extends CTPCommand {
                 }
 
                 if (canLoad) {
-                    Configuration config = ctp.load();
-                    config.setProperty("Arena", arg2);
-                    config.save();
+                    FileConfiguration config = ctp.load();
+                    config.addDefault("Arena", arg2);
+                    try {
+                        config.options().copyDefaults(true);
+                        config.save(ctp.globalConfigFile);
+                    } catch (IOException ex) {
+                        Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                     ctp.mainArena = null;
                     ctp.mainArena = arena;
                     // And to be sure that everything is fine reload all config
@@ -710,12 +751,12 @@ public class BuildCommand extends CTPCommand {
                 }
                 File arenaFile = new File(ctp.mainDir + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
 
-                Configuration arenaConf = new Configuration(arenaFile);
-                arenaConf.load();
+                FileConfiguration arenaConf = YamlConfiguration.loadConfiguration(arenaFile);
+
                 String aWorld = arenaConf.getString("World");
                 if (aWorld == null)
                 {
-                    arenaConf.setProperty("World", player.getWorld().getName());
+                    arenaConf.addDefault("World", player.getWorld().getName());
                 } 
                 else if (!aWorld.equals(player.getWorld().getName()))
                 {
@@ -736,11 +777,17 @@ public class BuildCommand extends CTPCommand {
                     ctp.mainArena.lobby = lobby;
                 }
 
-                arenaConf.setProperty("Lobby.X", Double.valueOf(lobby.x));
-                arenaConf.setProperty("Lobby.Y", Double.valueOf(lobby.y));
-                arenaConf.setProperty("Lobby.Z", Double.valueOf(lobby.z));
-                arenaConf.setProperty("Lobby.Dir", Double.valueOf(lobby.dir));
-                arenaConf.save();
+                arenaConf.addDefault("Lobby.X", Double.valueOf(lobby.x));
+                arenaConf.addDefault("Lobby.Y", Double.valueOf(lobby.y));
+                arenaConf.addDefault("Lobby.Z", Double.valueOf(lobby.z));
+                arenaConf.addDefault("Lobby.Dir", Double.valueOf(lobby.dir));
+                try {
+                    arenaConf.options().copyDefaults(true);
+                    arenaConf.save(arenaFile);
+                } catch (IOException ex) {
+                    Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
                 player.sendMessage(ChatColor.GREEN + ctp.editingArena.name + ChatColor.WHITE + " arena lobby created");
                 return;
             }
@@ -839,13 +886,18 @@ public class BuildCommand extends CTPCommand {
                     }
 
                     File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
-                    Configuration arenaConf = new Configuration(arenaFile);
-                    arenaConf.load();
-                    arenaConf.setProperty("World", ctp.editingArena.world);
-                    arenaConf.setProperty("Boundarys.X1", Integer.valueOf(loc.getBlockX()));
-                    arenaConf.setProperty("Boundarys.Y1", Integer.valueOf(loc.getBlockY()));
-                    arenaConf.setProperty("Boundarys.Z1", Integer.valueOf(loc.getBlockZ()));
-                    arenaConf.save();
+                    FileConfiguration arenaConf = YamlConfiguration.loadConfiguration(arenaFile);
+
+                    arenaConf.addDefault("World", ctp.editingArena.world);
+                    arenaConf.addDefault("Boundarys.X1", Integer.valueOf(loc.getBlockX()));
+                    arenaConf.addDefault("Boundarys.Y1", Integer.valueOf(loc.getBlockY()));
+                    arenaConf.addDefault("Boundarys.Z1", Integer.valueOf(loc.getBlockZ()));
+                    try {
+                        arenaConf.options().copyDefaults(true);
+                        arenaConf.save(arenaFile);
+                    } catch (IOException ex) {
+                        Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 
                     // To boundaries property
                     if(ctp.arenasBoundaries.containsKey(ctp.editingArena.name))
@@ -885,13 +937,18 @@ public class BuildCommand extends CTPCommand {
                     }
 
                     File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
-                    Configuration arenaConf = new Configuration(arenaFile);
-                    arenaConf.load();
-                    arenaConf.setProperty("World", ctp.editingArena.world);
-                    arenaConf.setProperty("Boundarys.X2", Integer.valueOf(loc.getBlockX()));
-                    arenaConf.setProperty("Boundarys.Y2", Integer.valueOf(loc.getBlockY()));
-                    arenaConf.setProperty("Boundarys.Z2", Integer.valueOf(loc.getBlockZ()));
-                    arenaConf.save();
+                    FileConfiguration arenaConf = YamlConfiguration.loadConfiguration(arenaFile);
+
+                    arenaConf.addDefault("World", ctp.editingArena.world);
+                    arenaConf.addDefault("Boundarys.X2", Integer.valueOf(loc.getBlockX()));
+                    arenaConf.addDefault("Boundarys.Y2", Integer.valueOf(loc.getBlockY()));
+                    arenaConf.addDefault("Boundarys.Z2", Integer.valueOf(loc.getBlockZ()));
+                    try {
+                        arenaConf.options().copyDefaults(true);
+                        arenaConf.save(arenaFile);
+                    } catch (IOException ex) {
+                        Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 
                     // To boundaries property
                     if(ctp.arenasBoundaries.containsKey(ctp.editingArena.name))
@@ -940,10 +997,14 @@ public class BuildCommand extends CTPCommand {
                 }
 
                 File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
-                Configuration arenaConf = new Configuration(arenaFile);
-                arenaConf.load();
-                arenaConf.setProperty("MaximumPlayers", amount);
-                arenaConf.save();
+                FileConfiguration arenaConf = YamlConfiguration.loadConfiguration(arenaFile);
+                arenaConf.addDefault("MaximumPlayers", amount);
+                try {
+                    arenaConf.options().copyDefaults(true);
+                    arenaConf.save(arenaFile);
+                } catch (IOException ex) {
+                    Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
                 ctp.editingArena.maximumPlayers = amount;
                 player.sendMessage(ChatColor.GREEN + "Set maximum players of " + ctp.editingArena.name + " to " + amount + ".");
@@ -973,10 +1034,14 @@ public class BuildCommand extends CTPCommand {
                 }
 
                 File arenaFile = new File("plugins/CaptureThePoints" + File.separator + "Arenas" + File.separator + ctp.editingArena.name + ".yml");
-                Configuration arenaConf = new Configuration(arenaFile);
-                arenaConf.load();
-                arenaConf.setProperty("MinimumPlayers", amount);
-                arenaConf.save();
+                FileConfiguration arenaConf = YamlConfiguration.loadConfiguration(arenaFile);
+                arenaConf.addDefault("MinimumPlayers", amount);
+                try {
+                    arenaConf.options().copyDefaults(true);
+                    arenaConf.save(arenaFile);
+                } catch (IOException ex) {
+                    Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
                 ctp.editingArena.minimumPlayers = amount;
                 player.sendMessage(ChatColor.GREEN + "Set minimum players of " + ctp.editingArena.name + " to " + amount + ".");

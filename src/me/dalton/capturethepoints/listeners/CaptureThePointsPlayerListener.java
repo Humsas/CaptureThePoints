@@ -25,11 +25,13 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -39,7 +41,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.Wool;
 
-public class CaptureThePointsPlayerListener extends PlayerListener {
+public class CaptureThePointsPlayerListener implements Listener {
     private final CaptureThePoints ctp;
 
     public List<Player> waitingToMove = new LinkedList<Player>();
@@ -55,8 +57,9 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
 //
 //        plugin.playerInventory.setInventory(player);
 //    }
-    @Override
-    public void onPlayerCommandPreprocess (PlayerCommandPreprocessEvent event) {
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerCommandPreprocess (PlayerCommandPreprocessEvent event)
+    {
         Player player = event.getPlayer();
         //String error = ctp.checkMainArena(player, ctp.mainArena);  // No error checking on commands!
         //if (error.isEmpty()) { // Error not found, main arena exists.
@@ -71,7 +74,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         //}
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerDropItem (PlayerDropItemEvent event) {
         if (ctp.playerData.containsKey(event.getPlayer())) {
             Player player = event.getPlayer();
@@ -96,7 +99,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerInteract (PlayerInteractEvent event)
     {
         if (ctp.mainArena == null) {
@@ -136,6 +139,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                 Sign sign = (Sign) event.getClickedBlock().getState();
                 // Check if the first line of the sign is a class name.
                 String role = sign.getLine(0);
+
                 if (role.equalsIgnoreCase("[CTP]")) {
                     shop(p, sign);
                 } else if (!ctp.roles.containsKey(role.toLowerCase()) && !role.equalsIgnoreCase("random")) {
@@ -153,21 +157,28 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                      */
                     
                     // Player is in Lobby choosing role.
-                    if (ctp.mainArena.lobby.playersinlobby.containsKey(p)) {
-
+                    if (ctp.mainArena.lobby.playersinlobby.containsKey(p))
+                    {
                         // Kj's
-                        if (role.equalsIgnoreCase("random")) {
+                        if (role.equalsIgnoreCase("random"))
+                        {
                             int size = ctp.roles.size();
                             if (size > 1) { // If there is more than 1 role to choose from
                                 Random random = new Random();
                                 int nextInt = random.nextInt(size); // Generate a random number between 0 (inclusive) -> Number of roles (exclusive)
                                 List<String> roles = new LinkedList<String>(ctp.roles.keySet()); // Get a list of available roles and convert to a String List
+
                                 role =
                                         roles.get(nextInt) == null
                                         ? roles.get(0)
                                         : roles.get(nextInt); // Change the role based on the random number. (Ternary null check)
                             }
                         }
+
+                        CTPPotionEffect.removeAllEffects(p);
+
+                        if(!ctp.blockListener.assignRole(p, role.toLowerCase())) // Try to assign new role
+                            return;
 
                         if (ctp.playerData.get(p).role != null && !ctp.playerData.get(p).role.isEmpty()) {
                             String oldRole = ctp.playerData.get(p).role;
@@ -179,8 +190,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                             p.sendMessage(ChatColor.GOLD + role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase()
                                     + ChatColor.LIGHT_PURPLE + " selected. Hit the iron block to ready up!");
                         }
-                        CTPPotionEffect.removeAllEffects(p);
-                        ctp.blockListener.assignRole(p, role.toLowerCase()); // Assign new role
+                        
                         ctp.playerData.get(p).isReady = false; // Un-ready the player
                         ctp.mainArena.lobby.playersinlobby.put(p, false);
                         /*
@@ -254,7 +264,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerMove (PlayerMoveEvent event) {
         if (!(ctp.isGameRunning())) {
             return;
@@ -280,7 +290,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerQuit (PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
@@ -289,7 +299,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         }
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerRespawn (PlayerRespawnEvent event)
     {
         if((this.ctp.playerData.get(event.getPlayer()) == null))
@@ -309,7 +319,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         //ctp.entityListener.respawnPlayer(event.getPlayer(), null);
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerTeleport (PlayerTeleportEvent event) {
         if (!(ctp.isGameRunning())) {
             if (this.ctp.playerData.get(event.getPlayer()) != null && ctp.playerData.get(event.getPlayer()).isInLobby) {
@@ -434,7 +444,7 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
                                 }
                             } else {
                                 Util.sendMessageToPlayers(ctp, ChatColor.RED + "Not enough players for a game. No other suitable arenas found. [Needed " + ctp.mainArena.minimumPlayers + " players, found " + readypeople + "].");
-                                ctp.blockListener.endGame(true);
+                                //ctp.blockListener.endGame(true);
                             }
                         }
                     } 
@@ -1056,20 +1066,20 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
         for(int i = 0; i < ctp.mainArena.teams.size(); i++)
         {
             teamPlayersCount[i] = ctp.mainArena.teams.get(i).getTeamPlayers(ctp).size();
-            System.out.println("Team players count = " + teamPlayersCount[i]);
+            //System.out.println("Team players count = " + teamPlayersCount[i]);
             if(optimalPlayerCountInTeam != teamPlayersCount[i])
             {
                 areEqual = false;
             }
         }
 
-        for(Team t: ctp.mainArena.teams)
-        {
-            System.out.println("" + t.color + "    " + t.memberCount);
-        }
+//        for(Team t: ctp.mainArena.teams)
+//        {
+//            System.out.println("" + t.color + "    " + t.memberCount);
+//        }
 
         //Teams are equal, no need to balance
-        System.out.println("Are equal - " + areEqual);
+        //System.out.println("Are equal - " + areEqual);
         if(areEqual)
             return;
 
@@ -1092,8 +1102,8 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             }
         }
 
-        System.out.println("Optimal count = " + optimalPlayerCountInTeam);
-        System.out.println("DIff = " + difference);
+        //System.out.println("Optimal count = " + optimalPlayerCountInTeam);
+        //System.out.println("DIff = " + difference);
 
         // If there are enought players to balance teams
         if(difference <= playersForBalance.size() && difference > 0)
@@ -1160,11 +1170,11 @@ public class CaptureThePointsPlayerListener extends PlayerListener {
             }
         }
 
-        System.out.println("After balancing :");
-        for(Team t: ctp.mainArena.teams)
-        {
-            System.out.println("" + t.color + "    " + t.memberCount);
-        }
+        //System.out.println("After balancing :");
+//        for(Team t: ctp.mainArena.teams)
+//        {
+//            System.out.println("" + t.color + "    " + t.memberCount);
+//        }
     }
 
     public void clearWaitingQueue() {

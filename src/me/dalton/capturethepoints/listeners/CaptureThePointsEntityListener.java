@@ -8,7 +8,6 @@ import me.dalton.capturethepoints.HealingItems;
 import me.dalton.capturethepoints.Items;
 import me.dalton.capturethepoints.Spawn;
 import me.dalton.capturethepoints.Util;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -16,17 +15,18 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
-import org.bukkit.event.entity.EntityCombustEvent;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.EntityListener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.material.Wool;
 
-public class CaptureThePointsEntityListener extends EntityListener {
+public class CaptureThePointsEntityListener  implements Listener {
 
     private final CaptureThePoints ctp;
 
@@ -35,7 +35,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
     }
 
 
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onEntityExplode(EntityExplodeEvent event)
     {
         if (!ctp.isGameRunning())
@@ -52,7 +52,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
         }
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityDeath(EntityDeathEvent event)
     {
         if (!(event.getEntity() instanceof Player))
@@ -83,7 +83,7 @@ public class CaptureThePointsEntityListener extends EntityListener {
     }
     
 
-    @Override
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player)) {
             // Kj -- Didn't involve a player. So we don't care.

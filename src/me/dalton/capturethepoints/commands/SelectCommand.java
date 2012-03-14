@@ -1,8 +1,12 @@
 package me.dalton.capturethepoints.commands;
 
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import me.dalton.capturethepoints.ArenaData;
 import me.dalton.capturethepoints.CaptureThePoints;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 
 public class SelectCommand extends CTPCommand {
    
@@ -45,6 +49,16 @@ public class SelectCommand extends CTPCommand {
         sendMessage(ChatColor.GREEN + "If you wanted to edit this arena instead, use " +ChatColor.WHITE+ "/ctp build selectarena <arena>");
         
         ctp.mainArena = loadArena;
+
+        FileConfiguration config = ctp.load();
+        config.addDefault("Arena", newarena);
+        try {
+            config.options().copyDefaults(true);
+            config.save(ctp.globalConfigFile);
+        } catch (IOException ex) {
+            Logger.getLogger(BuildCommand.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
         return;
     }
 }

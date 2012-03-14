@@ -43,7 +43,10 @@ public class PlayerData {
     public int foodLevel;
     
     /** The time the player joined the lobby (in ms -- gotten from System.currentTimeMillis). */
-    public long lobbyJoinTime; // Kjhf  
+    public long lobbyJoinTime; // Kjhf
+
+    /** The time the player changed class (in ms -- gotten from System.currentTimeMillis). */
+    public long classChangeTime = 0;
     
     /** The ready state of this player. */
     public boolean isReady = false;

@@ -9,6 +9,8 @@ import me.dalton.capturethepoints.HealingItems;
 import me.dalton.capturethepoints.Items;
 import me.dalton.capturethepoints.Team;
 import me.dalton.capturethepoints.Util;
+import net.minecraft.server.Packet;
+import net.minecraft.server.Packet51MapChunk;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
@@ -17,9 +19,13 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.inventory.ItemStack;
@@ -27,7 +33,8 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.Wool;
 
-public class CaptureThePointsBlockListener extends BlockListener {
+public class CaptureThePointsBlockListener implements Listener
+{
     private final CaptureThePoints ctp;
 
     public boolean capturegame = false;
@@ -38,7 +45,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
         this.ctp = ctp;
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onBlockBreak (BlockBreakEvent event)
     {
         Player player = event.getPlayer();
@@ -197,7 +204,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
         }
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onBlockPlace (BlockPlaceEvent event) 
     {
         Block block = event.getBlock();
@@ -338,7 +345,7 @@ public class CaptureThePointsBlockListener extends BlockListener {
         }
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onSignChange (SignChangeEvent event) {
         if (!ctp.isGameRunning()) {
             return;
@@ -367,11 +374,36 @@ public class CaptureThePointsBlockListener extends BlockListener {
         return null;
     }
 
-    public void assignRole (Player p, String role) {
+    public boolean assignRole (Player p, String role)
+    {
+        // role changing cooldown
+        if(ctp.playerData.get(p).classChangeTime == 0)
+        {
+            ctp.playerData.get(p).classChangeTime = System.currentTimeMillis();
+        }
+        else if((System.currentTimeMillis() - ctp.playerData.get(p).classChangeTime <= 1000)) // 1 sec
+        {
+            p.sendMessage(ChatColor.RED + "[CTP] You can change roles only every 1 sec!");
+            return false;
+        }
+        else
+        {
+            ctp.playerData.get(p).classChangeTime = System.currentTimeMillis();
+        }
+
+
         p.setHealth(20);
         PlayerInventory inv = p.getInventory();
         inv.clear();
         inv.setHelmet(null);
+        if(ctp.playerData.get(p).team != null)
+        {
+            DyeColor color1 = DyeColor.valueOf(ctp.playerData.get(p).team.color.toUpperCase());
+
+            ItemStack helmet = new ItemStack(Material.WOOL, 1, color1.getData());
+            p.getInventory().setHelmet(helmet);
+        }
+
         inv.setChestplate(null);
         inv.setLeggings(null);
         inv.setBoots(null);
@@ -416,12 +448,14 @@ public class CaptureThePointsBlockListener extends BlockListener {
                 catch(Exception e)
                 {
                     System.out.println("[CTP] There is error in your config file, with roles. Please check them!");
-                    return;
+                    return false;
                 }
                 inv.addItem(stack);
             }
         }
         p.updateInventory();
+
+        return true;
     }
 
     private boolean checkForColor (String color, Location loc1, Location loc2, Location loc3) {
@@ -731,7 +765,13 @@ public class CaptureThePointsBlockListener extends BlockListener {
         this.ctp.restoreInv(p);
 
         Location loc = ctp.previousLocation.get(p);
-        loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
+        //loc.getWorld().loadChunk(loc.getBlockX(), loc.getBlockZ());
+        loc.setYaw((float) ctp.mainArena.lobby.dir);
+        if(!loc.getWorld().isChunkLoaded(loc.getChunk()))
+        {
+            Packet packet = new Packet51MapChunk((int)loc.getX() - 5, (int)loc.getY() - 2, (int)loc.getZ() - 5, (int)loc.getX() + 5, (int)loc.getY() + 2, (int)loc.getZ() + 5, ((CraftWorld)loc.getWorld()).getHandle().worldProvider.a);
+            ((CraftPlayer)p).getHandle().netServerHandler.sendPacket(packet);
+        }
         p.teleport(this.ctp.previousLocation.get(p));
 
         // do not check double signal
