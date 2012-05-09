@@ -248,8 +248,8 @@ public class ArenaRestore {
             else
                 signz = "NOT IN";
                 
-            ResultSet blocksRez = ctp.mysqlConnector.getData("SELECT * FROM (((Simple_block LEFT JOIN Sign on Sign.block_ID = id) LEFT JOIN note_block on note_block.block_ID = id)"+
-                    " LEFT JOIN spawner_block on spawner_block.block_ID = id) where arena_name = '" + arenaName + "' and `block_type`" + signz + "(6, 8, 9, 10, 11, 27, 28, 31, 32," +
+            ResultSet blocksRez = ctp.mysqlConnector.getData("SELECT * FROM (((Simple_block LEFT JOIN Sign on Sign.block_ID = id) LEFT JOIN Note_block on Note_block.block_ID = id)"+
+                    " LEFT JOIN Spawner_block on Spawner_block.block_ID = id) where arena_name = '" + arenaName + "' and `block_type`" + signz + "(6, 8, 9, 10, 11, 27, 28, 31, 32," +
                     "50, 51, 55, 59, 63, 64, 65, 66, 68, 69, 70, 71, 72, 75, 76, 77, 78, 81, 83, 90, 92, 93, 94, 96, 104, 105, 111, 115, 117, 342, 343, 328, 333) LIMIT " + timesRestored * restoreCount + ", " + restoreCount);
 
             while(blocksRez.next())
@@ -380,8 +380,8 @@ public class ArenaRestore {
 
             if (rs1.next())
             {
-                ResultSet blockCountRez = ctp.mysqlConnector.getData("SELECT COUNT(*) FROM (((Simple_block LEFT JOIN Sign on Sign.block_ID = id) LEFT JOIN note_block on note_block.block_ID = id)"+
-                        " LEFT JOIN spawner_block on spawner_block.block_ID = id) where arena_name = '" + ctp.mainArena.name + "' and `block_type` NOT IN(6, 8, 9, 10, 11, 27, 28, 31, 32," +
+                ResultSet blockCountRez = ctp.mysqlConnector.getData("SELECT COUNT(*) FROM (((Simple_block LEFT JOIN Sign on Sign.block_ID = id) LEFT JOIN Note_block on Note_block.block_ID = id)"+
+                        " LEFT JOIN Spawner_block on Spawner_block.block_ID = id) where arena_name = '" + ctp.mainArena.name + "' and `block_type` NOT IN(6, 8, 9, 10, 11, 27, 28, 31, 32," +
                         "50, 51, 55, 59, 63, 64, 65, 66, 68, 69, 70, 71, 72, 75, 76, 77, 78, 81, 83, 90, 92, 93, 94, 96, 104, 105, 111, 115, 117, 342, 343, 328, 333)");
 
                 int count = 0;
@@ -398,8 +398,8 @@ public class ArenaRestore {
                     ctp.arenaRestoreMaxRestoreTimes++;
 
                 // For second time :/
-                blockCountRez = ctp.mysqlConnector.getData("SELECT COUNT(*) FROM (((Simple_block LEFT JOIN Sign on Sign.block_ID = id) LEFT JOIN note_block on note_block.block_ID = id)"+
-                        " LEFT JOIN spawner_block on spawner_block.block_ID = id) where arena_name = '" + ctp.mainArena.name + "' and `block_type` IN(6, 8, 9, 10, 11, 27, 28, 31, 32," +
+                blockCountRez = ctp.mysqlConnector.getData("SELECT COUNT(*) FROM (((Simple_block LEFT JOIN Sign on Sign.block_ID = id) LEFT JOIN Note_block on Note_block.block_ID = id)"+
+                        " LEFT JOIN Spawner_block on Spawner_block.block_ID = id) where arena_name = '" + ctp.mainArena.name + "' and `block_type` IN(6, 8, 9, 10, 11, 27, 28, 31, 32," +
                         "50, 51, 55, 59, 63, 64, 65, 66, 68, 69, 70, 71, 72, 75, 76, 77, 78, 81, 83, 90, 92, 93, 94, 96, 104, 105, 111, 115, 117, 342, 343, 328, 333)");
 
                 count = 0;
